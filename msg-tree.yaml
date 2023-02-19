@@ -1,4 +1,77 @@
 bms:
+  meta:
+    id:  "0x600"
+    data:
+      bmu_hearbeat:
+        type: data_u32
+        idx: 0
+      serial_num:
+        type: data_u32
+        idx: 1
+
+  cmu_1_stat:
+    id:  "0x601"
+    data:
+      serial_num:
+        type: data_u32
+        idx: 0
+      pcb_temp:
+        type: data_16
+        idx: 2
+      cell_temp:
+        type: data_16
+        idx: 3
+  cmu_1_cells_1:
+    id:  "0x602"
+    data:
+      cell_0_volt:
+        type: data_16
+        idx: 1
+      cell_1_volt:
+        type: data_16
+        idx: 2
+      cell_2_volt:
+        type: data_16
+        idx: 3
+      cell_3_volt:
+        type: data_16
+        idx: 4
+  cmu_1_cells_2:
+    id:  "0x603"
+    data:
+      cell_4_volt:
+        type: data_16
+        idx: 0
+      cell_5_volt:
+        type: data_16
+        idx: 1
+      cell_6_volt:
+        type: data_16
+        idx: 2
+      cell_7_volt:
+        type: data_16
+        idx: 3
+
+  pack_soc:
+    id:  "0x6F4"
+    data:
+      soc_ah:
+        type: data_fp
+        idx: 0
+      soc_percent:
+        type: data_fp
+        idx: 1
+
+  pack_balance_soc:
+    id:  "0x6F5"
+    data:
+      soc_ah:
+        type: data_fp
+        idx: 0
+      soc_percent:
+        type: data_fp
+        idx: 1
+
   charger_contr:
     id:  "0x6F6"
     data:
