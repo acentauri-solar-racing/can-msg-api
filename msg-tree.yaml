@@ -1,0 +1,16 @@
+bms:
+  charger_contr:
+    id:  "0x6F6"
+    data:
+      char_cell_volt_err:
+        type: int16
+        idx: 0
+      temp_marg:
+        type: int16
+        idx: 1
+      disc_cell_volt_err:
+        type: int16
+        idx: 2
+      pack_cap:
+        type: int16
+        idx: 3
