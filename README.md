@@ -41,3 +41,8 @@ The CAN bus data is logged on an SD card in raw hex format (backup) and can also
 Python-can is a library providing scripts for the USB-CAN analyzer. This allows us to log the real-time data into a logfile for posterity and playback later on. The playback script is also already provided by python-can.
 
 The message data is decoded by a monitoring script `can-monitor.py` either in real-time or after a race day. It outputs CSV files with the decoded data, which can be used directly in the dashboard application (pandas likes CSV) or for strategy decisions.
+
+### Links
+
+- [https://python-can.readthedocs.io/en/stable/listeners.html](https://python-can.readthedocs.io/en/stable/listeners.html)
+- [https://python-can.readthedocs.io/en/stable/scripts.html#can-logger](https://python-can.readthedocs.io/en/stable/scripts.html#can-logger)
