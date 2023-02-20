@@ -26,16 +26,16 @@ bms:
     data:
       cell_0_volt:
         type: data_16
-        idx: 1
+        idx: 0
       cell_1_volt:
         type: data_16
-        idx: 2
+        idx: 1
       cell_2_volt:
         type: data_16
-        idx: 3
+        idx: 2
       cell_3_volt:
         type: data_16
-        idx: 4
+        idx: 3
   cmu_1_cells_2:
     id:  "0x603"
     data:
@@ -76,14 +76,14 @@ bms:
     id:  "0x6F6"
     data:
       char_cell_volt_err:
-        type: int16
+        type: data_16
         idx: 0
       temp_marg:
-        type: int16
+        type: data_16
         idx: 1
       disc_cell_volt_err:
-        type: int16
+        type: data_16
         idx: 2
       pack_cap:
-        type: int16
+        type: data_16
         idx: 3
