@@ -18,10 +18,12 @@ print("Validating message tree")
 
 ids = []
 
-# move a cursor along 64 bits and check for overlaps or overflows
+
 def validate_fields(fields) -> bool:
+    # move a cursor along 64 bits and check for overlaps or overflows
     cursor = 0
-    visited = [False] * 64 # array representing 64 bits, we mark bits as visited
+    # array representing 64 bits, we mark bits as visited
+    visited = [False] * 64
 
     for field in fields:
         size = type_lookup[field['type']]['size']
@@ -44,6 +46,7 @@ def validate_fields(fields) -> bool:
 
     return True
 
+
 def validate_ids(ids) -> bool:
     return True
 
@@ -57,7 +60,6 @@ for namespace in tree:
 
         for f in tree[namespace][topic]['data']:
             fields.append(tree[namespace][topic]['data'][f])
-
 
         if not validate_fields(fields):
             print("data allocation error in topic: " + topic)
