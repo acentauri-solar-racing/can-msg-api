@@ -2,6 +2,15 @@
 
 Repository tasked with interfacing between the CAN network data and external applications.
 
+## Installation
+
+Install python3 and pip. Then you can install the following modules required in this project's scripts with the following command:
+```sh
+python3 -m pip install -r requirements.txt
+pip install
+```
+
+
 ## How It Works
 
 Our subsystem's modules generate data about a certain topic, i.e. BMS charge controller status, solar panel deck temperatures etc. This repo defines these topics and assigns the associated fields with concrete data types that can be followed throughout all user applications.
