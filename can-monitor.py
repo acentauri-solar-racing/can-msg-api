@@ -7,6 +7,8 @@ from watchdog.observers import Observer
 import logging
 import time
 import os
+import itertools
+
 
 from pathlib import Path
 
@@ -37,7 +39,7 @@ class Watcher:
 
 class LogEventHandler(FileSystemEventHandler):
     def __init__(self):
-        self.line_number = -1
+        self.old_line_number = 0
         self.lock = Lock()
 
     def on_modified(self, event):
@@ -47,16 +49,18 @@ class LogEventHandler(FileSystemEventHandler):
             # prevent concurrency issues with reading files
             with self.lock:
                 with open(event.src_path, 'r', encoding="utf-8") as f:
-                    count = 0
-                    for line in f:
-                        if count > self.line_number:
-                            self._process_line(line)
-                            self.line_number = count
+                    # only analyze the newly added lines in the file
+                    new_line_cnt = 0
 
-                        count += 1
+                    # for loop goes from old line num till end of file
+                    for line in itertools.islice(f, self.old_line_number, None):
+                        self._process_line(line)
+                        new_line_cnt += 1
 
-    # Insert the values into MySql database
+                    self.old_line_number += new_line_cnt
+
     def _process_line(self, line):
+        # decode hex data and insert the values into MySql database here
         print(line)
 
 
