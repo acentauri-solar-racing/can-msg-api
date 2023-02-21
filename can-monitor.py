@@ -50,18 +50,16 @@ class LogEventHandler(FileSystemEventHandler):
             with self.lock:
                 with open(event.src_path, 'r', encoding="utf-8") as f:
                     # only analyze the newly added lines in the file
-                    new_line_cnt = 0
 
                     # for loop goes from old line num till end of file
                     for line in itertools.islice(f, self.old_line_number, None):
                         self._process_line(line)
-                        new_line_cnt += 1
-
-                    self.old_line_number += new_line_cnt
+                        self.old_line_number += 1
+                        print(self.old_line_number)
 
     def _process_line(self, line):
         # decode hex data and insert the values into MySql database here
-        print(line)
+        print("line: " + line)
 
 
 if __name__ == "__main__":
