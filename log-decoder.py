@@ -5,14 +5,14 @@ from multiprocessing import Lock
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
 from watchdog.observers import Observer
 from typing import Dict, List, Tuple, Union
-
-import logging
-import time
-import os
-import itertools
-
-
 from pathlib import Path
+
+import itertools
+import logging
+import os
+import binascii
+import struct
+import time
 
 
 class Watcher:
@@ -44,6 +44,23 @@ class LogEventHandler(FileSystemEventHandler):
         self.curr_file_name: str = ""
         self.lock: Lock = Lock()
 
+        self.data_structs: Dict[
+            Union[int, Tuple[int, ...]], Union[struct.Struct, Tuple, None]
+        ] = {}
+
+        # read file with the different keys
+        with open(script_cwd + "/type_lookup.txt", encoding="utf-8") as f:
+            structs = f.readlines()
+
+        for s in structs:
+            tmp = s.rstrip("\n").split(":")
+
+            # The ID is given as a hex value, the format needs no conversion
+            key, fmt = int(tmp[0], base=16), tmp[1]
+
+            # create struct object that interprets bits with given fmt
+            self.data_structs[key] = struct.Struct(fmt)
+
     def on_modified(self, event: FileSystemEvent):
         # fire only on modified files, not directories
         if not event.is_directory:
@@ -63,7 +80,7 @@ class LogEventHandler(FileSystemEventHandler):
                         if not temp:
                             continue
 
-                        self._process_line(line.rstrip("\n"))
+                        self._process_line(line.rstrip('\n'))
                         self.old_line_number += 1
 
     def _process_line(self, line: str) -> None:
@@ -72,16 +89,12 @@ class LogEventHandler(FileSystemEventHandler):
         timestamp = float(timestamp_string[1:-1])
         can_id, data = frame.split("#", maxsplit=1)
 
-    def _decode_data(data: str):
-        data_structs: Dict[
-            Union[int, Tuple[int, ...]], Union[struct.Struct, Tuple, None]
-        ] = {}
+        self._decode_data(can_id, data)
 
-        with open(parsed_args.decode[0], encoding="utf-8") as f:
-            structs = f.readlines()
-
-        for s in structs:
-            tmp = s.rstrip("\n").split(":")
+    def _decode_data(self, can_id: str, data: str):
+        key = int(can_id, base=16)
+        res = self.data_structs[key].unpack(binascii.unhexlify(data))
+        print(res)
 
 
 if __name__ == "__main__":
