@@ -57,9 +57,13 @@ class LogEventHandler(FileSystemEventHandler):
                     # only analyze the newly added lines in the file
                     # for loop goes from old line num till end of file
                     for line in itertools.islice(f, self.old_line_number, None):
+                        # skip empty lines
+                        temp = line.strip()
+                        if not temp:
+                            continue
+
                         self._process_line(line)
                         self.old_line_number += 1
-                        print(self.old_line_number)
 
     def _process_line(self, line: str) -> None:
         # decode hex data and insert the values into MySql database here
