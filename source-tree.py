@@ -7,7 +7,7 @@ import yaml
 import os
 
 from pathlib import Path
-
+from typing import List
 from msg_data_types import type_lookup
 
 # set the current working directory of script to resolve relative file path
@@ -19,7 +19,7 @@ print("Validating message tree")
 ids = []
 
 
-def validate_fields(fields) -> bool:
+def validate_fields(fields: List) -> bool:
     # move a cursor along 64 bits and check for overlaps or overflows
     cursor = 0
     # array representing 64 bits, we mark bits as visited
@@ -47,7 +47,16 @@ def validate_fields(fields) -> bool:
     return True
 
 
-def validate_ids(ids) -> bool:
+def add_fields_to_type_index(can_id: str, fields: List) -> None:
+    """autogenerate file for python-can with list of fields and types"""
+
+    with open(script_cwd + "/type_lookup.txt", "w", encoding="utf-8") as f:
+        lines = [">" + str(field['idx'])
+                 for field in fields]
+        f.writelines(lines)
+
+
+def validate_ids(ids: List[int]) -> bool:
     return True
 
 
@@ -60,6 +69,8 @@ for namespace in tree:
 
         for f in tree[namespace][topic]['data']:
             fields.append(tree[namespace][topic]['data'][f])
+
+        add_fields_to_type_index(fields)
 
         if not validate_fields(fields):
             print("data allocation error in topic: " + topic)
