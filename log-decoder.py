@@ -2,8 +2,10 @@
 decode data from a log file and read the information therein
 """
 from multiprocessing import Lock
-from watchdog.events import FileSystemEventHandler
+from watchdog.events import FileSystemEventHandler, FileSystemEvent
 from watchdog.observers import Observer
+from typing import Dict, List, Tuple, Union
+
 import logging
 import time
 import os
@@ -14,7 +16,6 @@ from pathlib import Path
 
 
 class Watcher:
-
     def __init__(self, directory, handler=FileSystemEventHandler()):
         self.observer: Observer() = Observer()
         self.handler: FileSystemEventHandler() = handler
@@ -62,12 +63,25 @@ class LogEventHandler(FileSystemEventHandler):
                         if not temp:
                             continue
 
-                        self._process_line(line)
+                        self._process_line(line.rstrip("\n"))
                         self.old_line_number += 1
 
     def _process_line(self, line: str) -> None:
-        # decode hex data and insert the values into MySql database here
-        print("line: " + line)
+        timestamp_string, channel_string, frame, rx_or_tx = line.split(sep=" ")
+
+        timestamp = float(timestamp_string[1:-1])
+        can_id, data = frame.split("#", maxsplit=1)
+
+    def _decode_data(data: str):
+        data_structs: Dict[
+            Union[int, Tuple[int, ...]], Union[struct.Struct, Tuple, None]
+        ] = {}
+
+        with open(parsed_args.decode[0], encoding="utf-8") as f:
+            structs = f.readlines()
+
+        for s in structs:
+            tmp = s.rstrip("\n").split(":")
 
 
 if __name__ == "__main__":

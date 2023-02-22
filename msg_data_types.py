@@ -5,26 +5,26 @@ type_lookup = {
     },
     'data_u8': {
         'size': 8,
-        'c_type': 'unsigned char',
+        'c_type': 'uint8_t',
     },
     'data_8': {
         'size': 8,
-        'c_type': 'char',
+        'c_type': 'int8_t',
     },
     'data_u16': {
         'size': 16,
-        'c_type': 'unsigned int',
+        'c_type': 'uint16_t',
     },
     'data_16': {
         'size': 16,
-        'c_type': 'int',
+        'c_type': 'int16_t',
     },
     'data_u32': {
         'size': 32,
-        'c_type': 'unsigned long',
+        'c_type': 'uint32_t',
     },
     'data_32': {
         'size': 32,
-        'c_type': 'long',
+        'c_type': 'int32_t',
     }
 }
