@@ -4,15 +4,17 @@ decode data from a log file and read the information therein
 from multiprocessing import Lock
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
 from watchdog.observers import Observer
-from typing import Dict, List, Tuple, Union
+from typing import Dict, Tuple, Union
 from pathlib import Path
 
 import itertools
-import logging
 import os
 import binascii
 import struct
 import time
+
+# set the current working directory of script to resolve relative file path
+script_cwd: str = os.path.realpath(os.path.dirname(__file__))
 
 
 class Watcher:
@@ -48,7 +50,9 @@ class LogEventHandler(FileSystemEventHandler):
             Union[int, Tuple[int, ...]], Union[struct.Struct, Tuple, None]
         ] = {}
 
-        # read file with the different keys
+        # read and process file listing can message data formats
+        # data_structs is a dictionary keyed with can_ids to struct objects
+        # configured per message to unpack the bits to data
         with open(script_cwd + "/type_lookup.txt", encoding="utf-8") as f:
             structs = f.readlines()
 
@@ -58,7 +62,7 @@ class LogEventHandler(FileSystemEventHandler):
             # The ID is given as a hex value, the format needs no conversion
             key, fmt = int(tmp[0], base=16), tmp[1]
 
-            # create struct object that interprets bits with given fmt
+            # create struct object that interprets bits with given format
             self.data_structs[key] = struct.Struct(fmt)
 
     def on_modified(self, event: FileSystemEvent):
@@ -89,17 +93,13 @@ class LogEventHandler(FileSystemEventHandler):
         timestamp = float(timestamp_string[1:-1])
         can_id, data = frame.split("#", maxsplit=1)
 
-        self._decode_data(can_id, data)
+        decoded_res: Tuple = self._decode_data(can_id, data)
 
-    def _decode_data(self, can_id: str, data: str):
+    def _decode_data(self, can_id: str, data: str) -> Tuple:
         key = int(can_id, base=16)
-        res = self.data_structs[key].unpack(binascii.unhexlify(data))
-        print(res)
+        return self.data_structs[key].unpack(binascii.unhexlify(data))
 
 
 if __name__ == "__main__":
-    # set the current working directory of script to resolve relative file path
-    script_cwd: str = os.path.realpath(os.path.dirname(__file__))
-
     w: Watcher = Watcher(script_cwd + "/logs/", LogEventHandler())
     w.run()
