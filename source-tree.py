@@ -12,11 +12,6 @@ from msg_data_types import type_lookup
 
 # set the current working directory of script to resolve relative file path
 script_cwd: str = os.path.realpath(os.path.dirname(__file__))
-tree = yaml.safe_load(Path(script_cwd + '/msg-tree.yaml').read_text())
-
-print("Validating message tree")
-
-ids = []
 
 
 def validate_fields(fields: List) -> bool:
@@ -47,35 +42,49 @@ def validate_fields(fields: List) -> bool:
     return True
 
 
-def add_fields_to_type_index(can_id: str, fields: List) -> None:
-    """autogenerate file for python-can with list of fields and types"""
+def conv_fields_to_type_index(can_id: str, fields: List, lines: List[str]) -> None:
+    """autogenerate file for python-can with list of fields and types in type_lookup.txt"""
+    cleaned_id = can_id.lstrip("0x")
+    struct_types: List[str] = [type_lookup[field['type']]['py_struct_t']
+                               for field in fields]
 
-    with open(script_cwd + "/type_lookup.txt", "w", encoding="utf-8") as f:
-        lines = [">" + str(field['idx'])
-                 for field in fields]
-        f.writelines(lines)
+    lines.append(cleaned_id + ":<" + ''.join(struct_types) + "\n")
 
 
-def validate_ids(ids: List[int]) -> bool:
+def validate_ids(ids: List[str]) -> bool:
     return True
 
 
-for namespace in tree:
-    for topic in tree[namespace]:
-        id = tree[namespace][topic]['id']
-        ids.append(id)
+def process_tree() -> None:
+    ids = []
+    lines: List[str] = []
 
-        fields = []
+    tree = yaml.safe_load(Path(script_cwd + '/msg-tree.yaml').read_text())
+    for namespace in tree:
+        for topic in tree[namespace]:
+            id: str = tree[namespace][topic]['id']
+            ids.append(id)
 
-        for f in tree[namespace][topic]['data']:
-            fields.append(tree[namespace][topic]['data'][f])
+            fields = []
 
-        add_fields_to_type_index(fields)
+            for f in tree[namespace][topic]['data']:
+                fields.append(tree[namespace][topic]['data'][f])
 
-        if not validate_fields(fields):
-            print("data allocation error in topic: " + topic)
+            conv_fields_to_type_index(id, fields, lines)
 
-    if not validate_ids(fields):
-        print("id error in topic, recheck: " + topic)
+            if not validate_fields(fields):
+                print("data allocation error in topic: " + topic)
 
-print("Done")
+        if not validate_ids(fields):
+            print("id error in topic, recheck: " + topic)
+
+    with open(script_cwd + "/type_lookup.txt", "w", encoding="utf-8") as f:
+        f.writelines(lines)
+
+
+if __name__ == "__main__":
+    print("Validating message tree")
+
+    process_tree()
+
+    print("Done")
