@@ -52,10 +52,13 @@ def conv_fields_to_type_index(can_id: str, fields: List, lines: List[str]) -> No
 
 
 def validate_ids(ids: List[str]) -> bool:
+    if (len(set(ids)) != len(ids)):
+        print("ERROR: duplicated CAN ID, recheck tree")
+        return False
     return True
 
 
-def process_tree() -> None:
+def process_tree() -> bool:
     ids = []
     lines: List[str] = []
 
@@ -73,18 +76,22 @@ def process_tree() -> None:
             conv_fields_to_type_index(id, fields, lines)
 
             if not validate_fields(fields):
-                print("data allocation error in topic: " + topic)
+                print("ERROR: data allocation error in topic: " + topic)
+                return False
 
-        if not validate_ids(fields):
-            print("id error in topic, recheck: " + topic)
+        if not validate_ids(ids):
+            return False
 
     with open(script_cwd + "/type_lookup.txt", "w", encoding="utf-8") as f:
         f.writelines(lines)
+
+    return True
 
 
 if __name__ == "__main__":
     print("Validating message tree")
 
-    process_tree()
-
-    print("Done")
+    if process_tree():
+        print("Done, valid tree")
+    else:
+        print("Done, ERROR state, invalid tree")
