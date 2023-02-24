@@ -2,7 +2,37 @@
 
 Repository tasked with interfacing between the CAN network data and external applications.
 
-## How It Works
+## Installation
+
+### Python Modules
+Install python3 and pip. Then you can install the following modules required in this project's scripts with the following command:
+```sh
+python3 -m pip install -r requirements.txt
+```
+
+### CAN Analyzer Drivers
+
+The Seeedstudio CAN USB analyzer requires some drivers that you can download online. Note that on linux, you actually have the drivers preinstalled and don't need to do anything, contrary to what is suggested in Seeedstudios documentation.
+
+## Usage
+
+### Log CAN bus data
+
+In the terminal, run the file `can-logger.sh`. It will create rotating log files capped at 50Mb in the `/logs` folder. Once a file reaches 50Mb, a new file with a different name is created.
+
+```sh
+./can-logger.sh
+```
+
+These log files can be saved and played back with the python-can playback at a later point in time.
+
+### Decode CAN bus data
+
+The script `log-decoder.py` watches for modifications to files in the `/logs` folder and reads the newly inserted lines to log files. New lines might appear because the real-time logging script is active or files from the SD-card logger are moved into the logs folder.
+
+New lines are decoded and presented for use in the database.
+
+## Detailed How It Works
 
 Our subsystem's modules generate data about a certain topic, i.e. BMS charge controller status, solar panel deck temperatures etc. This repo defines these topics and assigns the associated fields with concrete data types that can be followed throughout all user applications.
 
