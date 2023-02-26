@@ -23,8 +23,10 @@ def flatten_tree() -> dict:
 
     for namespace in tree:
         for topic in tree[namespace]:
-            tree[namespace][topic]["name"] = topic
             ids.append(str(tree[namespace][topic]["id"]))
+
+            # insert name manually in dict for convenience
+            tree[namespace][topic]["name"] = topic
 
             topics.append(tree[namespace][topic])
     return ids, topics

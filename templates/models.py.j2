@@ -9,14 +9,11 @@ class {{conv_name_camel_case(topic.name)}}(Base):
     {% for field in topic.data %}
     {{field}}: Mapped = mapped_column({{type_lookup[topic["data"][field]["type"]]["pysql_t"]}}()){% endfor %}
 
-
     def __init__(self, decoded_tuple):
         {% for field in topic.data -%}
             self.{{field}} = decoded_tuple[{{loop.index - 1}}]
         {% endfor %}
-
     def __repr__(self) -> str:
         return f"User(id={self.id!r}, name={self.name!r})"
-
 
 {% endfor %}
