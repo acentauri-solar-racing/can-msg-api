@@ -24,8 +24,7 @@ class Watcher:
         self.directory: str = directory
 
     def run(self):
-        self.observer.schedule(
-            self.handler, self.directory, recursive=True)
+        self.observer.schedule(self.handler, self.directory, recursive=True)
         self.observer.start()
 
         print("CAN-Monitor running in {}\n".format(self.directory))
@@ -75,7 +74,7 @@ class LogEventHandler(FileSystemEventHandler):
                     self.old_line_number = 0
                     self.curr_file_name = event.src_path
 
-                with open(event.src_path, 'r', encoding="utf-8") as f:
+                with open(event.src_path, "r", encoding="utf-8") as f:
                     # only analyze the newly added lines in the file
                     # for loop goes from old line num till end of file
                     for line in itertools.islice(f, self.old_line_number, None):
@@ -84,7 +83,7 @@ class LogEventHandler(FileSystemEventHandler):
                         if not temp:
                             continue
 
-                        self._process_line(line.rstrip('\n'))
+                        self._process_line(line.rstrip("\n"))
                         self.old_line_number += 1
 
     def _process_line(self, line: str) -> None:
@@ -98,8 +97,3 @@ class LogEventHandler(FileSystemEventHandler):
     def _decode_data(self, can_id: str, data: str) -> Tuple:
         key = int(can_id, base=16)
         return self.data_structs[key].unpack(binascii.unhexlify(data))
-
-
-if __name__ == "__main__":
-    w: Watcher = Watcher(script_cwd + "/logs/", LogEventHandler())
-    w.run()

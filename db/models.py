@@ -1,24 +1,16 @@
+from sqlalchemy import String
+from sqlalchemy.orm import declarative_base, Mapped, mapped_column
+
+Base = declarative_base()
 
 
-import pandas as pd
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import create_engine, ForeignKey, Column, Integer, Double
+class User(Base):
+    __tablename__ = "user"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(30))
 
+    def __init__(self, name):
+        self.name = name
 
-class Temperature(Base):
-    __tablename__ = "Temperature_Measurements"
-
-    id = Column("id", Integer, primary_key=True)
-    temp1 = Column("Temp1", Double)
-    temp2 = Column("Temp2", Double)
-    temp3 = Column("Temp3", Double)
-
-    def __init__(self, id, temp1, temp2, temp3):
-        self.id = id
-        self.temp1 = temp1
-        self.temp2 = temp2
-        self.temp3 = temp3
-
-    def __repr__(self):
-        return f"({self.id}), ({self.temp1}, {self.temp2}, {self.temp3})"
+    def __repr__(self) -> str:
+        return f"User(id={self.id!r}, name={self.name!r})"
