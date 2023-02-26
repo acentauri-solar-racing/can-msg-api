@@ -76,6 +76,5 @@ def main() -> None:
         service.refresh()
 
 
-
 if __name__ == "__main__":
     main()

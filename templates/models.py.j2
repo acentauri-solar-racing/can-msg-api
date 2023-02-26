@@ -17,7 +17,12 @@ class {{conv_name_camel_case(topic.name)}}(Base):
     {%- endfor %}
 
     def __repr__(self) -> str:
-        return f"{{topic.name}}(id={self.id!r}, name={self.name!r},{%for f in topic.data -%}{{f}} = {self.{{f}}}!r,){% endfor %}"
-
+        return "%s(id=%s), ({%for f in topic.data -%}%s{{", " if not loop.last else ""}}{% endfor %})" % (
+            "{{conv_name_camel_case(topic.name)}}",
+            self.id,
+            {%-for f in topic.data %}
+            self.{{f}},
+            {%- endfor %}
+        )
 
 {% endfor %}
