@@ -6,9 +6,11 @@ Base = declarative_base()
 {% for topic in topics %}
 class {{conv_name_camel_case(topic.name)}}(Base):
     __tablename__ = "{{topic.name}}"
+    id: Mapped[int] = mapped_column(primary_key=True)
+
 
     {%- for field in topic.data %}
-    {{field}}: Mapped = mapped_column({{type_lookup[topic["data"][field]["type"]]["pysql_t"]}}())
+    {{field}}: Mapped[{{type_lookup[topic["data"][field]["type"]]["py_t"]}}] = mapped_column({{type_lookup[topic["data"][field]["type"]]["pysql_t"]}}())
     {%- endfor %}
 
     def __init__(self, decoded_tuple):
