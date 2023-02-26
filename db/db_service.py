@@ -22,16 +22,10 @@ def _create_base_argument_parser(parser: argparse.ArgumentParser) -> None:
         action="store_true",
     )
 
-    parser.add_argument(
-        "-l",
-        "--listen",
-        help=r"Listen for new decoded log data",
-        action="store_true",
-    )
-
 
 class DbService:
     script_cwd: str = os.path.realpath(os.path.dirname(__file__))
+    session_entries: int = 0
 
     def __init__(self):
         self.engine: Engine = create_engine(self.conn_string())
@@ -61,9 +55,14 @@ class DbService:
 
         self.session.commit()
 
-    def listen(self) -> None:
-        w: Watcher = Watcher(script_cwd + "/../logs/", LogEventHandler())
-        w.run()
+    def add_entry(self, entry: object) -> None:
+        self.session.add(entry)
+        self.session_entries += 1
+
+        # prevent overloading of DB by writing to DB only when collected 20 entries
+        if session_entries > 20:
+            self.commit()
+            self.session_entries = 0
 
 
 def main() -> None:
@@ -75,8 +74,7 @@ def main() -> None:
 
     if results.refresh:
         service.refresh()
-    elif results.listen:
-        service.listen()
+
 
 
 if __name__ == "__main__":

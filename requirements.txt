@@ -1,7 +1,8 @@
-python-can
-watchdog
-pyserial
-pathlib
-SQLAlchemy
-python-dotenv
 PyMySQL
+PyYAML
+SQLAlchemy
+pathlib
+pyserial
+python-can
+python-dotenv
+watchdog
