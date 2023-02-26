@@ -4,10 +4,33 @@ Repository tasked with interfacing between the CAN network data and external app
 
 ## Installation
 
+### Virtualenv
+
+This step isn't required, yet is highly recommended. It isolates the installation of this project from the global python installation and prevents version mismatches.
+
+Install `virtualenv` from  [https://pypi.org/project/virtualenv/](https://pypi.org/project/virtualenv/)
+
+```sh
+pipx install virtualenv
+```
+
+Then source the configuration in the active shell. This will allow the programs in the virtualenv to be used without the source directory prepended.
+
+```sh
+source .venv/bin/activate
+```
+
+### Environment Variables
+
+Make a copy of the file `db/.env.example` and rename the copy to `db/.env`. This file is local and contains configuration strings for your machine that shouldn't be shared in version control.
+
+Then edit the `db/.env` file with the passwords and paths for your machine.
+
 ### Python Modules
 Install python3 and pip. Then you can install the following modules required in this project's scripts with the following command:
+
 ```sh
-python3 -m pip install -r requirements.txt
+pip install -r requirements.txt
 ```
 
 ### CAN Analyzer Drivers

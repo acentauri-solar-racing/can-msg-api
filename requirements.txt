@@ -2,3 +2,7 @@ python-can
 watchdog
 pyserial
 pathlib
+SQLAlchemy
+python-dotenv
+PyMySQL
+alembic
