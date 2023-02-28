@@ -4,6 +4,7 @@ and do not exceed CAN message size.
 """
 
 import os
+import utils.helpers
 
 from yaml import safe_load
 from jinja2 import Environment, FileSystemLoader
@@ -86,32 +87,29 @@ def validate_tree() -> bool:
 
 
 def write_tree_to_fs():
-    def conv_name_camel_case(name: str):
-        words = [word.capitalize() for word in name.split(sep="_")]
-        return "".join(words)
+    env = Environment(loader=FileSystemLoader("templates/"))
+    env.globals["helpers"] = utils.helpers
+    ids, topics = flatten_tree()
 
-    def conv_fields_to_type_index(can_id: str, fields: List, lines: List[str]) -> None:
-        """autogenerate file for python-can with list of fields and types in type_lookup.txt"""
-        cleaned_id = can_id.lstrip("0x")
-        struct_types: List[str] = [
-            type_lookup[field["type"]]["py_struct_t"] for field in fields
-        ]
+    def generate_type_index_file() -> None:
+        print(topics[0])
 
-        lines.append(cleaned_id + ":<" + "".join(struct_types) + "\n")
+        template = env.get_template("type_lookup.txt.j2")
+
+        content = template.render(
+            topics=topics,
+            type_lookup=type_lookup,
+        )
 
         with open(
             script_cwd + "/type_lookup.txt", mode="w", encoding="utf-8"
-        ) as message:
-            message.writelines(lines)
+        ) as results:
+            results.write(content)
 
-    def generate_model_file():
-        # Use Jinja to write models to file using template
-        environment = Environment(loader=FileSystemLoader("templates/"))
-        template = environment.get_template("models.py.j2")
+    def generate_model_file() -> None:
+        template = env.get_template("models.py.j2")
 
-        ids, topics = flatten_tree()
         content = template.render(
-            conv_name_camel_case=conv_name_camel_case,
             topics=topics,
             type_lookup=type_lookup,
         )
@@ -119,7 +117,7 @@ def write_tree_to_fs():
         with open(script_cwd + "/db/models.py", mode="w", encoding="utf-8") as results:
             results.write(content)
 
-    conv_fields_to_type_index()
+    generate_type_index_file()
     generate_model_file()
 
 
