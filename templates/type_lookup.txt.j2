@@ -1,3 +1,2 @@
-{%- for topic in topics %}
-{{helpers.clean_id(topic.id)}}: {{helpers.gen_format_str(topic.data)}}
-{%- endfor -%}
+{% for topic in topics %}{{helpers.clean_id(topic.id)}}:<{{helpers.gen_format_str(topic.data)}}
+{% endfor %}

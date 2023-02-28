@@ -7,6 +7,9 @@ import binascii
 import struct
 import time
 
+from utils import helpers
+from utils.type_lookup import type_lookup
+
 from typing import Dict, Tuple, Union
 from pathlib import Path
 
@@ -14,7 +17,6 @@ from multiprocessing import Lock
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
 from watchdog.observers import Observer
 
-from db.db_service import DbService
 
 # set the current working directory of script to resolve relative file path
 script_cwd: str = os.path.realpath(os.path.dirname(__file__))
@@ -98,5 +100,10 @@ class LogEventHandler(FileSystemEventHandler):
         decoded_res: Tuple = self._decode_data(can_id, data)
 
     def _decode_data(self, can_id: str, data: str) -> Tuple:
-        key = int(can_id, base=16)
+        key = helpers.conv_hex_str(can_id)
         return self.data_structs[key].unpack(binascii.unhexlify(data))
+
+
+if __name__ == "__main__":
+    w: Watcher = Watcher(script_cwd + "/logs/", LogEventHandler())
+    w.run()
