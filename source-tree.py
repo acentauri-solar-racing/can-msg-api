@@ -104,19 +104,23 @@ def write_tree_to_fs():
         ) as message:
             message.writelines(lines)
 
-    # Use Jinja to write models to file using template
-    environment = Environment(loader=FileSystemLoader("templates/"))
-    template = environment.get_template("models.py.j2")
+    def generate_model_file():
+        # Use Jinja to write models to file using template
+        environment = Environment(loader=FileSystemLoader("templates/"))
+        template = environment.get_template("models.py.j2")
 
-    ids, topics = flatten_tree()
-    content = template.render(
-        conv_name_camel_case=conv_name_camel_case,
-        topics=topics,
-        type_lookup=type_lookup,
-    )
+        ids, topics = flatten_tree()
+        content = template.render(
+            conv_name_camel_case=conv_name_camel_case,
+            topics=topics,
+            type_lookup=type_lookup,
+        )
 
-    with open(script_cwd + "/db/models.py", mode="w", encoding="utf-8") as results:
-        results.write(content)
+        with open(script_cwd + "/db/models.py", mode="w", encoding="utf-8") as results:
+            results.write(content)
+
+    conv_fields_to_type_index()
+    generate_model_file()
 
 
 if __name__ == "__main__":

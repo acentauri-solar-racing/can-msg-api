@@ -2,9 +2,8 @@
 import os
 import argparse
 
-
-from models import Base, User
-from log_decoder import Watcher
+# import all DDL classes
+from models import *
 
 from dotenv import dotenv_values
 
