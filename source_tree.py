@@ -93,8 +93,6 @@ def write_tree_to_fs():
     ids, topics = flatten_tree()
 
     def generate_type_index_file() -> None:
-        print(topics[0])
-
         template = env.get_template("type_lookup.txt.j2")
 
         content = template.render(

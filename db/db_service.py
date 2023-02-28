@@ -25,6 +25,7 @@ def _create_base_argument_parser(parser: argparse.ArgumentParser) -> None:
 class DbService:
     script_cwd: str = os.path.realpath(os.path.dirname(__file__))
     session_entries: int = 0
+    rate_limit: bool = False
 
     def __init__(self):
         self.engine: Engine = create_engine(self.conn_string())
@@ -54,14 +55,21 @@ class DbService:
 
         self.session.commit()
 
-    def add_entry(self, entry: object) -> None:
+    def add_entry(self, can_id: int, unpacked_data: tuple) -> None:
+        model = ddl_models[can_id]
+        entry: model = model(unpacked_data)
+
         self.session.add(entry)
-        self.session_entries += 1
+
+        if self.rate_limit:
+            self.session_entries += 1
 
         # prevent overloading of DB by writing to DB only when collected 20 entries
-        if session_entries > 20:
-            self.commit()
+        if self.rate_limit and self.session_entries > 20:
+            self.session.commit()
             self.session_entries = 0
+        else:
+            self.session.commit()
 
 
 def main() -> None:

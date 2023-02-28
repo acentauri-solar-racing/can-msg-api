@@ -9,6 +9,7 @@ import time
 
 from utils import helpers
 from utils.type_lookup import type_lookup
+from db.db_service import DbService
 
 from typing import Dict, Tuple, Union
 from pathlib import Path
@@ -45,6 +46,8 @@ class Watcher:
 
 
 class LogEventHandler(FileSystemEventHandler):
+    db: DbService = DbService()
+
     def __init__(self):
         self.old_line_number: int = 0
         self.curr_file_name: str = ""
@@ -97,11 +100,10 @@ class LogEventHandler(FileSystemEventHandler):
         timestamp = float(timestamp_string[1:-1])
         can_id, data = frame.split("#", maxsplit=1)
 
-        decoded_res: Tuple = self._decode_data(can_id, data)
-
-    def _decode_data(self, can_id: str, data: str) -> Tuple:
         key = helpers.conv_hex_str(can_id)
-        return self.data_structs[key].unpack(binascii.unhexlify(data))
+
+        unpacked_data: Tuple = self.data_structs[key].unpack(binascii.unhexlify(data))
+        self.db.add_entry(key, unpacked_data)
 
 
 if __name__ == "__main__":
