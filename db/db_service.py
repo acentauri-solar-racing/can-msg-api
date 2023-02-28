@@ -1,6 +1,5 @@
 """Read environment variables and construct the connection string for MySQL DB"""
 import os
-import argparse
 
 # import all DDL classes
 from db.models import *
@@ -9,17 +8,6 @@ from dotenv import dotenv_values
 
 from sqlalchemy import create_engine, Engine
 from sqlalchemy.orm import sessionmaker, Session
-
-
-def _create_base_argument_parser(parser: argparse.ArgumentParser) -> None:
-    """Adds common options to an argument parser."""
-
-    parser.add_argument(
-        "-r",
-        "--refresh",
-        help=r"Drop DB tables and reinstantiate",
-        action="store_true",
-    )
 
 
 class DbService:
@@ -70,18 +58,3 @@ class DbService:
             self.session_entries = 0
         else:
             self.session.commit()
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Manage database connection")
-    _create_base_argument_parser(parser)
-    results, unknown_args = parser.parse_known_args()
-
-    service = DbService()
-
-    if results.refresh:
-        service.refresh()
-
-
-if __name__ == "__main__":
-    main()
