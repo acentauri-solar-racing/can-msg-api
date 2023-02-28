@@ -1,17 +1,20 @@
 """
 decode data from a log file and read the information therein
 """
-from multiprocessing import Lock
-from watchdog.events import FileSystemEventHandler, FileSystemEvent
-from watchdog.observers import Observer
-from typing import Dict, Tuple, Union
-from pathlib import Path
-
 import itertools
 import os
 import binascii
 import struct
 import time
+
+from typing import Dict, Tuple, Union
+from pathlib import Path
+
+from multiprocessing import Lock
+from watchdog.events import FileSystemEventHandler, FileSystemEvent
+from watchdog.observers import Observer
+
+from db.db_service import DbService
 
 # set the current working directory of script to resolve relative file path
 script_cwd: str = os.path.realpath(os.path.dirname(__file__))
