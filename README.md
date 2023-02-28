@@ -1,8 +1,12 @@
 # CAN Message API
 
+Repository tasked with interfacing between the CAN network data and external applications.
+
+Our subsystem's modules generate data about a certain topic, i.e. BMS charge controller status, solar panel deck temperatures etc. This repo defines these topics and defines methods to handle data.
+
+
 ![Overview](docs/overview.png)
 
-Repository tasked with interfacing between the CAN network data and external applications.
 
 ## Installation
 
@@ -66,11 +70,6 @@ These log files can be saved and played back with the python-can playback at a l
 The script `log_decoder.py` watches for modifications to files in the `/logs` folder and reads the newly inserted lines to log files. New lines might appear because the real-time logging script is active or files from the SD-card logger are moved into the logs folder.
 
 
-## Background Information
-
-Our subsystem's modules generate data about a certain topic, i.e. BMS charge controller status, solar panel deck temperatures etc. This repo defines these topics and assigns the associated fields with concrete data types that can be followed throughout all user applications.
-
-The file `msg-tree.yaml` contains a global lookup table with all topics and should hopefully prevent mismatches with ID's and datatypes across projects.
 
 ## Links
 
