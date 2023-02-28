@@ -4,14 +4,15 @@ and do not exceed CAN message size.
 """
 
 import os
-import utils.helpers
+
+from utils import helpers
+from utils.type_lookup import type_lookup
 
 from yaml import safe_load
 from jinja2 import Environment, FileSystemLoader
 
 from pathlib import Path
 from typing import List
-from msg_data_types import type_lookup
 
 # set the current working directory of script to resolve relative file path
 script_cwd: str = os.path.realpath(os.path.dirname(__file__))
@@ -88,7 +89,7 @@ def validate_tree() -> bool:
 
 def write_tree_to_fs():
     env = Environment(loader=FileSystemLoader("templates/"))
-    env.globals["helpers"] = utils.helpers
+    env.globals["helpers"] = helpers
     ids, topics = flatten_tree()
 
     def generate_type_index_file() -> None:

@@ -3,7 +3,7 @@ import os
 import argparse
 
 # import all DDL classes
-from models import *
+from db.models import *
 
 from dotenv import dotenv_values
 
