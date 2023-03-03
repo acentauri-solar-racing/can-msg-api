@@ -13,5 +13,5 @@ if [ -z "$channel" ]
 then
     echo "Please supply the a channel i.e. /dev/ttyUSBO or /COM.."
 else
-    python3 -m can.logger -i seeedstudio -b 250000 -s 52428800 -c $channel -f logs/$datetime.log
+    python -m can.logger -i seeedstudio -b 250000 -s 52428800 -c $channel -f logs/$datetime.log
 fi
