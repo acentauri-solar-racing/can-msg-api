@@ -19,10 +19,6 @@ from watchdog.events import FileSystemEventHandler, FileSystemEvent
 from watchdog.observers import Observer
 
 
-# set the current working directory of script to resolve relative file path
-script_cwd: str = os.path.realpath(os.path.dirname(__file__))
-
-
 class Watcher:
     def __init__(self, directory, handler=FileSystemEventHandler()):
         self.observer: Observer() = Observer()
@@ -60,7 +56,7 @@ class LogEventHandler(FileSystemEventHandler):
         # read and process file listing can message data formats
         # data_structs is a dictionary keyed with can_ids to struct objects
         # configured per message to unpack the bits to data
-        with open(script_cwd + "/type_lookup.txt", encoding="utf-8") as f:
+        with open("type_lookup.txt", encoding="utf-8") as f:
             structs = f.readlines()
 
         for s in structs:
@@ -107,5 +103,5 @@ class LogEventHandler(FileSystemEventHandler):
 
 
 if __name__ == "__main__":
-    w: Watcher = Watcher(script_cwd + "/logs/", LogEventHandler())
+    w: Watcher = Watcher("logs/", LogEventHandler())
     w.run()
