@@ -1,9 +1,9 @@
 # Get arguments for CAN bus channel and log file size in Mb
-while getopts c: flag
+while getopts c:b: flag
 do
     case "${flag}" in
         c) channel=${OPTARG};;
-        # b) baudrate=${OPTARG};;
+        b) baudrate=${OPTARG};;
     esac
 done
 
@@ -13,5 +13,5 @@ if [ -z "$channel" ]
 then
     echo "Please supply the a channel i.e. /dev/ttyUSBO or /COM.."
 else
-    python -m can.logger -i seeedstudio -b 250000 -s 52428800 -c $channel -f logs/$datetime.log
+    python -m can.logger -i seeedstudio -b $baudrate -s 52428800 -c $channel -f logs/$datetime.log
 fi

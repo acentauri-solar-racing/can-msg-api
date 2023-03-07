@@ -1,5 +1,34 @@
+import os
+
 from utils.type_lookup import type_lookup
 from typing import List
+
+from yaml import safe_load
+from pathlib import Path
+
+# flatten the tree into lists of topic and field dicts
+def flatten_tree() -> dict:
+    tree = safe_load(Path("msg-tree.yaml").read_text())
+    ids: List = []
+    topics_list: List = []
+    topics_dict: dict = {}
+
+    for namespace in tree:
+        # then flatten the tree into a list of all topics
+        for topic in tree[namespace]:
+            ids.append(str(tree[namespace][topic]["id"]))
+
+            # insert simple name manually in dict for convenience
+            tree[namespace][topic]["name"] = topic
+
+            # gen topic string with the full path, ex: cmu -> /bms/cmu
+            topic_str: str = "/" + namespace + "/" + topic
+
+            # return two flattened trees, a dict keyed with topics string and simple list
+            topics_list.append(tree[namespace][topic])
+            topics_dict[topic_str] = tree[namespace][topic]
+
+    return (ids, topics_list, topics_dict)
 
 
 def conv_name_camel_case(name: str) -> str:

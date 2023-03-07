@@ -11,7 +11,6 @@ from sqlalchemy.orm import sessionmaker, Session
 
 
 class DbService:
-    script_cwd: str = os.path.realpath(os.path.dirname(__file__))
     session_entries: int = 0
     rate_limit: bool = False
 
@@ -20,7 +19,7 @@ class DbService:
         self.session: Session = self.create_session()
 
     def conn_string(self) -> str:
-        env = dotenv_values(self.script_cwd + "/.env")
+        env = dotenv_values("db/.env")
 
         return "mysql+pymysql://%s:%s@%s/%s" % (
             env["DB_USER"],
