@@ -9,18 +9,26 @@ from pathlib import Path
 # flatten the tree into lists of topic and field dicts
 def flatten_tree() -> dict:
     tree = safe_load(Path("msg-tree.yaml").read_text())
-    topics: List = []
     ids: List = []
+    topics_list: List = []
+    topics_dict: dict = {}
 
     for namespace in tree:
+        # then flatten the tree into a list of all topics
         for topic in tree[namespace]:
             ids.append(str(tree[namespace][topic]["id"]))
 
-            # insert name manually in dict for convenience
+            # insert simple name manually in dict for convenience
             tree[namespace][topic]["name"] = topic
 
-            topics.append(tree[namespace][topic])
-    return ids, topics
+            # gen topic string with the full path, ex: cmu -> /bms/cmu
+            topic_str: str = "/" + namespace + "/" + topic
+
+            # return two flattened trees, a dict keyed with topics string and simple list
+            topics_list.append(tree[namespace][topic])
+            topics_dict[topic_str] = tree[namespace][topic]
+
+    return (ids, topics_list, topics_dict)
 
 
 def conv_name_camel_case(name: str) -> str:

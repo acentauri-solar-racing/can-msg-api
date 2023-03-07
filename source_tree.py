@@ -53,7 +53,7 @@ def validate_tree() -> bool:
         return True
 
     # run validation code for ids and fields
-    ids, topics = helpers.flatten_tree()
+    ids, topics, topics_dict = helpers.flatten_tree()
     for topic in topics:
         if not validate_fields(topic):
             print("ERROR: data allocation error in topic\n")
@@ -68,7 +68,7 @@ def validate_tree() -> bool:
 def write_tree_to_fs():
     env = Environment(loader=FileSystemLoader("templates/"))
     env.globals["helpers"] = helpers
-    ids, topics = helpers.flatten_tree()
+    ids, topics, topics_dict = helpers.flatten_tree()
 
     def generate_type_index_file() -> None:
         template = env.get_template("type_lookup.txt.j2")
