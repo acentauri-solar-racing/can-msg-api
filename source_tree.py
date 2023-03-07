@@ -18,7 +18,16 @@ from typing import List
 script_cwd: str = os.path.realpath(os.path.dirname(__file__))
 
 # flatten the tree into lists of topic and field dicts
-def flatten_tree() -> dict:
+## slightly confusing that it says -> dict and outputs lists
+def flatten_tree() -> dict: 
+    """Takes yaml tree and returns list of all the IDs and a corresponding list 
+    of the data. Each data dictionary has an added entry "name" with the topic 
+    name of the corresponding id.
+
+    Returns:
+        List: IDs stored as strings
+        List: Data stored as dictionaries
+    """
     tree = safe_load(Path(script_cwd + "/msg-tree.yaml").read_text())
     topics: List = []
     ids: List = []
@@ -36,12 +45,28 @@ def flatten_tree() -> dict:
 
 def validate_tree() -> bool:
     def validate_ids(ids: List[str]) -> bool:
+        """Checks if there are no duplicate IDs
+
+        Args:
+            ids (List[str]): List of IDs
+
+        Returns:
+            bool: True if there are no duplicates
+        """
         if len(set(ids)) != len(ids):
             print("ERROR: duplicated CAN ID, recheck tree")
             return False
         return True
 
     def validate_fields(topic: dict) -> bool:
+        """Checks that the data fits into 64 bits, and that these bits are distributed correctly.
+
+        Args:
+            topic (dict): A dictionary with the data for one topic.
+
+        Returns:
+            bool: True if the data allocation is valid.
+        """
         fields = []
 
         for f in topic["data"]:
@@ -88,6 +113,7 @@ def validate_tree() -> bool:
 
 
 def write_tree_to_fs():
+    ##what does this actually do? what are these files used for?
     env = Environment(loader=FileSystemLoader("templates/"))
     env.globals["helpers"] = helpers
     ids, topics = flatten_tree()
@@ -95,11 +121,12 @@ def write_tree_to_fs():
     def generate_type_index_file() -> None:
         template = env.get_template("type_lookup.txt.j2")
 
+        #create string from the template
         content = template.render(
             topics=topics,
             type_lookup=type_lookup,
         )
-
+        #write the string into a txt filecalled type_lookup.txt
         with open(
             script_cwd + "/type_lookup.txt", mode="w", encoding="utf-8"
         ) as results:
