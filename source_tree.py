@@ -59,7 +59,8 @@ def validate_tree() -> bool:
         return True
 
     def validate_fields(topic: dict) -> bool:
-        """Checks that the data fits into 64 bits, and that these bits are distributed correctly.
+        """Checks that the data fits into 64 bits, and that these bits are 
+        distributed correctly.
 
         Args:
             topic (dict): A dictionary with the data for one topic.
