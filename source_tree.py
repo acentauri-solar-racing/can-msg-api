@@ -7,40 +7,9 @@ import os
 
 from utils import helpers
 from utils.type_lookup import type_lookup
-
-from yaml import safe_load
-from jinja2 import Environment, FileSystemLoader
-
-from pathlib import Path
 from typing import List
 
-# set the current working directory of script to resolve relative file path
-script_cwd: str = os.path.realpath(os.path.dirname(__file__))
-
-# flatten the tree into lists of topic and field dicts
-## slightly confusing that it says -> dict and outputs lists
-def flatten_tree() -> dict: 
-    """Takes yaml tree and returns list of all the IDs and a corresponding list 
-    of the data. Each data dictionary has an added entry "name" with the topic 
-    name of the corresponding id.
-
-    Returns:
-        List: IDs stored as strings
-        List: Data stored as dictionaries
-    """
-    tree = safe_load(Path(script_cwd + "/msg-tree.yaml").read_text())
-    topics: List = []
-    ids: List = []
-
-    for namespace in tree:
-        for topic in tree[namespace]:
-            ids.append(str(tree[namespace][topic]["id"]))
-
-            # insert name manually in dict for convenience
-            tree[namespace][topic]["name"] = topic
-
-            topics.append(tree[namespace][topic])
-    return ids, topics
+from jinja2 import Environment, FileSystemLoader
 
 
 def validate_tree() -> bool:
@@ -59,7 +28,7 @@ def validate_tree() -> bool:
         return True
 
     def validate_fields(topic: dict) -> bool:
-        """Checks that the data fits into 64 bits, and that these bits are 
+        """Checks that the data fits into 64 bits, and that these bits are
         distributed correctly.
 
         Args:
@@ -101,7 +70,7 @@ def validate_tree() -> bool:
         return True
 
     # run validation code for ids and fields
-    ids, topics = flatten_tree()
+    ids, topics, topics_dict = helpers.flatten_tree()
     for topic in topics:
         if not validate_fields(topic):
             print("ERROR: data allocation error in topic\n")
@@ -117,7 +86,7 @@ def write_tree_to_fs():
     ##what does this actually do? what are these files used for?
     env = Environment(loader=FileSystemLoader("templates/"))
     env.globals["helpers"] = helpers
-    ids, topics = flatten_tree()
+    ids, topics, topics_dict = helpers.flatten_tree()
 
     def generate_type_index_file() -> None:
         template = env.get_template("type_lookup.txt.j2")
@@ -128,9 +97,7 @@ def write_tree_to_fs():
             type_lookup=type_lookup,
         )
         #write the string into a txt filecalled type_lookup.txt
-        with open(
-            script_cwd + "/type_lookup.txt", mode="w", encoding="utf-8"
-        ) as results:
+        with open("type_lookup.txt", mode="w", encoding="utf-8") as results:
             results.write(content)
 
     def generate_model_file() -> None:
@@ -141,7 +108,7 @@ def write_tree_to_fs():
             type_lookup=type_lookup,
         )
 
-        with open(script_cwd + "/db/models.py", mode="w", encoding="utf-8") as results:
+        with open("db/models.py", mode="w", encoding="utf-8") as results:
             results.write(content)
 
     generate_type_index_file()
