@@ -83,7 +83,6 @@ def validate_tree() -> bool:
 
 
 def write_tree_to_fs():
-    ##what does this actually do? what are these files used for?
     env = Environment(loader=FileSystemLoader("templates/"))
     env.globals["helpers"] = helpers
     ids, topics, topics_dict = helpers.flatten_tree()
