@@ -20,12 +20,19 @@ from watchdog.observers import Observer
 
 
 class Watcher:
+    """This class is responsible for triggering the LogEventHandler processes 
+    indefinitely. It only monitors the specified directory.
+    """
     def __init__(self, directory, handler=FileSystemEventHandler()):
         self.observer: Observer() = Observer()
         self.handler: FileSystemEventHandler() = handler
         self.directory: str = directory
 
     def run(self):
+        """This starts the monitoring process of self.directory. Any file
+        changes (e.g. creation, modification) will trigger the LogEventHandler. 
+        This function runs until the program is terminated.
+        """
         self.observer.schedule(self.handler, self.directory, recursive=True)
         self.observer.start()
 
@@ -35,6 +42,7 @@ class Watcher:
             while True:
                 time.sleep(1)
         except:
+            ##program is stopped (i.e. runs forever)
             self.observer.stop()
         self.observer.join()
 
@@ -69,7 +77,14 @@ class LogEventHandler(FileSystemEventHandler):
             self.data_structs[key] = struct.Struct(fmt)
 
     def on_modified(self, event: FileSystemEvent):
-        # fire only on modified files, not directories
+        """This function gets triggered automatically once the Watcher is
+        running and a modification in the monitored directory or 
+        subdirectory is detected. It will only respond to modified files,
+        decodes the newly modified lines and adds them to the SQL database.
+
+        Args:
+            event (FileSystemEvent): Event triggered by the Watcher class.
+        """
         if not event.is_directory:
             with self.lock:  # prevent concurrency issues with reading files
 
