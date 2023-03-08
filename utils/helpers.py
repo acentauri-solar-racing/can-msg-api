@@ -7,6 +7,7 @@ from yaml import safe_load
 from pathlib import Path
 
 # flatten the tree into lists of topic and field dicts
+## slightly confusing that it says -> dict and outputs lists
 def flatten_tree() -> dict:
     tree = safe_load(Path("msg-tree.yaml").read_text())
     ids: List = []
