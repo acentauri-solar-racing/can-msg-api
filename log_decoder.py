@@ -1,31 +1,39 @@
 """
 decode data from a log file and read the information therein
 """
-from multiprocessing import Lock
-from watchdog.events import FileSystemEventHandler, FileSystemEvent
-from watchdog.observers import Observer
-from typing import Dict, Tuple, Union
-from pathlib import Path
-
 import itertools
 import os
 import binascii
 import struct
 import time
 
-# set the current working directory of script to resolve relative file path
-script_cwd: str = os.path.realpath(os.path.dirname(__file__))
+from utils import helpers
+from utils.type_lookup import type_lookup
+from db.db_service import DbService
+
+from typing import Dict, Tuple, Union
+from pathlib import Path
+
+from multiprocessing import Lock
+from watchdog.events import FileSystemEventHandler, FileSystemEvent
+from watchdog.observers import Observer
 
 
 class Watcher:
+    """This class is responsible for triggering the LogEventHandler processes
+    indefinitely. It only monitors the specified directory.
+    """
     def __init__(self, directory, handler=FileSystemEventHandler()):
         self.observer: Observer() = Observer()
         self.handler: FileSystemEventHandler() = handler
         self.directory: str = directory
 
     def run(self):
-        self.observer.schedule(
-            self.handler, self.directory, recursive=True)
+        """This starts the monitoring process of self.directory. Any file
+        changes (e.g. creation, modification) will trigger the LogEventHandler.
+        This function runs until the program is terminated.
+        """
+        self.observer.schedule(self.handler, self.directory, recursive=True)
         self.observer.start()
 
         print("CAN-Monitor running in {}\n".format(self.directory))
@@ -34,6 +42,7 @@ class Watcher:
             while True:
                 time.sleep(1)
         except:
+            ##program is stopped (i.e. runs forever)
             self.observer.stop()
         self.observer.join()
 
@@ -41,6 +50,8 @@ class Watcher:
 
 
 class LogEventHandler(FileSystemEventHandler):
+    db: DbService = DbService()
+
     def __init__(self):
         self.old_line_number: int = 0
         self.curr_file_name: str = ""
@@ -53,7 +64,7 @@ class LogEventHandler(FileSystemEventHandler):
         # read and process file listing can message data formats
         # data_structs is a dictionary keyed with can_ids to struct objects
         # configured per message to unpack the bits to data
-        with open(script_cwd + "/type_lookup.txt", encoding="utf-8") as f:
+        with open("type_lookup.txt", encoding="utf-8") as f:
             structs = f.readlines()
 
         for s in structs:
@@ -66,7 +77,14 @@ class LogEventHandler(FileSystemEventHandler):
             self.data_structs[key] = struct.Struct(fmt)
 
     def on_modified(self, event: FileSystemEvent):
-        # fire only on modified files, not directories
+        """This function gets triggered automatically once the Watcher is
+        running and a modification in the monitored directory or
+        subdirectory is detected. It will only respond to modified files,
+        decodes the newly modified lines and adds them to the SQL database.
+
+        Args:
+            event (FileSystemEvent): Event triggered by the Watcher class.
+        """
         if not event.is_directory:
             with self.lock:  # prevent concurrency issues with reading files
 
@@ -75,7 +93,7 @@ class LogEventHandler(FileSystemEventHandler):
                     self.old_line_number = 0
                     self.curr_file_name = event.src_path
 
-                with open(event.src_path, 'r', encoding="utf-8") as f:
+                with open(event.src_path, "r", encoding="utf-8") as f:
                     # only analyze the newly added lines in the file
                     # for loop goes from old line num till end of file
                     for line in itertools.islice(f, self.old_line_number, None):
@@ -84,7 +102,7 @@ class LogEventHandler(FileSystemEventHandler):
                         if not temp:
                             continue
 
-                        self._process_line(line.rstrip('\n'))
+                        self._process_line(line.rstrip("\n"))
                         self.old_line_number += 1
 
     def _process_line(self, line: str) -> None:
@@ -93,13 +111,12 @@ class LogEventHandler(FileSystemEventHandler):
         timestamp = float(timestamp_string[1:-1])
         can_id, data = frame.split("#", maxsplit=1)
 
-        decoded_res: Tuple = self._decode_data(can_id, data)
+        key = helpers.conv_hex_str(can_id)
 
-    def _decode_data(self, can_id: str, data: str) -> Tuple:
-        key = int(can_id, base=16)
-        return self.data_structs[key].unpack(binascii.unhexlify(data))
+        unpacked_data: Tuple = self.data_structs[key].unpack(binascii.unhexlify(data))
+        self.db.add_entry(key, unpacked_data)
 
 
 if __name__ == "__main__":
-    w: Watcher = Watcher(script_cwd + "/logs/", LogEventHandler())
+    w: Watcher = Watcher("logs/", LogEventHandler())
     w.run()

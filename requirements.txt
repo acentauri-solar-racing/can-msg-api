@@ -1,4 +1,9 @@
-python-can
-watchdog
-pyserial
+Jinja2
+PyMySQL
+PyYAML
+SQLAlchemy
 pathlib
+pyserial
+python-can
+python-dotenv
+watchdog
