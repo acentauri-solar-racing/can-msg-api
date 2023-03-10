@@ -97,7 +97,13 @@ python source_tree.py
 
 ## Usage
 
-For details, refer to [Python CAN docs](https://python-can.readthedocs.io/en/master/scripts.html).
+Before running these commands, make sure your local filetree has the necessary message tree description. This can be generated using the following command:
+
+```sh
+python source_tree.py
+```
+
+For details regarding the scripts, refer to [Python CAN docs](https://python-can.readthedocs.io/en/master/scripts.html) or read the manpages.
 
 ### Logging
 
