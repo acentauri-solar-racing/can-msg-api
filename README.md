@@ -8,6 +8,8 @@ Our subsystem's modules generate data about a certain topic, i.e. BMS charge con
 ![Overview](docs/overview.png)
 
 
+
+
 ## Installation
 
 ### Python and Utils (Windows only)
@@ -95,21 +97,62 @@ python source_tree.py
 
 ## Usage
 
-### Log CAN bus data
+For details, refer to [Python CAN docs](https://python-can.readthedocs.io/en/master/scripts.html).
+
+### Logging
 
 In the terminal, run the file `can-logger.sh`. It will create rotating log files capped at 50Mb in the `/logs` folder. Once a file reaches 50Mb, a new file with a different name is created.
 
 ```sh
-./can-logger.sh
+# example for Linux
+./can-logger.sh -c /dev/ttyUSB0 -b 250000
 ```
 
 These log files can be saved and played back with the python-can playback at a later point in time.
 
-### Decode CAN bus data
+### Playback
 
-The script `log_decoder.py` watches for modifications to files in the `/logs` folder and reads the newly inserted lines to log files. New lines might appear because the real-time logging script is active or files from the SD-card logger are moved into the logs folder.
+```sh
+python -m can.player -v -i seeedstudio -b 250000 -c /dev/ttyUSB0 logs/LOGFILE_HERE
+```
 
+### View
 
+Automatically parses values in CAN bus and shows them in CAN viewer.
+
+```sh
+python -m can.viewer -v -i seeedstudio -b 250000 -c /dev/ttyUSB0 -d type_lookup.txt
+```
+
+```
+Shortcuts:
+        +---------+-------------------------------+
+        |   Key   |       Description             |
+        +---------+-------------------------------+
+        | ESQ/q   | Exit the viewer               |
+        | c       | Clear the stored frames       |
+        | s       | Sort the stored frames        |
+        | h       | Toggle highlight byte changes |
+        | SPACE   | Pause the viewer              |
+        | UP/DOWN | Scroll the viewer             |
+        +---------+-------------------------------+
+```
+
+#### Decode
+
+The script `log_decoder.py` watches for modifications to files in the `/logs` folder and reads the newly inserted lines to log files. This decoder can run in real-time as log-files are being written, or also after recording data. New lines might appear because the real-time logging script is active or files from the SD-card logger are moved into the logs folder.
+
+```sh
+python log_decoder.py
+```
+
+### Manage DB
+
+If you want to delete all entries in the database, just execute the following command
+
+```sh
+python db_utils.py --refresh
+```
 
 ## Links
 
