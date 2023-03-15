@@ -2,7 +2,7 @@ bms:
   meta:
     id:  "0x600"
     data:
-      bmu_hearbeat:
+      bmu_heartbeat:
         type: data_u32
         idx: 0
       serial_num:
