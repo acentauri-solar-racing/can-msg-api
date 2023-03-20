@@ -87,3 +87,17 @@ bms:
       pack_cap:
         type: data_16
         idx: 3
+
+stwheel:
+  heartbeat:
+    id:  "0x100"
+    data:
+      acc_pedal:
+        type: data_u16
+        idx: 0
+      rec_pedal:
+        type: data_u16
+        idx: 1
+      buttons_status:
+        type: data_u16
+        idx: 2
