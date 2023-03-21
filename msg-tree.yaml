@@ -101,3 +101,6 @@ stwheel:
       buttons_status:
         type: data_u16
         idx: 2
+      unused:
+        type: data_u16
+        idx: 3
