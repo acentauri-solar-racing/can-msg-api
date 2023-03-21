@@ -111,7 +111,7 @@ In the terminal, run the file `can-logger.sh`. It will create rotating log files
 
 ```sh
 # example for Linux
-./can-logger.sh -c /dev/ttyUSB0 -b 250000
+./can-logger.sh -c /dev/ttyUSB0 -b 500000
 ```
 
 These log files can be saved and played back with the python-can playback at a later point in time.
@@ -119,7 +119,7 @@ These log files can be saved and played back with the python-can playback at a l
 ### Playback
 
 ```sh
-python -m can.player -v -i seeedstudio -b 250000 -c /dev/ttyUSB0 logs/LOGFILE_HERE
+python -m can.player -v -i seeedstudio -b 500000 -c /dev/ttyUSB0 logs/LOGFILE_HERE
 ```
 
 ### View
@@ -127,7 +127,7 @@ python -m can.player -v -i seeedstudio -b 250000 -c /dev/ttyUSB0 logs/LOGFILE_HE
 Automatically parses values in CAN bus and shows them in CAN viewer.
 
 ```sh
-python -m can.viewer -v -i seeedstudio -b 250000 -c /dev/ttyUSB0 -d type_lookup.txt
+python -m can.viewer -v -i seeedstudio -b 500000 -c /dev/ttyUSB0 -d type_lookup.txt
 ```
 
 ```
