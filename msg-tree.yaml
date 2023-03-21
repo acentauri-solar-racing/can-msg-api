@@ -89,7 +89,7 @@ bms:
         idx: 3
 
 stwheel:
-  heartbeat:
+  stwheel_heartbeat:
     id:  "0x100"
     data:
       acc_pedal:
