@@ -67,6 +67,16 @@ def validate_tree() -> bool:
                 else:
                     visited[i] = True
 
+        for i in range(0, 64):
+            if visited[i] == False:
+                print(
+                    "\nNot all bits allocated in "
+                    + topic["id"]
+                    + ", first detected at index: "
+                    + str(i)
+                    + ", fill unused fields"
+                )
+                return False
         return True
 
     # run validation code for ids and fields
@@ -90,12 +100,12 @@ def write_tree_to_fs():
     def generate_type_index_file() -> None:
         template = env.get_template("type_lookup.txt.j2")
 
-        #create string from the template
+        # create string from the template
         content = template.render(
             topics=topics,
             type_lookup=type_lookup,
         )
-        #write the string into a txt filecalled type_lookup.txt
+        # write the string into a txt filecalled type_lookup.txt
         with open("type_lookup.txt", mode="w", encoding="utf-8") as results:
             results.write(content)
 
