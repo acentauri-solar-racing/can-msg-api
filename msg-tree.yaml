@@ -89,7 +89,7 @@ bms:
         idx: 3
 
 stwheel:
-  stwheel_heartbeat:
+  heartbeat:
     id:  "0x100"
     data:
       acc_pedal:
@@ -101,6 +101,20 @@ stwheel:
       buttons_status:
         type: data_u16
         idx: 2
-      unused:
+
+vcu:
+  heatbeat:
+    id: "0x305"
+    data:
+      ignition_key:
+        type: data_u16
+        idx: 0
+      switch_pos:
+        type: data_u16
+        idx: 1
+      peripherals: 
+        type: data_u16
+        idx: 2
+      unused: 
         type: data_u16
         idx: 3
