@@ -37,8 +37,14 @@ def validate_tree() -> bool:
         Returns:
             bool: True if the data allocation is valid.
         """
-        fields = []
+        # check if all fields are set
+        mandatory_fields = ["id", "id_type", "dlc", "data"]
+        for m in mandatory_fields:
+            if m not in topic:
+                print("Field " + m + " not set in topic " + topic["name"])
+                return False
 
+        fields = []
         for f in topic["data"]:
             fields.append(topic["data"][f])
 
@@ -84,6 +90,17 @@ def validate_tree() -> bool:
                 + topic["id"]
                 + ", data doesn't match DLC = "
                 + str(topic["dlc"])
+            )
+            return False
+
+        # check id type flag:
+        if (topic["id_type"] != "ext") and (topic["id_type"] != "std"):
+            print(
+                "\ninvalid id type in "
+                + topic["id"]
+                + ", got "
+                + topic["id_type"]
+                + ", expected 'ext' or 'std'"
             )
             return False
         return True

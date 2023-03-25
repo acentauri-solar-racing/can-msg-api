@@ -1,6 +1,7 @@
 bms:
   meta:
     id:  "0x600"
+    id_type: "std"
     dlc: 8
     data:
       bmu_heartbeat:
@@ -12,6 +13,7 @@ bms:
 
   cmu_1_stat:
     id:  "0x601"
+    id_type: "std"
     dlc: 8
     data:
       serial_num:
@@ -25,6 +27,7 @@ bms:
         idx: 3
   cmu_1_cells_1:
     id:  "0x602"
+    id_type: "std"
     dlc: 8
     data:
       cell_0_volt:
@@ -41,6 +44,7 @@ bms:
         idx: 3
   cmu_1_cells_2:
     id:  "0x603"
+    id_type: "std"
     dlc: 8
     data:
       cell_4_volt:
@@ -58,6 +62,7 @@ bms:
 
   pack_soc:
     id:  "0x6F4"
+    id_type: "std"
     dlc: 8
     data:
       soc_ah:
@@ -69,6 +74,7 @@ bms:
 
   pack_balance_soc:
     id:  "0x6F5"
+    id_type: "std"
     dlc: 8
     data:
       soc_ah:
@@ -80,6 +86,7 @@ bms:
 
   charger_contr:
     id:  "0x6F6"
+    id_type: "std"
     dlc: 8
     data:
       char_cell_volt_err:
@@ -99,6 +106,7 @@ bms:
 stwheel:
   stwheel_heartbeat:
     id:  "0x100"
+    id_type: "ext"
     dlc: 6
     data:
       acc_pedal:
@@ -114,6 +122,7 @@ stwheel:
 vcu:
   vcu_heartbeat:
     id: "0x305"
+    id_type: "ext"
     dlc: 6
     data:
       ignition_key:
@@ -131,6 +140,7 @@ mppt: # there are three MPPTs
   # encoder value 0
   power_meas_0:
     id: "0x200"
+    id_type: "std"
     dlc: 8
     data:
       v_in:
@@ -147,6 +157,7 @@ mppt: # there are three MPPTs
         idx: 3
   status_0:
     id: "0x201"
+    id_type: "std"
     dlc: 5
     data:
       mode:
@@ -167,6 +178,7 @@ mppt: # there are three MPPTs
   # encoder value 1
   power_meas_1:
     id: "0x210"
+    id_type: "std"
     dlc: 8
     data:
       v_in:
@@ -183,6 +195,7 @@ mppt: # there are three MPPTs
         idx: 3
   status_1:
     id: "0x211"
+    id_type: "std"
     dlc: 5
     data:
       mode:
@@ -203,6 +216,7 @@ mppt: # there are three MPPTs
   # encoder value 2
   power_meas_2:
     id: "0x220"
+    id_type: "std"
     dlc: 8
     data:
       v_in:
@@ -219,6 +233,7 @@ mppt: # there are three MPPTs
         idx: 3
   status_2:
     id: "0x221"
+    id_type: "std"
     dlc: 5
     data:
       mode:
