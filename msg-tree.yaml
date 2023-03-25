@@ -1,5 +1,5 @@
 bms:
-  meta:
+  bms_heartbeat:
     id:  "0x600"
     id_type: "std"
     dlc: 8
@@ -11,7 +11,7 @@ bms:
         type: data_u32
         idx: 1
 
-  cmu_1_stat:
+  bms_cmu_1_stat:
     id:  "0x601"
     id_type: "std"
     dlc: 8
@@ -25,7 +25,7 @@ bms:
       cell_temp:
         type: data_16
         idx: 3
-  cmu_1_cells_1:
+  bms_cmu_1_cells_1:
     id:  "0x602"
     id_type: "std"
     dlc: 8
@@ -42,7 +42,7 @@ bms:
       cell_3_volt:
         type: data_16
         idx: 3
-  cmu_1_cells_2:
+  bms_cmu_1_cells_2:
     id:  "0x603"
     id_type: "std"
     dlc: 8
@@ -60,7 +60,7 @@ bms:
         type: data_16
         idx: 3
 
-  pack_soc:
+  bms_pack_soc:
     id:  "0x6F4"
     id_type: "std"
     dlc: 8
@@ -72,7 +72,7 @@ bms:
         type: data_fp
         idx: 1
 
-  pack_balance_soc:
+  bms_pack_balance_soc:
     id:  "0x6F5"
     id_type: "std"
     dlc: 8
@@ -84,7 +84,7 @@ bms:
         type: data_fp
         idx: 1
 
-  charger_contr:
+  bms_charger_contr:
     id:  "0x6F6"
     id_type: "std"
     dlc: 8
@@ -138,7 +138,7 @@ vcu:
 
 mppt: # there are three MPPTs
   # encoder value 0
-  power_meas_0:
+  mppt_power_meas_0:
     id: "0x200"
     id_type: "std"
     dlc: 8
@@ -155,7 +155,7 @@ mppt: # there are three MPPTs
       i_out:
         type: data_16
         idx: 3
-  status_0:
+  mppt_status_0:
     id: "0x201"
     id_type: "std"
     dlc: 5
@@ -176,7 +176,7 @@ mppt: # there are three MPPTs
         type: data_8
         idx: 4
   # encoder value 1
-  power_meas_1:
+  mppt_power_meas_1:
     id: "0x210"
     id_type: "std"
     dlc: 8
@@ -193,7 +193,7 @@ mppt: # there are three MPPTs
       i_out:
         type: data_16
         idx: 3
-  status_1:
+  mppt_status_1:
     id: "0x211"
     id_type: "std"
     dlc: 5
@@ -214,7 +214,7 @@ mppt: # there are three MPPTs
         type: data_8
         idx: 4
   # encoder value 2
-  power_meas_2:
+  mppt_power_meas_2:
     id: "0x220"
     id_type: "std"
     dlc: 8
@@ -231,7 +231,7 @@ mppt: # there are three MPPTs
       i_out:
         type: data_16
         idx: 3
-  status_2:
+  mppt_status_2:
     id: "0x221"
     id_type: "std"
     dlc: 5
