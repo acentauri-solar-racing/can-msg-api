@@ -101,6 +101,9 @@ stwheel:
       buttons_status:
         type: data_u16
         idx: 2
+      unused:
+        type: data_u16
+        idx: 3
 
 vcu:
   vcu_heartbeat:
@@ -112,9 +115,113 @@ vcu:
       switch_pos:
         type: data_u16
         idx: 1
-      peripherals: 
+      peripherals:
         type: data_u16
         idx: 2
-      unused: 
+      unused:
         type: data_u16
         idx: 3
+
+mppt: # there are three MPPTs
+  # encoder value 0
+  power_meas_0:
+    id: "0x200"
+    data:
+      v_in:
+        type: data_16
+        idx: 0
+      i_in:
+        type: data_16
+        idx: 1
+      v_out:
+        type: data_16
+        idx: 2
+      i_out:
+        type: data_16
+        idx: 3
+  status_0:
+    id: "0x201"
+    data:
+      mode:
+        type: data_u8
+        idx: 0
+      fault:
+        type: data_u8
+        idx: 1
+      enabled:
+        type: data_u8
+        idx: 2
+      ambient_temp:
+        type: data_8
+        idx: 3
+      heatsink_temp:
+        type: data_8
+        idx: 4
+  # encoder value 1
+  power_meas_1:
+    id: "0x210"
+    data:
+      v_in:
+        type: data_16
+        idx: 0
+      i_in:
+        type: data_16
+        idx: 1
+      v_out:
+        type: data_16
+        idx: 2
+      i_out:
+        type: data_16
+        idx: 3
+  status_1:
+    id: "0x211"
+    data:
+      mode:
+        type: data_u8
+        idx: 0
+      fault:
+        type: data_u8
+        idx: 1
+      enabled:
+        type: data_u8
+        idx: 2
+      ambient_temp:
+        type: data_8
+        idx: 3
+      heatsink_temp:
+        type: data_8
+        idx: 4
+  # encoder value 2
+  power_meas_2:
+    id: "0x220"
+    data:
+      v_in:
+        type: data_16
+        idx: 0
+      i_in:
+        type: data_16
+        idx: 1
+      v_out:
+        type: data_16
+        idx: 2
+      i_out:
+        type: data_16
+        idx: 3
+  status_1:
+    id: "0x221"
+    data:
+      mode:
+        type: data_u8
+        idx: 0
+      fault:
+        type: data_u8
+        idx: 1
+      enabled:
+        type: data_u8
+        idx: 2
+      ambient_temp:
+        type: data_8
+        idx: 3
+      heatsink_temp:
+        type: data_8
+        idx: 4
