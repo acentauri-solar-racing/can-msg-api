@@ -67,16 +67,25 @@ def validate_tree() -> bool:
                 else:
                     visited[i] = True
 
-        for i in range(0, 64):
-            if visited[i] == False:
-                print(
-                    "\nNot all bits allocated in "
-                    + topic["id"]
-                    + ", first detected at index: "
-                    + str(i)
-                    + ", fill unused fields"
-                )
-                return False
+        # check DLC field
+        last_occ_bit = topic["dlc"] * 8
+        dlc_error: bool = False
+
+        # expect all bits to be set until last_occ_bit, afterwards unset
+        for i in range(0, last_occ_bit):
+            if not visited[i]:
+                dlc_error = True
+        for i in range(last_occ_bit, 64):
+            if visited[i]:
+                dlc_error = True
+        if dlc_error:
+            print(
+                "\nDLC mismatch: "
+                + topic["id"]
+                + ", data doesn't match DLC = "
+                + str(topic["dlc"])
+            )
+            return False
         return True
 
     # run validation code for ids and fields
