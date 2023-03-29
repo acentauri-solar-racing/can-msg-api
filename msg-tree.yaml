@@ -183,7 +183,7 @@ bms_pack_voltage_current:
       type: data_u32
       idx: 0
     battery_current:
-      type: data_u32
+      type: data_32
       idx: 1
 
 bms_pack_status:
