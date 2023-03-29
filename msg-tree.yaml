@@ -221,7 +221,7 @@ bms_fan_status:
     current_consumption_fan_contactors:
       type: data_u16
       idx: 2
-    current_consumtion_cmus:
+    current_consumption_cmus:
       type: data_u16
       idx: 3
 
