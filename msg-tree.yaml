@@ -122,7 +122,7 @@ stwheel:
 vcu:
   vcu_heartbeat:
     id: "0x305"
-    id_type: "ext"
+    id_type: "std"
     dlc: 6
     data:
       ignition_key:
