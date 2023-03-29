@@ -164,13 +164,13 @@ bms_min_max_cell_temp:
     min_cell_temp_cmu_num:
       type: data_u8
       idx: 4
-    unused:
+    unused_0:
       type: data_u8
       idx: 5
     max_cell_temp_cmu_num:
       type: data_u8
       idx: 6
-    unused:
+    unused_1:
       type: data_u8
       idx: 7
 
@@ -203,7 +203,7 @@ bms_pack_status:
     bms_cmu_count:
       type: data_u8
       idx: 5
-    bms_bmu_firmaware_build_num:
+    bms_bmu_firmware_build_num:
       type: data_u16
       idx: 3
 
