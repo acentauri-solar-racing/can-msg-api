@@ -102,6 +102,146 @@ bms:
         type: data_16
         idx: 3
 
+  bms_precharge_status:
+    id:  "0x6F7"
+    id_type: "std"
+    dlc: 8
+    data:
+      precharge_contactor_driver_status:
+        type: data_u8
+        idx: 0
+      precharge_state:
+        type: data_u8
+        idx: 1
+      contactor_supply_voltage:
+        type: data_u16
+        idx: 1
+      unused:
+        type: data_u16
+        idx: 2
+      precharge_timer_status:
+        type: data_u8
+        idx: 6
+      precharge_timer_counter:
+        type: data_u8
+        idx: 7
+
+bms_min_max_cell_voltage:
+  id: "6F8"
+  id_type: "std"
+  dlc: 8
+  data:
+    min_cell_voltage:
+      type: data_u16
+      idx: 0
+    max_cell_voltage:
+      type: data_u16
+      idx: 1
+    min_cell_voltage_cmu_num:
+      type: data_u8
+      idx: 4
+    min_cell_voltage_cmu_num:
+      type: data_u8
+      idx: 5
+    max_cell_voltage_cell_num:
+      type: data_u8
+      idx: 6
+    max_cell_voltage_cell_num:
+      type: data_u8
+      idx: 7
+
+bms_min_max_cell_temp:
+  id: "6F9"
+  id_type: "std"
+  dlc: 8
+  data:
+    min_cell_temp:
+      type: data_u16
+      idx: 0
+    max_cell_temp:
+      type: data_u16
+      idx: 1
+    min_cell_temp_cmu_num:
+      type: data_u8
+      idx: 4
+    unused:
+      type: data_u8
+      idx: 5
+    max_cell_temp_cmu_num:
+      type: data_u8
+      idx: 6
+    unused:
+      type: data_u8
+      idx: 7
+
+bms_pack_voltage_current:
+  id: "6FA"
+  id_type: "std"
+  dlc: 8
+  data:
+    battery_voltage:
+      type: data_u32
+      idx: 0
+    battery_current:
+      type: data_u32
+      idx: 1
+
+bms_pack_status:
+  id: "6FB"
+  id_type: "std"
+  dlc: 8
+  data:
+    balance_voltage_threshold_rising:
+      type: data_u16
+      idx: 0
+    balance_voltage_threshold_falling:
+      type: data_u16
+      idx: 1
+    status_flags:
+      type: data_u8
+      idx: 4
+    bms_cmu_count:
+      type: data_u8
+      idx: 5
+    bms_bmu_firmaware_build_num:
+      type: data_u16
+      idx: 3
+
+bms_fan_status:
+  id: "6FC"
+  id_type: "std"
+  dlc: 8
+  data:
+    fan_speed_0:
+      type: data_u16
+      idx: 0
+    fan_speed_1:
+      type: data_u16
+      idx: 1
+    current_consumption_fan_contactors:
+      type: data_u16
+      idx: 2
+    current_consumtion_cmus:
+      type: data_u16
+      idx: 3
+
+bms_extended_pack_status:
+  id: "6FD"
+  id_type: "std"
+  dlc: 8
+  data:
+    status_flags:
+      type: data_u32
+      idx: 0
+    bmu_hardware_version:
+      type: data_u8
+      idx: 4
+    bmu_model_id:
+      type: data_u8
+      idx: 5
+    unused:
+      type: data_u16
+      idx: 3
 
 stwheel:
   stwheel_heartbeat:
