@@ -127,7 +127,7 @@ bms:
         idx: 7
 
 bms_min_max_cell_voltage:
-  id: "6F8"
+  id: "0x6F8"
   id_type: "std"
   dlc: 8
   data:
@@ -151,7 +151,7 @@ bms_min_max_cell_voltage:
       idx: 7
 
 bms_min_max_cell_temp:
-  id: "6F9"
+  id: "0x6F9"
   id_type: "std"
   dlc: 8
   data:
@@ -175,7 +175,7 @@ bms_min_max_cell_temp:
       idx: 7
 
 bms_pack_voltage_current:
-  id: "6FA"
+  id: "0x6FA"
   id_type: "std"
   dlc: 8
   data:
@@ -187,7 +187,7 @@ bms_pack_voltage_current:
       idx: 1
 
 bms_pack_status:
-  id: "6FB"
+  id: "0x6FB"
   id_type: "std"
   dlc: 8
   data:
@@ -208,7 +208,7 @@ bms_pack_status:
       idx: 3
 
 bms_fan_status:
-  id: "6FC"
+  id: "0x6FC"
   id_type: "std"
   dlc: 8
   data:
@@ -226,7 +226,7 @@ bms_fan_status:
       idx: 3
 
 bms_extended_pack_status:
-  id: "6FD"
+  id: "0x6FD"
   id_type: "std"
   dlc: 8
   data:
