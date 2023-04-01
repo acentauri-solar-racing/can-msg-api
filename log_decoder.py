@@ -114,7 +114,7 @@ class LogEventHandler(FileSystemEventHandler):
         key = helpers.conv_hex_str(can_id)
 
         unpacked_data: Tuple = self.data_structs[key].unpack(binascii.unhexlify(data))
-        self.db.add_entry(key, unpacked_data)
+        self.db.add_entry(key, unpacked_data, timestamp)
 
 
 if __name__ == "__main__":
