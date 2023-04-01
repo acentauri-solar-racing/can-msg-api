@@ -1,4 +1,4 @@
-from sqlalchemy import Integer, Float
+from sqlalchemy import Integer, Float, Double
 from sqlalchemy.orm import declarative_base, Mapped, mapped_column
 
 Base = declarative_base()
@@ -12,19 +12,22 @@ class {{helpers.conv_name_camel_case(topic.name)}}(Base):
     {%- for field in topic.data %}
     {{field}}: Mapped[{{type_lookup[topic["data"][field]["type"]]["py_t"]}}] = mapped_column({{type_lookup[topic["data"][field]["type"]]["pysql_t"]}}())
     {%- endfor %}
+    timestamp: Mapped[float] = mapped_column(Double())
 
-    def __init__(self, decoded_tuple):
+    def __init__(self, decoded_tuple, timestamp):
     {%- for field in topic.data %}
         self.{{field}} = decoded_tuple[{{loop.index - 1}}]
     {%- endfor %}
+        self.timestamp = timestamp
 
     def __repr__(self) -> str:
-        return "%s(id=%s), ({%for f in topic.data -%}%s{{", " if not loop.last else ""}}{% endfor %})" % (
+        return "%s(id=%s), ({%for f in topic.data -%}%s{{", " if not loop.last else ""}}{% endfor %}, %s)" % (
             "{{helpers.conv_name_camel_case(topic.name)}}",
             self.id,
             {%-for f in topic.data %}
             self.{{f}},
             {%- endfor %}
+            self.timestamp
         )
 
 {% endfor %}

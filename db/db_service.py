@@ -44,9 +44,9 @@ class DbService:
 
         self.session.commit()
 
-    def add_entry(self, can_id: int, unpacked_data: tuple) -> None:
+    def add_entry(self, can_id: int, unpacked_data: tuple, timestamp: float) -> None:
         model = ddl_models[can_id]
-        entry: model = model(unpacked_data)
+        entry: model = model(unpacked_data, timestamp)
 
         self.session.add(entry)
 
