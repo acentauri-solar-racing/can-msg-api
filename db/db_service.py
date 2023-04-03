@@ -7,7 +7,7 @@ from db.models import *
 
 from dotenv import dotenv_values
 
-from sqlalchemy import create_engine, Engine, text
+from sqlalchemy import create_engine, Engine
 from sqlalchemy.orm import sessionmaker, Session
 from pandas import DataFrame
 
