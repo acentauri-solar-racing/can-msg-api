@@ -1,5 +1,6 @@
 """Read environment variables and construct the connection string for MySQL DB"""
 import os
+import pandas as pd
 
 # import all DDL classes
 from db.models import *
@@ -8,6 +9,7 @@ from dotenv import dotenv_values
 
 from sqlalchemy import create_engine, Engine
 from sqlalchemy.orm import sessionmaker, Session
+from pandas import DataFrame
 
 
 class DbService:
@@ -42,9 +44,9 @@ class DbService:
 
         self.session.commit()
 
-    def add_entry(self, can_id: int, unpacked_data: tuple) -> None:
+    def add_entry(self, can_id: int, unpacked_data: tuple, timestamp: float) -> None:
         model = ddl_models[can_id]
-        entry: model = model(unpacked_data)
+        entry: model = model(unpacked_data, timestamp)
 
         self.session.add(entry)
 
@@ -57,3 +59,10 @@ class DbService:
             self.session_entries = 0
         else:
             self.session.commit()
+
+    def query(self, orm_model, num_entries: int) -> DataFrame:
+        with self.engine.connect() as conn:
+            return pd.read_sql_query(
+                sql=self.session.query(orm_model).statement,
+                con=conn,
+            )
