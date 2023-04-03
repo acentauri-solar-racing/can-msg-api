@@ -8,7 +8,7 @@ def route(pathname: str):
     elif pathname == "/bms":
         return bms.content
     elif pathname == "/mppt":
-        return mppt.content
+        return mppt.content()
     return html.Div(
         [
             html.H1("404: Not found", className="text-danger"),
