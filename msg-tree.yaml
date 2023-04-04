@@ -275,6 +275,19 @@ vcu:
         type: data_u16
         idx: 2
 
+icu: 
+  icu_heartbeat:
+    id: "0x150"
+    id_type: "std"
+    dlc: 6
+    data:
+      speed:
+        type: data_fp
+        idx: 0
+      states:
+        type: data_u16
+        idx: 2
+
 
 mppt: # there are three MPPTs
   # encoder value 0
