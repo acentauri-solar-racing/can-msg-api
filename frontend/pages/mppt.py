@@ -1,6 +1,7 @@
 import plotly.express as px
 import dash_bootstrap_components as dbc
 import time
+import pandas as pd
 
 from dash import html, dcc
 from db.models import *
@@ -11,14 +12,18 @@ from pandas import DataFrame
 def preprocess(df: DataFrame) -> DataFrame:
     """prepare data frame for plotting"""
     # rescale all voltages since given in mV
-    df['v_in'] *= 1e3
-    df['i_in'] *= 1e3
-    df['v_out'] *= 1e3
-    df['i_out'] *= 1e3
+    df['v_in'] *= 1e-3
+    df['i_in'] *= 1e-3
+    df['v_out'] *= 1e-3
+    df['i_out'] *= 1e-3
 
     # P = UI
     df['p_in'] = df['v_in'] * df['i_in']
     df['p_out'] = df['v_out'] * df['i_out']
+
+    # parse timestamp
+    df['timestamp'] = pd.to_datetime(
+        df['timestamp'], unit='s', origin="unix", utc=True)
     return df
 
 
@@ -28,20 +33,16 @@ def v_i_graph(df: DataFrame):
                    template="plotly_white",
                    x="timestamp",
                    y=["v_in", "i_in", "v_out", "i_out"],
-                   ).update_xaxes(tickformat="%H\n%M")
+                   ).update_yaxes(range=[0, 15])
 
 
 def power_graph(df: DataFrame):
     return px.line(df,
-
-                   x="timestamp",
-                   y=["p_in", "p_out"],
-                   labels={
-                       "p_in": "P_in [W]",
-                       "p_out": "P_out [W]",
-                   },
                    title="Power",
-                   )
+                   template="plotly_white",
+                   x="timestamp",
+                   y=["p_in", "p_out"]
+                   ).update_yaxes(range=[0, 15])
 
 
 def content():
