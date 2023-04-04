@@ -72,8 +72,8 @@ def disp_mppt(power_df: DataFrame, stat) -> html.Div:
     return html.Div([
         dbc.Row([
             dbc.Col([html.H3("Status")], className="col-3"),
-            dbc.Col([html.H3("Power")]),
-        ]),
+            dbc.Col([html.H3("Power")], ),
+        ], className="text-center"),
         dbc.Row([
             dbc.Col([
                 dbc.Row([
@@ -118,12 +118,14 @@ def content():
         (power_df0, power_df1, power_df2) = load_power_data(db_serv)
         (stat0, stat1, stat2) = load_status_data(db_serv)
         return html.Div([
-            html.H1(["MPPT"], style=H1),
-            html.H2(["MPPT 0"], style=H2),
+            html.H1(["MPPT"], style=H1, className="text-center"),
+            html.H2(["MPPT 0"], style=H2, className="text-center"),
             disp_mppt(power_df0, stat0),
-            html.H2(["MPPT 1"], style=H2),
+            html.Hr(),
+            html.H2(["MPPT 1"], style=H2, className="text-center"),
             disp_mppt(power_df1, stat1),
-            html.H2(["MPPT 2"], style=H2),
+            html.Hr(),
+            html.H2(["MPPT 2"], style=H2, className="text-center"),
             disp_mppt(power_df2, stat2)
         ])
     except:

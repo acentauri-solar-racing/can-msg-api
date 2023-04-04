@@ -1,12 +1,12 @@
 from dash import html
-from frontend.pages import overview, mppt, bms
+from frontend.pages import overview, mppt, bms_cells
 
 
 def route(pathname: str):
     if pathname == "/":
         return overview.content()
     elif pathname == "/bms":
-        return bms.content()
+        return bms_cells.content()
     elif pathname == "/mppt":
         return mppt.content()
     return html.Div(

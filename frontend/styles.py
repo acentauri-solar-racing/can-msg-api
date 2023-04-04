@@ -18,5 +18,6 @@ H1 = {
 }
 
 H2 = {
+    "padding-top": "40px",
     "padding-bottom": "10px",
 }
