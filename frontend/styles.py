@@ -12,3 +12,11 @@ CONTENT_STYLE = {
     "margin-right": "2rem",
     "padding": "2rem 1rem",
 }
+
+H1 = {
+    "padding-bottom": "20px",
+}
+
+H2 = {
+    "padding-bottom": "10px",
+}
