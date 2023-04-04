@@ -12,6 +12,26 @@ from pandas import DataFrame
 from frontend.styles import H1, H2
 
 
+def load_power_data(db_serv: DbService) -> Tuple[DataFrame]:
+    return (preprocess(
+        db_serv.query(MpptPowerMeas0, 100)
+    ),
+        preprocess(
+        db_serv.query(MpptPowerMeas1, 100)
+    ),
+        preprocess(
+        db_serv.query(MpptPowerMeas2, 100)
+    ))
+
+
+def load_status_data(db_serv: DbService) -> Tuple[MpptStatus0, MpptStatus1, MpptStatus2]:
+    return (
+        db_serv.latest(MpptStatus0),
+        db_serv.latest(MpptStatus1),
+        db_serv.latest(MpptStatus2)
+    )
+
+
 def preprocess(df: DataFrame) -> DataFrame:
     """prepare data frame for plotting"""
     # rescale all voltages since given in mV
@@ -48,26 +68,6 @@ def power_graph(df: DataFrame):
                    ).update_yaxes(range=[0, 15])
 
 
-def load_power_data(db_serv: DbService) -> Tuple[DataFrame]:
-    return (preprocess(
-        db_serv.query(MpptPowerMeas0, 100)
-    ),
-        preprocess(
-        db_serv.query(MpptPowerMeas1, 100)
-    ),
-        preprocess(
-        db_serv.query(MpptPowerMeas2, 100)
-    ))
-
-
-def load_status_data(db_serv: DbService) -> Tuple[MpptStatus0, MpptStatus1, MpptStatus2]:
-    return (
-        db_serv.latest(MpptStatus0),
-        db_serv.latest(MpptStatus1),
-        db_serv.latest(MpptStatus2),
-    )
-
-
 def disp_mppt(power_df: DataFrame, stat) -> html.Div:
     return html.Div([
         dbc.Row([
@@ -95,7 +95,7 @@ def disp_mppt(power_df: DataFrame, stat) -> html.Div:
                 dbc.Row([
                     dbc.Col(html.P("Heatsink Temp.:")),
                     dbc.Col(html.P(stat.heatsink_temp))
-                ]),
+                ])
             ], className="col-3"),
             dbc.Col([
                 dbc.Row([
@@ -104,7 +104,7 @@ def disp_mppt(power_df: DataFrame, stat) -> html.Div:
                     ]),
                     dbc.Col([
                         dcc.Graph(figure=power_graph(power_df))
-                    ]),
+                    ])
                 ])
             ]),
         ], className="align-items-center"),
@@ -124,11 +124,9 @@ def content():
             html.H2(["MPPT 1"], style=H2),
             disp_mppt(power_df1, stat1),
             html.H2(["MPPT 2"], style=H2),
-            disp_mppt(power_df2, stat2),
+            disp_mppt(power_df2, stat2)
         ])
     except:
         print("Err: Couldn't load MPPT Tables")
 
         return html.Div(html.H2("Data load failed", className="text-center"))
-
-    return
