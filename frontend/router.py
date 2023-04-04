@@ -4,9 +4,9 @@ from frontend.pages import overview, mppt, bms
 
 def route(pathname: str):
     if pathname == "/":
-        return overview.content
+        return overview.content()
     elif pathname == "/bms":
-        return bms.content
+        return bms.content()
     elif pathname == "/mppt":
         return mppt.content()
     return html.Div(
