@@ -246,7 +246,7 @@ bms:
 stwheel:
   stwheel_heartbeat:
     id:  "0x100"
-    id_type: "ext"
+    id_type: "std"
     dlc: 6
     data:
       acc_pedal:
@@ -272,6 +272,19 @@ vcu:
         type: data_u16
         idx: 1
       peripherals:
+        type: data_u16
+        idx: 2
+
+icu:
+  icu_heartbeat:
+    id: "0x150"
+    id_type: "std"
+    dlc: 6
+    data:
+      speed:
+        type: data_fp
+        idx: 0
+      states:
         type: data_u16
         idx: 2
 
