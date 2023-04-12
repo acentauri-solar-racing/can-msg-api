@@ -3,10 +3,33 @@ import dash_bootstrap_components as dbc
 import time
 import pandas as pd
 
+from typing import Tuple
 from dash import html, dcc
+
 from db.models import *
 from db.db_service import DbService
 from pandas import DataFrame
+from frontend.styles import H1, H2
+
+
+def load_power_data(db_serv: DbService) -> Tuple[DataFrame]:
+    return (preprocess(
+        db_serv.query(MpptPowerMeas0, 100)
+    ),
+        preprocess(
+        db_serv.query(MpptPowerMeas1, 100)
+    ),
+        preprocess(
+        db_serv.query(MpptPowerMeas2, 100)
+    ))
+
+
+def load_status_data(db_serv: DbService) -> Tuple[MpptStatus0, MpptStatus1, MpptStatus2]:
+    return (
+        db_serv.latest(MpptStatus0),
+        db_serv.latest(MpptStatus1),
+        db_serv.latest(MpptStatus2)
+    )
 
 
 def preprocess(df: DataFrame) -> DataFrame:
@@ -45,26 +68,67 @@ def power_graph(df: DataFrame):
                    ).update_yaxes(range=[0, 15])
 
 
+def disp_mppt(power_df: DataFrame, stat) -> html.Div:
+    return html.Div([
+        dbc.Row([
+            dbc.Col([html.H3("Status")], className="col-3"),
+            dbc.Col([html.H3("Power")], ),
+        ], className="text-center"),
+        dbc.Row([
+            dbc.Col([
+                dbc.Row([
+                    dbc.Col(html.P("Mode:")),
+                    dbc.Col(html.P(stat.mode))
+                ]),
+                dbc.Row([
+                    dbc.Col(html.P("Fault:")),
+                    dbc.Col(html.P(stat.fault))
+                ]),
+                dbc.Row([
+                    dbc.Col(html.P("Enabled:")),
+                    dbc.Col(html.P(stat.enabled))
+                ]),
+                dbc.Row([
+                    dbc.Col(html.P("Ambient Temp.:")),
+                    dbc.Col(html.P(stat.ambient_temp))
+                ]),
+                dbc.Row([
+                    dbc.Col(html.P("Heatsink Temp.:")),
+                    dbc.Col(html.P(stat.heatsink_temp))
+                ])
+            ], className="col-3"),
+            dbc.Col([
+                dbc.Row([
+                    dbc.Col([
+                        dcc.Graph(figure=v_i_graph(power_df)),
+                    ]),
+                    dbc.Col([
+                        dcc.Graph(figure=power_graph(power_df))
+                    ])
+                ])
+            ]),
+        ], className="align-items-center"),
+    ])
+
+
 def content():
     db_serv: DbService = DbService()
 
-    df0: DataFrame = preprocess(
-        db_serv.query(MpptPowerMeas0, 100)
-    )
+    try:
+        (power_df0, power_df1, power_df2) = load_power_data(db_serv)
+        (stat0, stat1, stat2) = load_status_data(db_serv)
+        return html.Div([
+            html.H1(["MPPT"], style=H1, className="text-center"),
+            html.H2(["MPPT 0"], style=H2, className="text-center"),
+            disp_mppt(power_df0, stat0),
+            html.Hr(),
+            html.H2(["MPPT 1"], style=H2, className="text-center"),
+            disp_mppt(power_df1, stat1),
+            html.Hr(),
+            html.H2(["MPPT 2"], style=H2, className="text-center"),
+            disp_mppt(power_df2, stat2)
+        ])
+    except:
+        print("Err: Couldn't load MPPT Tables")
 
-    df1: DataFrame = db_serv.query(MpptPowerMeas1, 100)
-    fig1 = v_i_graph(df1)
-
-    df2: DataFrame = db_serv.query(MpptPowerMeas2, 100)
-    fig2 = v_i_graph(df2)
-
-    return html.Div([
-        html.H1(["MPPT"]),
-        html.H2(["MPPT 1"], className="text-center"),
-        dbc.Row([
-            dbc.Col([html.H3("Power", className="text-center"),
-                    dcc.Graph(figure=v_i_graph(df0)),
-                    dcc.Graph(figure=power_graph(df0))]),
-            dbc.Col([html.H3("Status", className="text-center")]),
-        ]),
-    ])
+        return html.Div(html.H2("Data load failed", className="text-center"))

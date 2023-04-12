@@ -28,7 +28,7 @@ sidebar = html.Div(
             target="mppt-tt",
         ),
         dbc.Tooltip(
-            "BMS Status",
+            "BMS Cell Status",
             target="bms-tt",
         ),
     ],

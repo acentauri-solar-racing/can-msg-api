@@ -67,3 +67,8 @@ class DbService:
                     orm_model.id.desc()).limit(num_entries).statement,
                 con=conn,
             )
+
+    def latest(self, orm_model) -> DataFrame:
+        with self.engine.connect() as conn:
+            return self.session.query(orm_model).order_by(
+                orm_model.id.desc()).first()
