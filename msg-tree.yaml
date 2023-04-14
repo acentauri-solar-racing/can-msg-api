@@ -1,6 +1,6 @@
 bms:
   bms_heartbeat:
-    id:  "0x600"
+    id: "0x600"
     id_type: "std"
     dlc: 8
     data:
@@ -12,7 +12,7 @@ bms:
         idx: 1
 
   bms_cmu_1_stat:
-    id:  "0x601"
+    id: "0x601"
     id_type: "std"
     dlc: 8
     data:
@@ -26,7 +26,7 @@ bms:
         type: data_16
         idx: 3
   bms_cmu_1_cells_1:
-    id:  "0x602"
+    id: "0x602"
     id_type: "std"
     dlc: 8
     data:
@@ -43,7 +43,7 @@ bms:
         type: data_16
         idx: 3
   bms_cmu_1_cells_2:
-    id:  "0x603"
+    id: "0x603"
     id_type: "std"
     dlc: 8
     data:
@@ -61,7 +61,7 @@ bms:
         idx: 3
 
   bms_pack_soc:
-    id:  "0x6F4"
+    id: "0x6F4"
     id_type: "std"
     dlc: 8
     data:
@@ -73,7 +73,7 @@ bms:
         idx: 1
 
   bms_pack_balance_soc:
-    id:  "0x6F5"
+    id: "0x6F5"
     id_type: "std"
     dlc: 8
     data:
@@ -85,7 +85,7 @@ bms:
         idx: 1
 
   bms_charger_contr:
-    id:  "0x6F6"
+    id: "0x6F6"
     id_type: "std"
     dlc: 8
     data:
@@ -245,7 +245,7 @@ bms:
 
 stwheel:
   stwheel_heartbeat:
-    id:  "0x100"
+    id: "0x100"
     id_type: "std"
     dlc: 6
     data:
@@ -261,9 +261,9 @@ stwheel:
 
 vcu:
   vcu_heartbeat:
-    id: "0x305"
+    id: "0x505"
     id_type: "std"
-    dlc: 6
+    dlc: 8
     data:
       ignition_key:
         type: data_u16
@@ -274,6 +274,9 @@ vcu:
       peripherals:
         type: data_u16
         idx: 2
+      unused:
+        type: data_u16
+        idx: 3
 
 icu:
   icu_heartbeat:
@@ -287,7 +290,6 @@ icu:
       states:
         type: data_u16
         idx: 2
-
 
 mppt: # there are three MPPTs
   # encoder value 0
