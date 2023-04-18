@@ -10,8 +10,9 @@ from db.models import *
 from db.db_service import DbService
 from pandas import DataFrame
 from frontend.styles import H1, H2
+from frontend.settings import RELOAD_INTERVAL
 
-dash.register_page(__name__, path="/bms", title="BMS Cells")
+dash.register_page(__name__, path="/bms_cells", title="BMS Cells")
 
 
 def load_cmu_data(db_serv: DbService()):
@@ -42,10 +43,6 @@ def preprocess(df1: DataFrame, df2: DataFrame) -> DataFrame:
     return (df1, df2)
 
 
-def disp_mppt(power_df: DataFrame, stat) -> html.Div:
-    return html.Div([])
-
-
 def cell_volt_graph(df1: DataFrame, df2: DataFrame):
     # create plot using first dataframe (cells 0 - 3)
     fig: go.Figure = px.line(df1,
@@ -70,7 +67,7 @@ def disp_cmu1(cmu_stat1, df1: DataFrame, df2: DataFrame):
     ])
 
 
-@dash.callback(Output('live-update-div-bms', 'children'), Input('interval-component', 'n_intervals'))
+@dash.callback(Output('live-update-div-bms-cells', 'children'), Input('interval-component', 'n_intervals'))
 def refresh_data(n):
     db_serv: DbService = DbService()
     (cmu1_stat, cmu1_cell_df1, cmu1_cell_df2) = load_cmu_data(db_serv)
@@ -89,10 +86,10 @@ def refresh_data(n):
 
 def layout():
     return html.Div([
-        html.Div(id='live-update-div-bms'),
+        html.Div(id='live-update-div-bms-cells'),
         dcc.Interval(
             id='interval-component',
-            interval=1*1000,  # refresh every x milliseconds
+            interval=RELOAD_INTERVAL,
             n_intervals=0
         )
     ])

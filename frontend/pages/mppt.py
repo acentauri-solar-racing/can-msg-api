@@ -10,6 +10,7 @@ from db.models import *
 from db.db_service import DbService
 from pandas import DataFrame
 from frontend.styles import H1, H2
+from frontend.settings import RELOAD_INTERVAL
 
 dash.register_page(__name__, path="/mppt", title="MPPT")
 
@@ -143,7 +144,7 @@ def layout():
         html.Div(id='live-update-div-mppt'),
         dcc.Interval(
             id='interval-component',
-            interval=1*1000,  # refresh every x milliseconds
+            interval=RELOAD_INTERVAL,
             n_intervals=0
         )
     ])
