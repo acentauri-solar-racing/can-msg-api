@@ -1,12 +1,10 @@
 import dash
 import plotly.express as px
-import dash_bootstrap_components as dbc
-import time
 import pandas as pd
 import plotly.graph_objs as go
 
 from typing import Tuple
-from dash import html, dcc
+from dash import html, dcc, Input, Output
 
 from db.models import *
 from db.db_service import DbService
@@ -72,7 +70,8 @@ def disp_cmu1(cmu_stat1, df1: DataFrame, df2: DataFrame):
     ])
 
 
-def layout():
+@dash.callback(Output('live-update-div-bms', 'children'), Input('interval-component', 'n_intervals'))
+def refresh_data(n):
     db_serv: DbService = DbService()
     (cmu1_stat, cmu1_cell_df1, cmu1_cell_df2) = load_cmu_data(db_serv)
 
@@ -86,3 +85,14 @@ def layout():
         print("Err: Couldn't load BMS Tables")
 
         return html.Div(html.H2("Data load failed", className="text-center"))
+
+
+def layout():
+    return html.Div([
+        html.Div(id='live-update-div-bms'),
+        dcc.Interval(
+            id='interval-component',
+            interval=1*1000,  # refresh every x milliseconds
+            n_intervals=0
+        )
+    ])
