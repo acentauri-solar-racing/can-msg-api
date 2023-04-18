@@ -1,3 +1,4 @@
+import dash
 import plotly.express as px
 import dash_bootstrap_components as dbc
 import time
@@ -11,6 +12,8 @@ from db.models import *
 from db.db_service import DbService
 from pandas import DataFrame
 from frontend.styles import H1, H2
+
+dash.register_page(__name__, path="/bms", title="BMS Cells")
 
 
 def load_cmu_data(db_serv: DbService()):
@@ -69,7 +72,7 @@ def disp_cmu1(cmu_stat1, df1: DataFrame, df2: DataFrame):
     ])
 
 
-def content():
+def layout():
     db_serv: DbService = DbService()
     (cmu1_stat, cmu1_cell_df1, cmu1_cell_df2) = load_cmu_data(db_serv)
 
@@ -83,3 +86,5 @@ def content():
         print("Err: Couldn't load BMS Tables")
 
         return html.Div(html.H2("Data load failed", className="text-center"))
+
+    return html.Div()

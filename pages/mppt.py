@@ -1,3 +1,4 @@
+import dash
 import plotly.express as px
 import dash_bootstrap_components as dbc
 import time
@@ -10,6 +11,8 @@ from db.models import *
 from db.db_service import DbService
 from pandas import DataFrame
 from frontend.styles import H1, H2
+
+dash.register_page(__name__, path="/mppt", title="MPPT")
 
 
 def load_power_data(db_serv: DbService) -> Tuple[DataFrame]:
@@ -111,7 +114,7 @@ def disp_mppt(power_df: DataFrame, stat) -> html.Div:
     ])
 
 
-def content():
+def layout():
     db_serv: DbService = DbService()
 
     try:
@@ -132,3 +135,5 @@ def content():
         print("Err: Couldn't load MPPT Tables")
 
         return html.Div(html.H2("Data load failed", className="text-center"))
+
+    return html.Div()
