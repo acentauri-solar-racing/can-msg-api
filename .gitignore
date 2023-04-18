@@ -1,4 +1,5 @@
 type_lookup.txt
+filter_select.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -4,6 +4,7 @@ and do not exceed CAN message size.
 """
 
 import os
+import fnmatch
 
 from utils import helpers
 from utils.type_lookup import type_lookup
@@ -123,6 +124,26 @@ def write_tree_to_fs():
     env.globals["helpers"] = helpers
     ids, topics, topics_dict = helpers.flatten_tree()
 
+    def generate_filter_selection_file() -> None:
+        matches = []
+        topic_strings = list(topics_dict.keys())
+
+        # apply filters to the paths
+        with open('filter_select.cfg') as selection_file:
+            for search_pattern in selection_file:
+                for topic_string in topic_strings:
+                    if fnmatch.fnmatch(topic_string, search_pattern.strip()):
+                        matches.append(topic_string)
+
+        # remove duplicates
+        matches = list(dict.fromkeys(matches))
+
+        # write the matches topic string ids into file
+        with open('filter_select.txt', 'w') as f:
+            for match in matches:
+                # FFF to match all ID bits explicitly
+                f.write(topics_dict[match]['id'] + ":FFF ")
+
     def generate_type_index_file() -> None:
         template = env.get_template("type_lookup.txt.j2")
 
@@ -146,6 +167,7 @@ def write_tree_to_fs():
         with open("db/models.py", mode="w", encoding="utf-8") as results:
             results.write(content)
 
+    generate_filter_selection_file()
     generate_type_index_file()
     generate_model_file()
 
