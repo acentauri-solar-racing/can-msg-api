@@ -64,7 +64,7 @@ class DbService:
         with self.engine.connect() as conn:
             return pd.read_sql_query(
                 sql=self.session.query(orm_model).order_by(
-                    orm_model.id.desc()).limit(num_entries).statement,
+                    orm_model.timestamp.desc()).limit(num_entries).statement,
                 con=conn,
             )
 

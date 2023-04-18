@@ -1,10 +1,11 @@
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 from frontend.styles import SIDEBAR_STYLE
-sidebar = html.Div(
-    [
-        dbc.Nav(
-            [
+
+
+def sidebar():
+    return html.Div([
+        dbc.Nav([
                 # home
                 dbc.NavLink(html.I(className="bi bi-house fs-4"), id="home-tt",
                             href="/", active="exact"),
@@ -14,11 +15,10 @@ sidebar = html.Div(
                 # BMS
                 dbc.NavLink(html.I(className="bi bi-battery fs-4"), id="bms-tt",
                             href="/bms", active="exact"),
-
-            ],
-            vertical=True,
-            pills=True,
-        ),
+                ],
+                vertical=True,
+                pills=True,
+                ),
         dbc.Tooltip(
             "Overview",
             target="home-tt",
@@ -31,6 +31,4 @@ sidebar = html.Div(
             "BMS Cell Status",
             target="bms-tt",
         ),
-    ],
-    style=SIDEBAR_STYLE,
-)
+    ], style=SIDEBAR_STYLE,)

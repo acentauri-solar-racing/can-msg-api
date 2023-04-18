@@ -1,15 +1,17 @@
+import dash
 import plotly.express as px
 import dash_bootstrap_components as dbc
-import time
 import pandas as pd
 
 from typing import Tuple
-from dash import html, dcc
+from dash import html, dcc, Input, Output
 
 from db.models import *
 from db.db_service import DbService
 from pandas import DataFrame
 from frontend.styles import H1, H2
+
+dash.register_page(__name__, path="/mppt", title="MPPT")
 
 
 def load_power_data(db_serv: DbService) -> Tuple[DataFrame]:
@@ -111,12 +113,14 @@ def disp_mppt(power_df: DataFrame, stat) -> html.Div:
     ])
 
 
-def content():
+@dash.callback(Output('live-update-div-mppt', 'children'), Input('interval-component', 'n_intervals'))
+def refresh_data(n):
     db_serv: DbService = DbService()
 
     try:
         (power_df0, power_df1, power_df2) = load_power_data(db_serv)
         (stat0, stat1, stat2) = load_status_data(db_serv)
+
         return html.Div([
             html.H1(["MPPT"], style=H1, className="text-center"),
             html.H2(["MPPT 0"], style=H2, className="text-center"),
@@ -126,9 +130,20 @@ def content():
             disp_mppt(power_df1, stat1),
             html.Hr(),
             html.H2(["MPPT 2"], style=H2, className="text-center"),
-            disp_mppt(power_df2, stat2)
+            disp_mppt(power_df2, stat2),
         ])
     except:
         print("Err: Couldn't load MPPT Tables")
 
         return html.Div(html.H2("Data load failed", className="text-center"))
+
+
+def layout():
+    return html.Div([
+        html.Div(id='live-update-div-mppt'),
+        dcc.Interval(
+            id='interval-component',
+            interval=1*1000,  # refresh every x milliseconds
+            n_intervals=0
+        )
+    ])

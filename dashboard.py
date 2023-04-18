@@ -1,33 +1,29 @@
 import dash_bootstrap_components as dbc
 
-from dash import Dash, dcc, html, Output, Input
+from dash import Dash, dcc, html, Output, Input, page_container
 
 from frontend.styles import CONTENT_STYLE
-from frontend.router import route
 from frontend.sidebar import sidebar
 
 
 def layout() -> dbc.Container:
     """Set global container with sidebar and main content window"""
 
-    content = html.Div(id="page-content", style=CONTENT_STYLE)
+    content = html.Div(page_container, style=CONTENT_STYLE)
 
     return html.Div(
-        [dcc.Location(id="url"), sidebar, content])
+        [dcc.Location(id="url"), sidebar(), content])
 
 
 def main():
     # spawn new plotly instance
     app: Dash = Dash(name="Dashboard", external_stylesheets=[
-                     dbc.themes.LUX, dbc.icons.BOOTSTRAP])
-    app.layout: dbc.Container = layout()  # set the global layout
+                     dbc.themes.LUX, dbc.icons.BOOTSTRAP], use_pages=True, pages_folder="frontend", update_title=None)
 
-    # set router decorator to select main content based on sideboard
-    @app.callback(Output("page-content", "children"), [Input("url", "pathname")])
-    def render_page_content(pathname):
-        return route(pathname)
+    # set the global layout
+    app.layout: dbc.Container = layout()
 
-    # finally start app
+    # run
     app.run(debug=True, port=8080)
 
 
