@@ -35,7 +35,7 @@ def preprocess(df: DataFrame) -> DataFrame:
 
 def bms_v_graph(df: DataFrame):
     fig: go.Figure = px.line(df,
-                             title="Cell Voltages",
+                             title="Pack Voltage",
                              template="plotly_white",
                              x="timestamp",
                              y=["battery_voltage"],
@@ -45,7 +45,7 @@ def bms_v_graph(df: DataFrame):
 
 def bms_i_graph(df: DataFrame):
     fig: go.Figure = px.line(df,
-                             title="Cell Voltages",
+                             title="Pack Current",
                              template="plotly_white",
                              x="timestamp",
                              y=["battery_current"],
@@ -55,14 +55,14 @@ def bms_i_graph(df: DataFrame):
 
 def disp_bms(df: DataFrame):
     return dbc.Row([
-        dbc.Col(
+        dbc.Col([
             html.H2("Pack Voltage", style=H2, className="text-center"),
             dcc.Graph(figure=bms_v_graph(df)),
-        ),
-        # dbc.Col(
-        #     html.H2("Pack Current", style=H2, className="text-center"),
-        #     dcc.Graph(figure=bms_i_graph(df)),
-        # )
+        ]),
+        dbc.Col([
+            html.H2("Pack Current", style=H2, className="text-center"),
+            dcc.Graph(figure=bms_i_graph(df))
+        ])
     ])
 
 
