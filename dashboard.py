@@ -18,7 +18,7 @@ def layout() -> dbc.Container:
 def main():
     # spawn new plotly instance
     app: Dash = Dash(name="Dashboard", external_stylesheets=[
-                     dbc.themes.LUX, dbc.icons.BOOTSTRAP], use_pages=True)
+                     dbc.themes.LUX, dbc.icons.BOOTSTRAP], use_pages=True, pages_folder="frontend")
     # set the global layout
     app.layout: dbc.Container = layout()
 

@@ -86,5 +86,3 @@ def layout():
         print("Err: Couldn't load BMS Tables")
 
         return html.Div(html.H2("Data load failed", className="text-center"))
-
-    return html.Div()
