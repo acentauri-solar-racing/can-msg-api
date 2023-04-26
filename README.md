@@ -144,6 +144,14 @@ Shortcuts:
         +---------+-------------------------------+
 ```
 
+#### Publish
+
+If you want to send your device a certain message over CAN, you can use the `pub` utility.
+
+```sh
+python pub.py -t /stwheel/stwheel_heartbeat -c /dev/ttyUSB0 -b 500000 --data 0 0 0
+```
+
 #### Decode
 
 The script `log_decoder.py` watches for modifications to files in the `/logs` folder and reads the newly inserted lines to log files. This decoder can run in real-time as log-files are being written, or also after recording data. New lines might appear because the real-time logging script is active or files from the SD-card logger are moved into the logs folder.
