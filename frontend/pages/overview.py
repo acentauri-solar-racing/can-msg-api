@@ -11,13 +11,6 @@ from collections import OrderedDict
 # set as default route
 dash.register_page(__name__, path='/', title='Overview')
 
-# temporary
-# d = {
-#     'Module': {'VCU', 'ICU', 'MPPT'},
-#     'Status': {'Active', 'Inactive', 'Active'},
-#     'Last activity': {'18_01', '18_02', '18_02'},
-
-# }
 
 data = [
     {'module': 'vcu', 'status': "active", 'last activity': "active"},
@@ -29,7 +22,10 @@ data = [
 def layout():
     return html.Div([
         html.H1("Overview"),
-        html.P("Speed and stuff idk"),
+        html.H2("Speed"),
+        html.B("Speed and some graph"),
+
+        html.H2("Module Status"),
         dash_table.DataTable(data=data,
                              id='activity_table',
                              style_data_conditional=[
