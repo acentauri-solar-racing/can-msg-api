@@ -427,8 +427,11 @@ logger:
   logger_heartbeat:
     id: "0x700"
     id_type: "std"
-    dlc: 0
+    dlc: 1
     data:
+      unused:
+        type: data_u8
+        idx: 0
   logger_time:
     id: "0x701"
     id_type: "std"
