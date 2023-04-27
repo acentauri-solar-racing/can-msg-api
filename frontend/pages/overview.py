@@ -38,6 +38,18 @@ def load_icu_data(db_serv: DbService) -> DataFrame:
     )
 
 
+def load_power_data(db_serv: DbService) -> DataFrame:
+    return preprocess(
+        db_serv.query(BmsPackSoc, 100)
+    )
+
+
+def load_soc_data(db_serv: DbService) -> DataFrame:
+    return preprocess(
+        db_serv.query(BmsPackSoc, 100)
+    )
+
+
 def preprocess(df: DataFrame) -> DataFrame:
     """prepare data frame for plotting"""
     # rescale to km/h
@@ -78,6 +90,11 @@ def disp_speed(df: DataFrame):
             ),
         ]
     )
+
+
+show_speed = False
+show_power = False
+show_soc = True
 
 
 @dash.callback(
