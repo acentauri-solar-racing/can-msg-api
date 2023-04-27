@@ -38,16 +38,16 @@ def load_icu_data(db_serv: DbService) -> DataFrame:
     )
 
 
-def load_power_data(db_serv: DbService) -> DataFrame:
-    return preprocess(
-        db_serv.query(BmsPackSoc, 100)
-    )
+# def load_power_data(db_serv: DbService) -> DataFrame:
+#     return preprocess(
+#         db_serv.query(BmsPackSoc, 100)
+#     )
 
 
-def load_soc_data(db_serv: DbService) -> DataFrame:
-    return preprocess(
-        db_serv.query(BmsPackSoc, 100)
-    )
+# def load_soc_data(db_serv: DbService) -> DataFrame:
+#     return preprocess(
+#         db_serv.query(BmsPackSoc, 100)
+#     )
 
 
 def preprocess(df: DataFrame) -> DataFrame:
