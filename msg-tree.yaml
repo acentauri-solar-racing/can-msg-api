@@ -407,7 +407,7 @@ mppt: # there are three MPPTs
         type: data_8
         idx: 4
 tele:
-  tele_heartbeat:
+  tele_solar_heartbeat:
     id: "0x300"
     id_type: "std"
     dlc: 1
@@ -415,3 +415,40 @@ tele:
       unused:
         type: data_u8
         idx: 0
+  tele_chase_heartbeat:
+    id: "0x301"
+    id_type: "std"
+    dlc: 0
+    data:
+logger:
+  logger_heartbeat:
+    id: "0x700"
+    id_type: "std"
+    dlc: 0
+    data:
+  logger_time:
+    id: "0x701"
+    id_type: "std"
+    dlc: 7
+    data:
+      year:
+        type: data_8
+        idx: 0
+      month:
+        type: data_8
+        idx: 1
+      day:
+        type: data_8
+        idx: 2
+      hour:
+        type: data_8
+        idx: 3
+      minute:
+        type: data_8
+        idx: 4
+      second:
+        type: data_8
+        idx: 5
+      subsecond:
+        type: data_8
+        idx: 6
