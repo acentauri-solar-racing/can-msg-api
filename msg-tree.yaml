@@ -418,8 +418,11 @@ tele:
   tele_chase_heartbeat:
     id: "0x301"
     id_type: "std"
-    dlc: 0
+    dlc: 1
     data:
+      unused:
+        type: data_u8
+        idx: 0
 logger:
   logger_heartbeat:
     id: "0x700"
