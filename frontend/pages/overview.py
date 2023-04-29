@@ -26,6 +26,8 @@ speed = 300000000 * 3.6  # km/h
 power = 3000
 soc = 110
 
+show_graph = 'soc'  # can be 'none', 'speed', 'power' or 'soc'
+
 main_data = [
     {'Speed': f"{speed} km/h", 'Power Consumption of Motor': f"{power} W",
         'SOC of Battery': f"{soc} %"},
@@ -124,40 +126,25 @@ def soc_graph(df: DataFrame):
     return fig
 
 
-def disp_speed(df: DataFrame):
-    return dbc.Row(
-        [
-            dbc.Col(
-                [
-                    dcc.Graph(figure=speed_graph(df)),
-                ]
-            ),
-        ]
-    )
-
-
-def disp_power(df: DataFrame):
-    return dbc.Row(
-        [
-            dbc.Col(
-                [
-                    dcc.Graph(figure=power_graph(df)),
-                ]
-            ),
-        ]
-    )
-
-
-def disp_soc(df: DataFrame):
-    return dbc.Row(
-        [
-            dbc.Col(
-                [
-                    dcc.Graph(figure=soc_graph(df)),
-                ]
-            ),
-        ]
-    )
+def disp(df: DataFrame, type: str):
+    if type == 'none':
+        return html.Div(children=[],
+                        )
+    elif type == 'speed':
+        return html.Div(children=[
+            dcc.Graph(figure=speed_graph(df)),
+        ],
+        )
+    elif type == 'power':
+        return html.Div(children=[
+            dcc.Graph(figure=power_graph(df)),
+        ],
+        )
+    elif type == 'soc':
+        return html.Div(children=[
+            dcc.Graph(figure=soc_graph(df)),
+        ],
+        )
 
 
 show_speed = False
@@ -174,48 +161,78 @@ def refresh_data(n):
     df_speed: DataFrame = load_icu_data(db_serv)
     (df_power1, df_power2, df_power3) = load_power_data(db_serv)
     df_soc: DataFrame = load_soc_data(db_serv)
+    if show_graph == 'speed' or show_graph == 'none':
+        df = df_speed
+    elif show_graph == 'power':
+        df = df_power1
+    elif show_graph == 'soc':
+        df = df_soc
 
-    try:
-        return html.Div(
-            [
-                html.H1("Overview", style=H1, className="text-center"),
-                html.H2("Car Status"),
-                dash_table.DataTable(data=main_data,
-                                     id='main_table',
-                                     style_data={
-                                        'font_size': '25px',
-                                        'font_weight': 'heavy'
+    # try:
+    return html.Div([
+        html.H1("Overview", style=H1, className="text-center"),
+        html.H2("Car Status"),
+        dash_table.DataTable(data=main_data,
+                             id='main-table',
+                             style_data={
+                                 'font_size': '25px',
+                                 'font_weight': 'heavy'
+                             },
+                             style_as_list_view=True,
+                             columns=[{"name": i, "id": i}
+                                      for i in range(3)],
+                             column_selectable="multi",
+                             selected_columns=[],
+                             filter_action="native"
+                             ),
+        html.Div(children=disp(df, show_graph), id='extra-graph'),
+        html.H2("Module Status"),
+        dash_table.DataTable(data=module_data,
+                             id='activity-table',
+                             style_as_list_view=True,
+                             style_data_conditional=[
+
+                                 {
+                                     'if': {
+                                         'filter_query': '{status} contains inactive',
+                                         'column_type': 'any',
                                      },
-                                     style_as_list_view=True,
-                                     ),
-                disp_speed(df_speed),
-                disp_power(df_power1),
-                # disp_power(df_power1),
-                # disp_power(df_power1),
-                disp_soc(df_soc),
-                html.H2("Module Status"),
-                dash_table.DataTable(data=module_data,
-                                     id='activity_table',
-                                     style_as_list_view=True,
-                                     style_data_conditional=[
+                                     'backgroundColor': 'tomato',
+                                     'color': 'white'
+                                 },
 
-                                         {
-                                             'if': {
-                                                 'filter_query': '{status} contains inactive',
-                                                 'column_type': 'any',
-                                             },
-                                             'backgroundColor': 'tomato',
-                                             'color': 'white'
-                                         },
+                             ],
+                             )
+    ],
+    )
+    # except:
+    #     print("Err: Couldn't load BMS Tables")
 
-                                     ],
-                                     )
-            ]
-        )
-    except:
-        print("Err: Couldn't load BMS Tables")
+    #     return html.Div(html.H2("Data load failed", className="text-center"))
 
-        return html.Div(html.H2("Data load failed", className="text-center"))
+
+@dash.callback(
+    Output("main-table", "style_data_conditional"),
+    Input("main-table", "selected_column_ids"),
+    suppress_callback_exceptions=True
+)
+def show_table(selected_columns):
+    if selected_columns is None:
+        return dash.no_update
+    print(selected_columns)
+    return [
+        {"if": {"filter_query": "{{id}} ={}".format(
+            i)}, "backgroundColor": "yellow", }
+        for i in selected_columns
+    ]
+    # if (len(selected_column) == 0):
+    #     show_graph = 'none'
+    # elif selected_column[0] == 0:
+    #     show_graph = 'speed'
+    # elif selected_column[0] == 1:
+    #     show_graph = 'power'
+    # elif selected_column[0] == 2:
+    #     show_graph = 'soc'
 
 
 def layout():
