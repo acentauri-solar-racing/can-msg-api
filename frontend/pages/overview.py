@@ -33,27 +33,59 @@ main_data = [
 
 
 def load_icu_data(db_serv: DbService) -> DataFrame:
-    return preprocess(
+    return preprocess_speed(
         db_serv.query(IcuHeartbeat, 100)
     )
 
 
-# def load_power_data(db_serv: DbService) -> DataFrame:
-#     return preprocess(
-#         db_serv.query(BmsPackSoc, 100)
-#     )
+def load_power_data(db_serv: DbService) -> Tuple[DataFrame]:
+    return (preprocess_power(
+        db_serv.query(MpptPowerMeas0, 100),
+    ),
+        preprocess_power(
+        db_serv.query(MpptPowerMeas1, 100)
+    ),
+        preprocess_power(
+        db_serv.query(MpptPowerMeas2, 100)
+    ))
 
 
-# def load_soc_data(db_serv: DbService) -> DataFrame:
-#     return preprocess(
-#         db_serv.query(BmsPackSoc, 100)
-#     )
+def load_soc_data(db_serv: DbService) -> DataFrame:
+    return preprocess_soc(
+        db_serv.query(BmsPackSoc, 100),
+    )
 
 
-def preprocess(df: DataFrame) -> DataFrame:
+def preprocess_speed(df: DataFrame) -> DataFrame:
     """prepare data frame for plotting"""
     # rescale to km/h
     df['speed'] *= 3.6
+    # parse timestamp
+    df['timestamp'] = pd.to_datetime(
+        df['timestamp'], unit='s', origin="unix", utc=True)
+    return df
+
+
+def preprocess_power(df: DataFrame) -> DataFrame:
+    """prepare data frame for plotting"""
+    # rescale all voltages since given in mV
+    df['v_in'] *= 1e-3
+    df['i_in'] *= 1e-3
+    df['v_out'] *= 1e-3
+    df['i_out'] *= 1e-3
+
+    # P = UI
+    df['p_in'] = df['v_in'] * df['i_in']
+    df['p_out'] = df['v_out'] * df['i_out']
+
+    # parse timestamp
+    df['timestamp'] = pd.to_datetime(
+        df['timestamp'], unit='s', origin="unix", utc=True)
+    return df
+
+
+def preprocess_soc(df: DataFrame) -> DataFrame:
+    """prepare data frame for plotting"""
     # parse timestamp
     df['timestamp'] = pd.to_datetime(
         df['timestamp'], unit='s', origin="unix", utc=True)
@@ -71,13 +103,25 @@ def speed_graph(df: DataFrame):
     return fig
 
 
-def disp_speed(df: DataFrame):
-    dbc.Col(
-        [
-            html.H2("Speed", style=H2, className="text-center"),
-            dcc.Graph(figure=speed_graph(df)),
-        ]
-    )
+def power_graph(df: DataFrame):
+    fig: go.Figure = px.line(df,
+                             title="Power",
+                             template="plotly_white",
+                             x="timestamp",
+                             y=["v_in", "v_out"]
+                             ).update_yaxes(range=[0, 15])
+    return fig
+
+
+def soc_graph(df: DataFrame):
+    fig: go.Figure = px.line(
+        df,
+        title="State of Charge",
+        template="plotly_white",
+        x="timestamp",
+        y=["soc_percent"],
+    ).update_yaxes(range=[0, 100])
+    return fig
 
 
 def disp_speed(df: DataFrame):
@@ -86,6 +130,30 @@ def disp_speed(df: DataFrame):
             dbc.Col(
                 [
                     dcc.Graph(figure=speed_graph(df)),
+                ]
+            ),
+        ]
+    )
+
+
+def disp_power(df: DataFrame):
+    return dbc.Row(
+        [
+            dbc.Col(
+                [
+                    dcc.Graph(figure=power_graph(df)),
+                ]
+            ),
+        ]
+    )
+
+
+def disp_soc(df: DataFrame):
+    return dbc.Row(
+        [
+            dbc.Col(
+                [
+                    dcc.Graph(figure=soc_graph(df)),
                 ]
             ),
         ]
@@ -103,7 +171,9 @@ show_soc = True
 )
 def refresh_data(n):
     db_serv: DbService = DbService()
-    df: DataFrame = load_icu_data(db_serv)
+    df_speed: DataFrame = load_icu_data(db_serv)
+    (df_power1, df_power2, df_power3) = load_power_data(db_serv)
+    df_soc: DataFrame = load_soc_data(db_serv)
 
     try:
         return html.Div(
@@ -118,7 +188,11 @@ def refresh_data(n):
                                      },
                                      style_as_list_view=True,
                                      ),
-                disp_speed(df),
+                disp_speed(df_speed),
+                disp_power(df_power1),
+                # disp_power(df_power1),
+                # disp_power(df_power1),
+                disp_soc(df_soc),
                 html.H2("Module Status"),
                 dash_table.DataTable(data=module_data,
                                      id='activity_table',
