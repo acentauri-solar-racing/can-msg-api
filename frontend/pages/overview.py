@@ -179,8 +179,9 @@ def refresh_data(n):
                                  'font_weight': 'heavy'
                              },
                              style_as_list_view=True,
-                             columns=[{"name": i, "id": i}
-                                      for i in range(3)],
+                             columns=[
+            {"name": i, "id": i, "selectable": True} for i in pandas.DataFrame.from_dict(main_data).columns
+        ],
                              column_selectable="multi",
                              selected_columns=[],
                              filter_action="native"
@@ -221,8 +222,7 @@ def show_table(selected_columns):
         return dash.no_update
     print(selected_columns)
     return [
-        {"if": {"filter_query": "{{id}} ={}".format(
-            i)}, "backgroundColor": "yellow", }
+         {"if": {"filter_query": "{{id}} ={}".format(i)}, "backgroundColor": "yellow",}
         for i in selected_columns
     ]
     # if (len(selected_column) == 0):
