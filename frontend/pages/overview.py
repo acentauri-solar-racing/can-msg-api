@@ -26,13 +26,14 @@ speed = 300000000 * 3.6  # km/h
 power = 3000
 soc = 110
 
-show_graph = 'soc'  # can be 'none', 'speed', 'power' or 'soc'
+show_graph = 'none'  # can be 'none', 'speed', 'power' or 'soc'
 
 main_data = [
     {'Speed': f"{speed} km/h", 'Power Consumption of Motor': f"{power} W",
         'SOC of Battery': f"{soc} %"},
 ]
 
+df = pd.DataFrame.from_dict(main_data)
 
 def load_icu_data(db_serv: DbService) -> DataFrame:
     return preprocess_speed(
@@ -153,7 +154,9 @@ show_soc = True
 
 
 @dash.callback(
-    Output("live-update-speed", "children"),
+    Output("main-table", "data"),
+    Output("activity-table", "data"),
+    Output("extra-graph", "children"),
     Input("interval-component", "n_intervals"),
 )
 def refresh_data(n):
@@ -168,77 +171,100 @@ def refresh_data(n):
     elif show_graph == 'soc':
         df = df_soc
 
-    # try:
-    return html.Div([
-        html.H1("Overview", style=H1, className="text-center"),
-        html.H2("Car Status"),
-        dash_table.DataTable(data=main_data,
-                             id='main-table',
-                             style_data={
-                                 'font_size': '25px',
-                                 'font_weight': 'heavy'
-                             },
-                             style_as_list_view=True,
-                             columns=[
-            {"name": i, "id": i, "selectable": True} for i in pandas.DataFrame.from_dict(main_data).columns
-        ],
-                             column_selectable="multi",
-                             selected_columns=[],
-                             filter_action="native"
-                             ),
-        html.Div(children=disp(df, show_graph), id='extra-graph'),
-        html.H2("Module Status"),
-        dash_table.DataTable(data=module_data,
-                             id='activity-table',
-                             style_as_list_view=True,
-                             style_data_conditional=[
+    ##TODO: implement actual data update
+    speed = 0
+    power = 12
+    soc = 'batshit'
+    main_data =[{'Speed': f"{speed} km/h", 'Power Consumption of Motor': f"{power} W",
+        'SOC of Battery': f"{soc} %"}]
 
-                                 {
-                                     'if': {
-                                         'filter_query': '{status} contains inactive',
-                                         'column_type': 'any',
-                                     },
-                                     'backgroundColor': 'tomato',
-                                     'color': 'white'
-                                 },
+    updated_module_data = [
+        {'module': 'vcu', 'status': "active", 'last activity': "no idea"},
+        {'module': 'icu', 'status': "inactive", 'last activity': "don't really care"},
+        {'module': 'mppt', 'status': "active", 'last activity': "stop asking"},
+    ]
 
-                             ],
-                             )
-    ],
-    )
-    # except:
-    #     print("Err: Couldn't load BMS Tables")
-
-    #     return html.Div(html.H2("Data load failed", className="text-center"))
+    return main_data, updated_module_data, disp(df, show_graph)
 
 
 @dash.callback(
     Output("main-table", "style_data_conditional"),
-    Input("main-table", "selected_column_ids"),
+    Output("extra-graph", "children"),
+    Input("main-table", "selected_columns"),
+    
     suppress_callback_exceptions=True
 )
 def show_table(selected_columns):
     if selected_columns is None:
         return dash.no_update
     print(selected_columns)
+    db_serv: DbService = DbService()
+    if (len(selected_columns) == 0):
+        show_graph = 'none'
+    elif selected_columns[0] == list(main_data[0].keys())[0].replace(" ","_"):
+        print('speed')
+        show_graph = 'speed'
+        df =load_icu_data(db_serv)
+    elif selected_columns[0] == list(main_data[0].keys())[1].replace(" ","_"):
+        print('power')
+        show_graph = 'power'
+        df = load_power_data(db_serv)
+    elif selected_columns[0] == list(main_data[0].keys())[2].replace(" ","_"):
+        print('soc')
+        show_graph = 'soc'
+        df = load_soc_data(db_serv)
+
     return [
-         {"if": {"filter_query": "{{id}} ={}".format(i)}, "backgroundColor": "yellow",}
+         {"if": {"filter_query": "{{id}} ={}".format(i)}, 'backgroundColor': 'tomato',
+                                                'color': 'white'}
         for i in selected_columns
-    ]
-    # if (len(selected_column) == 0):
-    #     show_graph = 'none'
-    # elif selected_column[0] == 0:
-    #     show_graph = 'speed'
-    # elif selected_column[0] == 1:
-    #     show_graph = 'power'
-    # elif selected_column[0] == 2:
-    #     show_graph = 'soc'
+    ], disp(df, show_graph)
+
 
 
 def layout():
     return html.Div(
-        [
-            html.Div(id="live-update-speed"),
+        [   html.Div(children = 
+            [
+                    html.H1("Overview", style=H1, className="text-center"),
+                    html.H2("Car Status"),
+                    dash_table.DataTable(data=main_data,
+                                        id='main-table',
+                                        style_data={
+                                            'font_size': '25px',
+                                            'font_weight': 'heavy'
+                                        },
+                                        style_as_list_view=True,
+                                        columns=[
+                                            {"name": i.replace(" ","_"), "id": i.replace(" ","_"), "selectable": True} 
+                                            for i in pd.DataFrame.from_dict(main_data).columns],
+                                        column_selectable="single",
+                                        style_data_conditional = [],
+                                        selected_columns=[],
+                                        ),
+                    html.Br(),
+                    html.Br(),
+                    html.Div(children=disp(df, show_graph), id='extra-graph'),
+                    html.H2("Module Status"),
+                    dash_table.DataTable(data=module_data,
+                                        id='activity-table',
+                                        style_as_list_view=True,
+                                        style_data_conditional=[
+
+                                            {
+                                                'if': {
+                                                    'filter_query': '{status} contains inactive',
+                                                    'column_type': 'any',
+                                                },
+                                                'backgroundColor': 'tomato',
+                                                'color': 'white'
+                                            },
+
+                                        ],
+                                        )
+                ],
+            id="live-update-speed"),
+            
             dcc.Interval(
                 id="interval-component", interval=RELOAD_INTERVAL, n_intervals=0
             ),
