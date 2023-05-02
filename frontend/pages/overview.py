@@ -35,8 +35,6 @@ main_data = [
 
 main_df = pd.DataFrame.from_dict(main_data)
 
-#print([i for i in main_df.columns])
-
 
 def load_icu_data(db_serv: DbService) -> DataFrame:
     return preprocess_speed(
@@ -151,28 +149,20 @@ def disp(df: DataFrame, type: str):
         )
 
 
-show_speed = False
-show_power = False
-show_soc = True
-
-
 @dash.callback(
     Output("main-table", "data"),
     Output("activity-table", "data"),
     Output("extra-graph", "children"),
-    #Output("main-table", "style_data_conditional"),
     Input("interval-component", "n_intervals"),
     Input("main-table", "active_cell"),
 
 )
 def refresh_data(n, active_cell):
-    print(active_cell)
     db_serv: DbService = DbService()
     df_speed: DataFrame = load_icu_data(db_serv)
     (df_power1, df_power2, df_power3) = load_power_data(db_serv)
     df_soc: DataFrame = load_soc_data(db_serv)
 
-    # print(selected_columns)
     if (active_cell == None):
         show_graph = 'none'
         df = df_speed
@@ -212,12 +202,6 @@ def refresh_data(n, active_cell):
     ]
     return main_data, updated_module_data, disp(df, show_graph)
 
-# , [{
-#         'if': {'filter_query': '{active_column}={i}'},
-#         'background_color': 'tomato',
-#     } for i in range(3)
-#     ]
-
 
 def layout():
     return html.Div(children=[
@@ -237,13 +221,17 @@ def layout():
                                      'if': {
                                          'state': 'active'  # 'active' | 'selected'
                                      },
-                                     'backgroundColor': 'tomato'
+                                     'backgroundColor': 'tomato',
+                                     'color': 'white'
+
                                  },
                                  {
                                      'if': {
                                          'state': 'selected'  # 'active' | 'selected'
                                      },
-                                     'backgroundColor': 'tomato'
+                                     'backgroundColor': 'tomato',
+                                     'color': 'white'
+
                                  },
                              ],
                              ),
