@@ -157,18 +157,33 @@ show_soc = True
     Output("main-table", "data"),
     Output("activity-table", "data"),
     Output("extra-graph", "children"),
+    Output("main-table", "style_data_conditional"),
     Input("interval-component", "n_intervals"),
+    Input("main-table", "selected_columns"),
 )
-def refresh_data(n):
+def refresh_data(n, selected_columns):
     db_serv: DbService = DbService()
     df_speed: DataFrame = load_icu_data(db_serv)
     (df_power1, df_power2, df_power3) = load_power_data(db_serv)
     df_soc: DataFrame = load_soc_data(db_serv)
-    if show_graph == 'speed' or show_graph == 'none':
+
+    if selected_columns is None:
+            return dash.no_update
+    print(selected_columns)
+    if (len(selected_columns) == 0):
+        show_graph = 'none'
         df = df_speed
-    elif show_graph == 'power':
+    elif selected_columns[0] == list(main_data[0].keys())[0].replace(" ","_"):
+        print('speed')
+        show_graph = 'speed'
+        df = df_speed
+    elif selected_columns[0] == list(main_data[0].keys())[1].replace(" ","_"):
+        print('power')
+        show_graph = 'power'
         df = df_power1
-    elif show_graph == 'soc':
+    elif selected_columns[0] == list(main_data[0].keys())[2].replace(" ","_"):
+        print('soc')
+        show_graph = 'soc'
         df = df_soc
 
     ##TODO: implement actual data update
@@ -184,42 +199,11 @@ def refresh_data(n):
         {'module': 'mppt', 'status': "active", 'last activity': "stop asking"},
     ]
 
-    return main_data, updated_module_data, disp(df, show_graph)
-
-
-@dash.callback(
-    Output("main-table", "style_data_conditional"),
-    Output("extra-graph", "children"),
-    Input("main-table", "selected_columns"),
-    
-    suppress_callback_exceptions=True
-)
-def show_table(selected_columns):
-    if selected_columns is None:
-        return dash.no_update
-    print(selected_columns)
-    db_serv: DbService = DbService()
-    if (len(selected_columns) == 0):
-        show_graph = 'none'
-    elif selected_columns[0] == list(main_data[0].keys())[0].replace(" ","_"):
-        print('speed')
-        show_graph = 'speed'
-        df =load_icu_data(db_serv)
-    elif selected_columns[0] == list(main_data[0].keys())[1].replace(" ","_"):
-        print('power')
-        show_graph = 'power'
-        df = load_power_data(db_serv)
-    elif selected_columns[0] == list(main_data[0].keys())[2].replace(" ","_"):
-        print('soc')
-        show_graph = 'soc'
-        df = load_soc_data(db_serv)
-
-    return [
+    return main_data, updated_module_data, disp(df, show_graph),[
          {"if": {"filter_query": "{{id}} ={}".format(i)}, 'backgroundColor': 'tomato',
                                                 'color': 'white'}
         for i in selected_columns
-    ], disp(df, show_graph)
-
+    ]
 
 
 def layout():
