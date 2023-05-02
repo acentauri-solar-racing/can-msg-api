@@ -33,7 +33,9 @@ main_data = [
         'SOC of Battery': f"{soc} %"},
 ]
 
-df = pd.DataFrame.from_dict(main_data)
+main_df = pd.DataFrame.from_dict(main_data)
+
+#print([i for i in main_df.columns])
 
 
 def load_icu_data(db_serv: DbService) -> DataFrame:
@@ -158,41 +160,49 @@ show_soc = True
     Output("main-table", "data"),
     Output("activity-table", "data"),
     Output("extra-graph", "children"),
-    Output("main-table", "style_data_conditional"),
+    #Output("main-table", "style_data_conditional"),
     Input("interval-component", "n_intervals"),
-    Input("main-table", "selected_columns"),
+    Input("main-table", "active_cell"),
+
 )
-def refresh_data(n, selected_columns):
+def refresh_data(n, active_cell):
+    print(active_cell)
     db_serv: DbService = DbService()
     df_speed: DataFrame = load_icu_data(db_serv)
     (df_power1, df_power2, df_power3) = load_power_data(db_serv)
     df_soc: DataFrame = load_soc_data(db_serv)
 
-    if selected_columns is None:
-        return dash.no_update
-    print(selected_columns)
-    if (len(selected_columns) == 0):
+    # print(selected_columns)
+    if (active_cell == None):
         show_graph = 'none'
         df = df_speed
-    elif selected_columns[0] == list(main_data[0].keys())[0].replace(" ", "_"):
+        active_column = 4
+        active_column_id = 'nope'
+    elif active_cell['column'] == 0:
         print('speed')
         show_graph = 'speed'
         df = df_speed
-    elif selected_columns[0] == list(main_data[0].keys())[1].replace(" ", "_"):
+        active_column = 0
+        active_column_id = active_cell['column_id']
+    elif active_cell['column'] == 1:
         print('power')
         show_graph = 'power'
         df = df_power1
-    elif selected_columns[0] == list(main_data[0].keys())[2].replace(" ", "_"):
+        active_column = 1
+        active_column_id = active_cell['column_id']
+    elif active_cell['column'] == 2:
         print('soc')
         show_graph = 'soc'
         df = df_soc
+        active_column = 2
+        active_column_id = active_cell['column_id']
 
     # TODO: implement actual data update
     speed = 0
     power = 12
     soc = 'batshit'
-    updated_main_data = [{'Speed': f"{speed} km/h", 'Power Consumption of Motor': f"{power} W",
-                         'SOC of Battery': f"{soc} %"}]
+    main_data = [{'Speed': f"{speed} km/h", 'Power Consumption of Motor': f"{power} W",
+                  'SOC of Battery': f"{soc} %"}]
 
     updated_module_data = [
         {'module': 'vcu', 'status': "active", 'last activity': "no idea"},
@@ -200,12 +210,13 @@ def refresh_data(n, selected_columns):
             'last activity': "don't really care"},
         {'module': 'mppt', 'status': "active", 'last activity': "stop asking"},
     ]
+    return main_data, updated_module_data, disp(df, show_graph)
 
-    return updated_main_data, updated_module_data, disp(df, show_graph), [
-        {"if": {"filter_query": "{{id}} ={}".format(i)}, 'backgroundColor': 'tomato',
-         'color': 'white'}
-        for i in selected_columns
-    ]
+# , [{
+#         'if': {'filter_query': '{active_column}={i}'},
+#         'background_color': 'tomato',
+#     } for i in range(3)
+#     ]
 
 
 def layout():
@@ -219,17 +230,26 @@ def layout():
                                  'font_weight': 'heavy'
                              },
                              style_as_list_view=True,
-                             columns=[
-                                 {"name": i.replace(" ", "_"), "id": i.replace(
-                                     " ", "_"), "selectable": True}
-                                 for i in pd.DataFrame.from_dict(main_data).columns],
                              column_selectable="single",
-                             style_data_conditional=[],
                              selected_columns=[],
+                             style_data_conditional=[
+                                 {
+                                     'if': {
+                                         'state': 'active'  # 'active' | 'selected'
+                                     },
+                                     'backgroundColor': 'tomato'
+                                 },
+                                 {
+                                     'if': {
+                                         'state': 'selected'  # 'active' | 'selected'
+                                     },
+                                     'backgroundColor': 'tomato'
+                                 },
+                             ],
                              ),
         html.Br(),
         html.Br(),
-        html.Div(children=disp(df, show_graph),
+        html.Div(children=disp(main_df, show_graph),
                  id='extra-graph'),
         html.H2("Module Status"),
         dash_table.DataTable(data=module_data,
