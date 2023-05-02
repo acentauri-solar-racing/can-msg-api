@@ -35,6 +35,7 @@ main_data = [
 
 df = pd.DataFrame.from_dict(main_data)
 
+
 def load_icu_data(db_serv: DbService) -> DataFrame:
     return preprocess_speed(
         db_serv.query(IcuHeartbeat, 100)
@@ -168,89 +169,88 @@ def refresh_data(n, selected_columns):
     df_soc: DataFrame = load_soc_data(db_serv)
 
     if selected_columns is None:
-            return dash.no_update
+        return dash.no_update
     print(selected_columns)
     if (len(selected_columns) == 0):
         show_graph = 'none'
         df = df_speed
-    elif selected_columns[0] == list(main_data[0].keys())[0].replace(" ","_"):
+    elif selected_columns[0] == list(main_data[0].keys())[0].replace(" ", "_"):
         print('speed')
         show_graph = 'speed'
         df = df_speed
-    elif selected_columns[0] == list(main_data[0].keys())[1].replace(" ","_"):
+    elif selected_columns[0] == list(main_data[0].keys())[1].replace(" ", "_"):
         print('power')
         show_graph = 'power'
         df = df_power1
-    elif selected_columns[0] == list(main_data[0].keys())[2].replace(" ","_"):
+    elif selected_columns[0] == list(main_data[0].keys())[2].replace(" ", "_"):
         print('soc')
         show_graph = 'soc'
         df = df_soc
 
-    ##TODO: implement actual data update
+    # TODO: implement actual data update
     speed = 0
     power = 12
     soc = 'batshit'
-    main_data =[{'Speed': f"{speed} km/h", 'Power Consumption of Motor': f"{power} W",
-        'SOC of Battery': f"{soc} %"}]
+    updated_main_data = [{'Speed': f"{speed} km/h", 'Power Consumption of Motor': f"{power} W",
+                         'SOC of Battery': f"{soc} %"}]
 
     updated_module_data = [
         {'module': 'vcu', 'status': "active", 'last activity': "no idea"},
-        {'module': 'icu', 'status': "inactive", 'last activity': "don't really care"},
+        {'module': 'icu', 'status': "inactive",
+            'last activity': "don't really care"},
         {'module': 'mppt', 'status': "active", 'last activity': "stop asking"},
     ]
 
-    return main_data, updated_module_data, disp(df, show_graph),[
-         {"if": {"filter_query": "{{id}} ={}".format(i)}, 'backgroundColor': 'tomato',
-                                                'color': 'white'}
+    return updated_main_data, updated_module_data, disp(df, show_graph), [
+        {"if": {"filter_query": "{{id}} ={}".format(i)}, 'backgroundColor': 'tomato',
+         'color': 'white'}
         for i in selected_columns
     ]
 
 
 def layout():
-    return html.Div(
-        [   html.Div(children = 
-            [
-                    html.H1("Overview", style=H1, className="text-center"),
-                    html.H2("Car Status"),
-                    dash_table.DataTable(data=main_data,
-                                        id='main-table',
-                                        style_data={
-                                            'font_size': '25px',
-                                            'font_weight': 'heavy'
-                                        },
-                                        style_as_list_view=True,
-                                        columns=[
-                                            {"name": i.replace(" ","_"), "id": i.replace(" ","_"), "selectable": True} 
-                                            for i in pd.DataFrame.from_dict(main_data).columns],
-                                        column_selectable="single",
-                                        style_data_conditional = [],
-                                        selected_columns=[],
-                                        ),
-                    html.Br(),
-                    html.Br(),
-                    html.Div(children=disp(df, show_graph), id='extra-graph'),
-                    html.H2("Module Status"),
-                    dash_table.DataTable(data=module_data,
-                                        id='activity-table',
-                                        style_as_list_view=True,
-                                        style_data_conditional=[
+    return html.Div(children=[
+        html.H1("Overview", style=H1, className="text-center"),
+        html.H2("Car Status"),
+        dash_table.DataTable(data=main_data,
+                             id='main-table',
+                             style_data={
+                                 'font_size': '25px',
+                                 'font_weight': 'heavy'
+                             },
+                             style_as_list_view=True,
+                             columns=[
+                                 {"name": i.replace(" ", "_"), "id": i.replace(
+                                     " ", "_"), "selectable": True}
+                                 for i in pd.DataFrame.from_dict(main_data).columns],
+                             column_selectable="single",
+                             style_data_conditional=[],
+                             selected_columns=[],
+                             ),
+        html.Br(),
+        html.Br(),
+        html.Div(children=disp(df, show_graph),
+                 id='extra-graph'),
+        html.H2("Module Status"),
+        dash_table.DataTable(data=module_data,
+                             id='activity-table',
+                             style_as_list_view=True,
+                             style_data_conditional=[
 
-                                            {
-                                                'if': {
-                                                    'filter_query': '{status} contains inactive',
-                                                    'column_type': 'any',
-                                                },
-                                                'backgroundColor': 'tomato',
-                                                'color': 'white'
-                                            },
+                                 {
+                                     'if': {
+                                         'filter_query': '{status} contains inactive',
+                                         'column_type': 'any',
+                                     },
+                                     'backgroundColor': 'tomato',
+                                     'color': 'white'
+                                 },
 
-                                        ],
-                                        )
-                ],
-            id="live-update-speed"),
-            
-            dcc.Interval(
-                id="interval-component", interval=RELOAD_INTERVAL, n_intervals=0
-            ),
-        ]
+                             ],
+                             ),
+        dcc.Interval(id="interval-component",
+                     interval=RELOAD_INTERVAL,
+                     n_intervals=0
+                     ),
+    ]
     )
