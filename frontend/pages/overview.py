@@ -3,6 +3,7 @@ import plotly.express as px
 import dash_bootstrap_components as dbc
 import pandas as pd
 import plotly.graph_objs as go
+import numpy as np
 
 from typing import Tuple
 from dash import html, dcc, Input, Output, dash_table
@@ -42,16 +43,22 @@ def load_icu_data(db_serv: DbService) -> DataFrame:
     )
 
 
-def load_power_data(db_serv: DbService) -> Tuple[DataFrame]:
-    return (preprocess_power(
+def load_mppt_power_data(db_serv: DbService) -> Tuple[DataFrame]:
+    return (preprocess_mppt_power(
         db_serv.query(MpptPowerMeas0, 100),
     ),
-        preprocess_power(
+        preprocess_mppt_power(
         db_serv.query(MpptPowerMeas1, 100)
     ),
-        preprocess_power(
+        preprocess_mppt_power(
         db_serv.query(MpptPowerMeas2, 100)
     ))
+
+
+def load_bms_power_data(db_serv: DbService) -> DataFrame:
+    return preprocess_bms_power(
+        db_serv.query(BmsPackVoltageCurrent, 100),
+    )
 
 
 def load_soc_data(db_serv: DbService) -> DataFrame:
@@ -70,17 +77,29 @@ def preprocess_speed(df: DataFrame) -> DataFrame:
     return df
 
 
-def preprocess_power(df: DataFrame) -> DataFrame:
+def preprocess_mppt_power(df: DataFrame) -> DataFrame:
     """prepare data frame for plotting"""
-    # rescale all voltages since given in mV
-    df['v_in'] *= 1e-3
-    df['i_in'] *= 1e-3
+    # rescale voltages since given in mV. Only relevant quantities are adjusted!
     df['v_out'] *= 1e-3
     df['i_out'] *= 1e-3
 
     # P = UI
-    df['p_in'] = df['v_in'] * df['i_in']
     df['p_out'] = df['v_out'] * df['i_out']
+
+    # parse timestamp
+    df['timestamp'] = pd.to_datetime(
+        df['timestamp'], unit='s', origin="unix", utc=True)
+    return df
+
+
+def preprocess_bms_power(df: DataFrame) -> DataFrame:
+    """prepare data frame for plotting"""
+    # rescale voltages since given in mV
+    df['battery_voltage'] *= 1e-3
+    df['battery_current'] *= 1e-3
+
+    # P = UI
+    df['p_out'] = df['battery_voltage'] * df['battery_current']
 
     # parse timestamp
     df['timestamp'] = pd.to_datetime(
@@ -112,8 +131,8 @@ def power_graph(df: DataFrame):
                              title="Power",
                              template="plotly_white",
                              x="timestamp",
-                             y=["v_in", "v_out"]
-                             ).update_yaxes(range=[0, 15])
+                             y=["power"]
+                             ).update_yaxes()
     return fig
 
 
@@ -149,7 +168,38 @@ def disp(df: DataFrame, type: str):
         )
 
 
-@dash.callback(
+def calculate_power(df_mppt1, df_mppt2, df_mppt3, df_bms):
+    # this needs to be checked by someone that actually knows what they're doing
+    # kinda wack, but I'm just adding the most recent values without checking if
+    # they're actually synchronous. feel free to improve ;)
+
+    # lowest index is most recent value
+
+    timestamps = df_bms['timestamp'].to_numpy()
+    mppt1 = df_mppt1['p_out'].to_numpy()
+    mppt2 = df_mppt2['p_out'].to_numpy()
+    mppt3 = df_mppt3['p_out'].to_numpy()
+
+    bms = df_bms['p_out'].to_numpy()
+
+    n = min(mppt1.size, mppt2.size, mppt3.size, bms.size)
+    power = mppt1[:n]+mppt2[:n]+mppt3[:n]+bms[:n]
+    combined = np.vstack((power, timestamps[:n])).T
+
+    df = pd.DataFrame(data=combined, columns=['power', 'timestamp'])
+    return df
+
+
+def determine_activity(db_serv: DbService):
+    df_speed: DataFrame = load_icu_data(db_serv)
+    df_soc: DataFrame = load_soc_data(db_serv)
+    (df_mppt1, df_mppt2, df_mppt3) = load_mppt_power_data(db_serv)
+    df_bms = load_bms_power_data(db_serv)
+
+    return df_speed, df_mppt1, df_mppt2, df_mppt3, df_bms, df_soc, module_data
+
+
+@ dash.callback(
     Output("main-table", "data"),
     Output("activity-table", "data"),
     Output("extra-graph", "children"),
@@ -159,40 +209,33 @@ def disp(df: DataFrame, type: str):
 )
 def refresh_data(n, active_cell):
     db_serv: DbService = DbService()
-    df_speed: DataFrame = load_icu_data(db_serv)
-    (df_power1, df_power2, df_power3) = load_power_data(db_serv)
-    df_soc: DataFrame = load_soc_data(db_serv)
+    df_speed, df_mppt1, df_mppt2, df_mppt3, df_bms, df_soc, module_data = determine_activity(
+        db_serv)
+
+    df_power: DataFrame = calculate_power(df_mppt1, df_mppt2, df_mppt3, df_bms)
 
     if (active_cell == None):
         show_graph = 'none'
         df = df_speed
-        active_column = 4
-        active_column_id = 'nope'
+
     elif active_cell['column'] == 0:
-        print('speed')
         show_graph = 'speed'
         df = df_speed
-        active_column = 0
-        active_column_id = active_cell['column_id']
+
     elif active_cell['column'] == 1:
-        print('power')
         show_graph = 'power'
-        df = df_power1
-        active_column = 1
-        active_column_id = active_cell['column_id']
+        df = df_power
+
     elif active_cell['column'] == 2:
-        print('soc')
         show_graph = 'soc'
         df = df_soc
-        active_column = 2
-        active_column_id = active_cell['column_id']
 
     # TODO: implement actual data update
     speed = 0
     power = 12
     soc = 'batshit'
-    main_data = [{'Speed': f"{speed} km/h", 'Power Consumption of Motor': f"{power} W",
-                  'SOC of Battery': f"{soc} %"}]
+    main_data = [{'Speed': f"{df_speed['speed'][0]} km/h", 'Power Consumption of Motor': f"{df_power['power'][0]} W",
+                  'SOC of Battery': f"{df_soc['soc_percent'][0]} %"}]
 
     updated_module_data = [
         {'module': 'vcu', 'status': "active", 'last activity': "no idea"},
