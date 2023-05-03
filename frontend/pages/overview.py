@@ -20,70 +20,48 @@ import copy
 
 dash.register_page(__name__, path="/", title="Overview")
 
+# Time allowed until the module is flagged as inactive
+max_idle_time = 2  # seconds
+
+
+# INITIAL DISPLAY DATA:
+
+# Initialize the speed, power and soc data displayed
+main_data = [{'Speed': f"no data", 'Power Consumption of Motor': f"no data",
+              'SOC of Battery': f"no data"},
+             ]
+main_df = pd.DataFrame()
+
+# List of tracked modules. Append here.
 modules = ['vcu', 'icu', 'mppt0', 'mppt1', 'mppt2',
            'bms', 'stwheel', 'logger', 'fsensors', 'dsensors']
 
-state = {'module': 'n/a', 'status': "inactive", 'last activity': "no dataaa"}
-
+# Initialize the activity status of all modules
+state = {'module': 'n/a', 'status': "inactive", 'last activity': "no data"}
 module_data = []
 for module in modules:
     state['module'] = module
     module_data.append(copy.deepcopy(state))
 
-max_idle_time = 2
-
-show_graph = 'none'  # can be 'none', 'speed', 'power' or 'soc'
-
-main_data = [{'Speed': f"no data", 'Power Consumption of Motor': f"no data",
-              'SOC of Battery': f"no data"},
-             ]
-
-main_df = pd.DataFrame.from_dict(main_data)
+# Don't show a graph until requested by a click. Can be 'none', 'speed', 'power' or 'soc'
+show_graph = 'none'
 
 
-def speed_graph(df: DataFrame):
+def optional_graph(df: DataFrame,
+                   title: str,
+                   column_name: str,
+                   xlabel: str,
+                   ylabel: str):
     fig: go.Figure = px.line(df,
-                             title="Speed",
+                             title=title,
                              template="plotly_white",
-                             y="speed",
+                             y=column_name,
                              color_discrete_sequence=["tomato"],
                              markers=True
                              ).update_yaxes()
-    fig.update_layout(xaxis_title='Time of data entry',
-                      yaxis_title='Speed / km/h',
+    fig.update_layout(xaxis_title=xlabel,
+                      yaxis_title=ylabel,
                       showlegend=False
-                      )
-    return fig
-
-
-def power_graph(df: DataFrame):
-    fig: go.Figure = px.line(df,
-                             title="Power",
-                             template="plotly_white",
-                             x="timestamp_dt",
-                             y=["power"],
-                             color_discrete_sequence=["tomato"],
-                             markers=True
-                             ).update_yaxes()
-    fig.update_layout(xaxis_title='Time of data entry',
-                      yaxis_title='Power consumed / W',
-                      showlegend=False
-                      )
-    return fig
-
-
-def soc_graph(df: DataFrame):
-    fig: go.Figure = px.line(df,
-                             title="State of Charge",
-                             template="plotly_white",
-                             x="timestamp_dt",
-                             y=["soc_percent"],
-                             color_discrete_sequence=["tomato"],
-                             markers=True
-                             ).update_yaxes(range=[0, 100])
-    fig.update_layout(xaxis_title='Time of data entry',
-                      yaxis_title='State of charge / %',
-                      showlegend=False,
                       )
     return fig
 
@@ -94,17 +72,29 @@ def disp(df: DataFrame, type: str):
                         )
     elif type == 'speed':
         return html.Div(children=[
-            dcc.Graph(figure=speed_graph(df)),
+            dcc.Graph(figure=optional_graph(df,
+                                            "Speed",
+                                            "speed",
+                                            'Time of data entry',
+                                            'Speed / km/h')),
         ],
         )
     elif type == 'power':
         return html.Div(children=[
-            dcc.Graph(figure=power_graph(df)),
+            dcc.Graph(figure=optional_graph(df,
+                                            "Power",
+                                            "power",
+                                            'Time of data entry',
+                                            'Power consumed / W')),
         ],
         )
     elif type == 'soc':
         return html.Div(children=[
-            dcc.Graph(figure=soc_graph(df)),
+            dcc.Graph(figure=optional_graph(df,
+                                            "State of Charge",
+                                            "soc_percent",
+                                            'Time of data entry',
+                                            'State of charge / %')),
         ],
         )
 
