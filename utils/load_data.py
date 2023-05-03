@@ -71,6 +71,24 @@ def load_mppt_status2(db_serv: DbService, n_entries) -> DataFrame:
     )
 
 
+def load_dsensors_heartbeat(db_serv: DbService, n_entries) -> DataFrame:
+    return preprocess_dsensors_heartbeat(
+        db_serv.query(BmsPackSoc, n_entries),
+    )
+
+
+def load_fsensors_heartbeat(db_serv: DbService, n_entries) -> DataFrame:
+    return preprocess_fsensors_heartbeat(
+        db_serv.query(BmsPackSoc, n_entries),
+    )
+
+
+def load_logger_heartbeat(db_serv: DbService, n_entries) -> DataFrame:
+    return preprocess_logger_heartbeat(
+        db_serv.query(BmsPackSoc, n_entries),
+    )
+
+
 def preprocess_icu_heartbeat(df: DataFrame) -> DataFrame:
     """prepare data frame for plotting"""
     # rescale to km/h
@@ -147,6 +165,32 @@ def preprocess_mppt_status(df: DataFrame) -> DataFrame:
 
 
 def preprocess_stwheel_heartbeat(df: DataFrame) -> DataFrame:
+    """prepare data frame for plotting"""
+    # parse timestamp
+    df['timestamp_dt'] = pd.to_datetime(
+        df['timestamp'], unit='s', origin="unix", utc=True)
+    return df
+
+
+def preprocess_logger_heartbeat(df: DataFrame) -> DataFrame:
+    """prepare data frame for plotting"""
+    # parse timestamp
+    df['timestamp_dt'] = pd.to_datetime(
+        df['timestamp'], unit='s', origin="unix", utc=True)
+    return df
+
+
+
+def preprocess_fsensors_heartbeat(df: DataFrame) -> DataFrame:
+    """prepare data frame for plotting"""
+    # parse timestamp
+    df['timestamp_dt'] = pd.to_datetime(
+        df['timestamp'], unit='s', origin="unix", utc=True)
+    return df
+
+
+
+def preprocess_dsensors_heartbeat(df: DataFrame) -> DataFrame:
     """prepare data frame for plotting"""
     # parse timestamp
     df['timestamp_dt'] = pd.to_datetime(
