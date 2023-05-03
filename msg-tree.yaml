@@ -458,3 +458,21 @@ logger:
       subsecond:
         type: data_8
         idx: 6
+fsensors:
+  fsensors_heartbeat:
+    id: "0x710"
+    id_type: "std"
+    dlc: 1
+    data:
+      unused:
+        type: data_u8
+        idx: 0
+dsensors:
+  dsensors_heartbeat:
+    id: "0x713"
+    id_type: "std"
+    dlc: 1
+    data:
+      unused:
+        type: data_u8
+        idx: 0
