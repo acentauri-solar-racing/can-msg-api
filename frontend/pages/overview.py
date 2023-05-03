@@ -4,6 +4,7 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 import plotly.graph_objs as go
 import numpy as np
+import time
 
 from typing import Tuple
 from dash import html, dcc, Input, Output, dash_table
@@ -13,15 +14,28 @@ from db.db_service import DbService
 from pandas import DataFrame
 from frontend.styles import H1, H2
 from frontend.settings import RELOAD_INTERVAL
+from utils.load_data import *
+import datetime as dt
 
 dash.register_page(__name__, path="/", title="Overview")
 
-# fake
+modules = ['vcu', 'icu', 'mppt0', 'mppt1', 'mppt2',
+           'bms', 'stwheel', 'logger', 'fsensors', 'dsensors']
+
 module_data = [
-    {'module': 'vcu', 'status': "active", 'last activity': "no idea"},
-    {'module': 'icu', 'status': "inactive", 'last activity': "don't really care"},
-    {'module': 'mppt', 'status': "active", 'last activity': "stop asking"},
+    {'module': modules[0], 'status': "inactive", 'last activity': "no data"},
+    {'module': modules[1], 'status': "inactive", 'last activity': "no data"},
+    {'module': modules[2], 'status': "inactive", 'last activity': "no data"},
+    {'module': modules[3], 'status': "inactive", 'last activity': "no data"},
+    {'module': modules[4], 'status': "inactive", 'last activity': "no data"},
+    {'module': modules[5], 'status': "inactive", 'last activity': "no data"},
+    {'module': modules[6], 'status': "inactive", 'last activity': "no data"},
+    {'module': modules[7], 'status': "inactive", 'last activity': "no data"},
+    {'module': modules[8], 'status': "inactive", 'last activity': "no data"},
+    {'module': modules[9], 'status': "inactive", 'last activity': "no data"},
 ]
+
+max_idle_time = 2
 
 speed = 300000000 * 3.6  # km/h
 power = 3000
@@ -37,90 +51,12 @@ main_data = [
 main_df = pd.DataFrame.from_dict(main_data)
 
 
-def load_icu_data(db_serv: DbService) -> DataFrame:
-    return preprocess_speed(
-        db_serv.query(IcuHeartbeat, 100)
-    )
-
-
-def load_mppt_power_data(db_serv: DbService) -> Tuple[DataFrame]:
-    return (preprocess_mppt_power(
-        db_serv.query(MpptPowerMeas0, 100),
-    ),
-        preprocess_mppt_power(
-        db_serv.query(MpptPowerMeas1, 100)
-    ),
-        preprocess_mppt_power(
-        db_serv.query(MpptPowerMeas2, 100)
-    ))
-
-
-def load_bms_power_data(db_serv: DbService) -> DataFrame:
-    return preprocess_bms_power(
-        db_serv.query(BmsPackVoltageCurrent, 100),
-    )
-
-
-def load_soc_data(db_serv: DbService) -> DataFrame:
-    return preprocess_soc(
-        db_serv.query(BmsPackSoc, 100),
-    )
-
-
-def preprocess_speed(df: DataFrame) -> DataFrame:
-    """prepare data frame for plotting"""
-    # rescale to km/h
-    df['speed'] *= 3.6
-    # parse timestamp
-    df['timestamp'] = pd.to_datetime(
-        df['timestamp'], unit='s', origin="unix", utc=True)
-    return df
-
-
-def preprocess_mppt_power(df: DataFrame) -> DataFrame:
-    """prepare data frame for plotting"""
-    # rescale voltages since given in mV. Only relevant quantities are adjusted!
-    df['v_out'] *= 1e-3
-    df['i_out'] *= 1e-3
-
-    # P = UI
-    df['p_out'] = df['v_out'] * df['i_out']
-
-    # parse timestamp
-    df['timestamp'] = pd.to_datetime(
-        df['timestamp'], unit='s', origin="unix", utc=True)
-    return df
-
-
-def preprocess_bms_power(df: DataFrame) -> DataFrame:
-    """prepare data frame for plotting"""
-    # rescale voltages since given in mV
-    df['battery_voltage'] *= 1e-3
-    df['battery_current'] *= 1e-3
-
-    # P = UI
-    df['p_out'] = df['battery_voltage'] * df['battery_current']
-
-    # parse timestamp
-    df['timestamp'] = pd.to_datetime(
-        df['timestamp'], unit='s', origin="unix", utc=True)
-    return df
-
-
-def preprocess_soc(df: DataFrame) -> DataFrame:
-    """prepare data frame for plotting"""
-    # parse timestamp
-    df['timestamp'] = pd.to_datetime(
-        df['timestamp'], unit='s', origin="unix", utc=True)
-    return df
-
-
 def speed_graph(df: DataFrame):
     fig: go.Figure = px.line(
         df,
         title="Speed",
         template="plotly_white",
-        x="timestamp",
+        x="timestamp_dt",
         y=["speed"],
     ).update_yaxes(range=[0, 100])
     return fig
@@ -130,7 +66,7 @@ def power_graph(df: DataFrame):
     fig: go.Figure = px.line(df,
                              title="Power",
                              template="plotly_white",
-                             x="timestamp",
+                             x="timestamp_dt",
                              y=["power"]
                              ).update_yaxes()
     return fig
@@ -141,7 +77,7 @@ def soc_graph(df: DataFrame):
         df,
         title="State of Charge",
         template="plotly_white",
-        x="timestamp",
+        x="timestamp_dt",
         y=["soc_percent"],
     ).update_yaxes(range=[0, 100])
     return fig
@@ -175,28 +111,77 @@ def calculate_power(df_mppt1, df_mppt2, df_mppt3, df_bms):
 
     # lowest index is most recent value
 
+    # load data into numpy arrays for processing
     timestamps = df_bms['timestamp'].to_numpy()
     mppt1 = df_mppt1['p_out'].to_numpy()
     mppt2 = df_mppt2['p_out'].to_numpy()
     mppt3 = df_mppt3['p_out'].to_numpy()
-
     bms = df_bms['p_out'].to_numpy()
 
-    n = min(mppt1.size, mppt2.size, mppt3.size, bms.size)
-    power = mppt1[:n]+mppt2[:n]+mppt3[:n]+bms[:n]
-    combined = np.vstack((power, timestamps[:n])).T
+    # determine the number of data points plotted
+    max_size = 200
+    n = min(mppt1.size, mppt2.size, mppt3.size, bms.size, max_size)
 
+    # calculate the power consumed
+    power = mppt1[:n]+mppt2[:n]+mppt3[:n]+bms[:n]
+
+    # transform back into dataframe
+    combined = np.vstack((power, timestamps[:n])).T
     df = pd.DataFrame(data=combined, columns=['power', 'timestamp'])
     return df
 
 
-def determine_activity(db_serv: DbService):
-    df_speed: DataFrame = load_icu_data(db_serv)
-    df_soc: DataFrame = load_soc_data(db_serv)
-    (df_mppt1, df_mppt2, df_mppt3) = load_mppt_power_data(db_serv)
-    df_bms = load_bms_power_data(db_serv)
+def determine_activity(db_serv: DbService, module_data):
+    df_speed: DataFrame = load_icu_heartbeat(db_serv, 100)
+    df_soc: DataFrame = load_bms_soc(db_serv, 100)
+    (df_mppt1, df_mppt2, df_mppt3) = load_mppt_power(db_serv, 100)
+    df_bms = load_bms_power(db_serv, 100)
+    df_bms_hb = load_bms_heartbeat(db_serv, 1)
+    df_icu_hb = load_icu_heartbeat(db_serv, 1)
+    df_stwheel_hb = load_stwheel_heartbeat(db_serv, 1)
+    df_vcu_hb = load_vcu_heartbeat(db_serv, 1)
+    df_mppt1_hb = load_mppt_status0(db_serv, 1)
+    df_mppt2_hb = load_mppt_status1(db_serv, 1)
+    df_mppt3_hb = load_mppt_status2(db_serv, 1)
+
+    for i, module in enumerate(modules):
+        if module == 'vcu':
+            update_activity(module_data, i, df_vcu_hb)
+        elif module == 'icu':
+            update_activity(module_data, i, df_icu_hb)
+        elif module == 'mppt0':
+            update_activity(module_data, i, df_mppt1_hb)
+        elif module == 'mppt1':
+            update_activity(module_data, i, df_mppt1_hb)
+        elif module == 'mppt2':
+            update_activity(module_data, i, df_mppt1_hb)
+        elif module == 'bms':
+            update_activity(module_data, i, df_bms_hb)
+        elif module == 'stwheel':
+            update_activity(module_data, i, df_stwheel_hb)
+        elif module == 'logger':
+            update_activity(module_data, i, df_logger_hb)
+        elif module == 'fsensors':
+            update_activity(module_data, i, df_fsensors_hb)
+        elif module == 'dsensors':
+            update_activity(module_data, i, df_dsensors_hb)
 
     return df_speed, df_mppt1, df_mppt2, df_mppt3, df_bms, df_soc, module_data
+
+
+def update_activity(module_data, index, df):
+    if df.empty:
+        module_data[index]['last activity'] = 'no data'
+        module_data[index]['status'] = 'inactive'
+        return module_data
+    last_time = df['timestamp'][0]
+    module_data[index]['last activity'] = dt.datetime.fromtimestamp(
+        last_time).strftime('%Y-%m-%d %H:%M:%S')
+    if ((int(time.time())-last_time) < max_idle_time):
+        module_data[index]['status'] = 'inactive'
+    else:
+        module_data[index]['status'] = 'active'
+    return module_data
 
 
 @ dash.callback(
