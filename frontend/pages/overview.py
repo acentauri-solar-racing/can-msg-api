@@ -1,18 +1,16 @@
 import dash
 import plotly.express as px
-import dash_bootstrap_components as dbc
 import pandas as pd
 import plotly.graph_objs as go
 import numpy as np
 import time
 
-from typing import Tuple
 from dash import html, dcc, Input, Output, dash_table
 
 from db.models import *
 from db.db_service import DbService
 from pandas import DataFrame
-from frontend.styles import H1, H2
+from frontend.styles import H1
 from frontend.settings import RELOAD_INTERVAL
 from utils.load_data import *
 import datetime as dt
@@ -20,38 +18,71 @@ import copy
 
 dash.register_page(__name__, path="/", title="Overview")
 
+# Global data for page settings:
+
 # Time allowed until the module is flagged as inactive
 max_idle_time = 2  # seconds
+
+# Amount of datapoints shown on graph
+nr_data_points = 100
+
+# List of tracked modules and their heartbeats. Append here.
+module_heartbeats = {'vcu': VcuHeartbeat,
+                     'icu': IcuHeartbeat,
+                     'mppt0': MpptStatus0,
+                     'mppt1': MpptStatus1,
+                     'mppt2': MpptStatus2,
+                     'bms': BmsHeartbeat,
+                     'stwheel': StwheelHeartbeat,
+                     'logger': LoggerHeartbeat,
+                     'fsensors': FsensorsHeartbeat,
+                     'dsensors': DsensorsHeartbeat
+                     }
 
 
 # INITIAL DISPLAY DATA:
 
-# Initialize the speed, power and soc data displayed
-main_data = [{'Speed': f"no data", 'Power Consumption of Motor': f"no data",
-              'SOC of Battery': f"no data"},
-             ]
-main_df = pd.DataFrame()
+def initialize_data() -> tuple:
+    """Produces the default data to be displayed before the page is refreshed
+    """
+    # Initialize the main table
+    main_data = [{'Speed': f"no data", 'Power Consumption of Motor': f"no data",
+                  'SOC of Battery': f"no data"},
+                 ]
+    main_df = pd.DataFrame()
 
-# List of tracked modules. Append here.
-modules = ['vcu', 'icu', 'mppt0', 'mppt1', 'mppt2',
-           'bms', 'stwheel', 'logger', 'fsensors', 'dsensors']
+    # Initialize the activity status of all modules
+    state = {'module': 'n/a', 'status': "inactive", 'last activity': "no data"}
+    module_data = []
+    for module in module_heartbeats:
+        state['module'] = module
+        module_data.append(copy.deepcopy(state))
 
-# Initialize the activity status of all modules
-state = {'module': 'n/a', 'status': "inactive", 'last activity': "no data"}
-module_data = []
-for module in modules:
-    state['module'] = module
-    module_data.append(copy.deepcopy(state))
+    # Don't show a graph until requested by a click.
+    # Can be 'none', 'speed', 'power' or 'soc'
+    show_graph = 'none'
 
-# Don't show a graph until requested by a click. Can be 'none', 'speed', 'power' or 'soc'
-show_graph = 'none'
+    return main_data, main_df, module_data, show_graph
 
 
 def optional_graph(df: DataFrame,
                    title: str,
                    column_name: str,
                    xlabel: str,
-                   ylabel: str):
+                   ylabel: str) -> go.Figure:
+    """Settings for the optional graph that is triggered by a click on the main
+    table.
+
+    Args:
+        df (DataFrame): DataFrame to be displayed
+        title (str): Title of the Graph
+        column_name (str): Column name of the DataFrame to be displayed
+        xlabel (str): Label of the x-axis
+        ylabel (str): Label of the y-axis
+
+    Returns:
+        go.Figure: Graph
+    """
     fig: go.Figure = px.line(df,
                              title=title,
                              template="plotly_white",
@@ -66,7 +97,16 @@ def optional_graph(df: DataFrame,
     return fig
 
 
-def disp(df: DataFrame, type: str):
+def choose_graph(df: DataFrame, type: str) -> html.Div:
+    """Adds the chosen graph to a dividor
+
+    Args:
+        df (DataFrame): _description_
+        type (str): 'none', 'speed', 'power' or 'soc'
+
+    Returns:
+        html.Div: Div with the corresponding dcc.Graph
+    """
     if type == 'none':
         return html.Div(children=[],
                         )
@@ -97,14 +137,21 @@ def disp(df: DataFrame, type: str):
                                             'State of charge / %')),
         ],
         )
+    else:
+        return html.Div(children=[
+            html.H3(f"Error, cannot display {type}"),
+        ],
+        )
 
 
-def calculate_power(df_mppt1, df_mppt2, df_mppt3, df_bms):
+def calculate_power(db_serv: DbService):
     # this needs to be checked by someone that actually knows what they're doing
     # kinda wack, but I'm just adding the most recent values without checking if
-    # they're actually synchronous. feel free to improve ;)
+    # they're actually synchronous. feel free t_summary_o improve ;)
 
     # lowest index is most recent value
+    (df_mppt1, df_mppt2, df_mppt3) = load_mppt_power(db_serv, nr_data_points)
+    df_bms = load_bms_power(db_serv, nr_data_points)
 
     # load data into numpy arrays for processing
     timestamps_dt = df_bms['timestamp_dt'].to_numpy()
@@ -115,8 +162,7 @@ def calculate_power(df_mppt1, df_mppt2, df_mppt3, df_bms):
     bms = df_bms['p_out'].to_numpy()
 
     # determine the number of data points plotted
-    max_size = 200
-    n = min(mppt1.size, mppt2.size, mppt3.size, bms.size, max_size)
+    n = min(mppt1.size, mppt2.size, mppt3.size, bms.size, nr_data_points)
 
     # calculate the power consumed
     power = mppt1[:n]+mppt2[:n]+mppt3[:n]+bms[:n]
@@ -128,60 +174,53 @@ def calculate_power(df_mppt1, df_mppt2, df_mppt3, df_bms):
     return df
 
 
-def determine_activity(db_serv: DbService, module_data):
-    df_speed: DataFrame = load_icu_heartbeat(db_serv, 100)
-    df_soc: DataFrame = load_bms_soc(db_serv, 100)
-    (df_mppt1, df_mppt2, df_mppt3) = load_mppt_power(db_serv, 100)
-    df_bms = load_bms_power(db_serv, 100)
-    df_bms_hb = load_bms_heartbeat(db_serv, 1)
-    df_icu_hb = load_icu_heartbeat(db_serv, 1)
-    df_stwheel_hb = load_stwheel_heartbeat(db_serv, 1)
-    df_vcu_hb = load_vcu_heartbeat(db_serv, 1)
-    df_mppt1_hb = load_mppt_status0(db_serv, 1)
-    df_mppt2_hb = load_mppt_status1(db_serv, 1)
-    df_mppt3_hb = load_mppt_status2(db_serv, 1)
-    df_logger_hb = load_logger_heartbeat(db_serv, 1)
-    df_fsensors_hb = load_fsensors_heartbeat(db_serv, 1)
-    df_dsensors_hb = load_dsensors_heartbeat(db_serv, 1)
+def determine_activity(db_serv: DbService, module_data: list) -> list:
+    """Updates the module_data list for all modules by checking if the last
+    data entry of the corresponding heartbeats is more than max_idle_time ago.
 
-    for i, module in enumerate(modules):
-        if module == 'vcu':
-            update_activity(module_data, i, df_vcu_hb)
-        elif module == 'icu':
-            update_activity(module_data, i, df_icu_hb)
-        elif module == 'mppt0':
-            update_activity(module_data, i, df_mppt1_hb)
-        elif module == 'mppt1':
-            update_activity(module_data, i, df_mppt2_hb)
-        elif module == 'mppt2':
-            update_activity(module_data, i, df_mppt3_hb)
-        elif module == 'bms':
-            update_activity(module_data, i, df_bms_hb)
-        elif module == 'stwheel':
-            update_activity(module_data, i, df_stwheel_hb)
-        elif module == 'logger':
-            update_activity(module_data, i, df_logger_hb)
-        elif module == 'fsensors':
-            update_activity(module_data, i, df_fsensors_hb)
-        elif module == 'dsensors':
-            update_activity(module_data, i, df_dsensors_hb)
+    Args:
+        db_serv (DbService): SQL database
+        module_data (list): List describing activity status of all modules
 
-    return df_speed, df_mppt1, df_mppt2, df_mppt3, df_bms, df_soc, module_data
+    Returns:
+        list: List describing activity status of all modules
+    """
+
+    for i, orm_model in enumerate(module_heartbeats.values()):
+        df = load_heartbeat(db_serv, orm_model)
+        module_data = update_activity(module_data, i, df)
+
+    return module_data
 
 
-def update_activity(module_data, index, df):
+def update_activity(module_data: list, index: int, df: DataFrame) -> list:
+    """Updates a single entry in the module_data list by checking if the last
+    data entry of the corresponding heartbeats is more than max_idle_time ago.
+
+    Args:
+        module_data (list): List describing activity status of all modules
+        index (int): Index of the corresponding module in the module_data list
+        df (DataFrame): Table with the module heartbeat data
+
+    Returns:
+        list: List describing activity status of all modules
+    """
+    # set status to 'no data' if the table is empty
     if df.empty:
         module_data[index]['last activity'] = 'no data'
         module_data[index]['status'] = 'inactive'
         return module_data
+
+    # check if the last data entry is more than max_idle_time ago
     last_time = df['timestamp'][0]
-    module_data[index]['last activity'] = dt.datetime.fromtimestamp(
-        last_time).strftime('%Y-%m-%d %H:%M:%S')
     if ((int(time.time())-last_time) > max_idle_time):
         module_data[index]['status'] = 'inactive'
     else:
         module_data[index]['status'] = 'active'
 
+    # update timestamp
+    module_data[index]['last activity'] = dt.datetime.fromtimestamp(
+        last_time).strftime('%Y-%m-%d %H:%M:%S')
     return module_data
 
 
@@ -189,43 +228,47 @@ def update_activity(module_data, index, df):
     Output("main-table", "data"),
     Output("activity-table", "data"),
     Output("extra-graph", "children"),
+
+    # Triggers after the time interval is over
     Input("interval-component", "n_intervals"),
+
+    # Triggers when a new active cell is selected in the main table
     Input("main-table", "active_cell"),
-    # does not trigger callback, but data needed
+
+    # Do not trigger callbacks, but the data is needed for refresh:
     Input("activity-table", "data"),
-    Input("main-table", "data")  # does not trigger callback, but data needed
+    Input("main-table", "data")
 )
 def refresh_data(n, active_cell, module_data, main_data):
+    # Refresh data from databank
     db_serv: DbService = DbService()
-    df_speed, df_mppt1, df_mppt2, df_mppt3, df_bms, df_soc, module_data = determine_activity(
-        db_serv, module_data)
+    df_speed: DataFrame = load_icu_heartbeat(db_serv, nr_data_points)
+    df_soc: DataFrame = load_bms_soc(db_serv, nr_data_points)
+    df_power: DataFrame = calculate_power(db_serv)
 
-    df_power: DataFrame = calculate_power(df_mppt1, df_mppt2, df_mppt3, df_bms)
-
-    if (active_cell == None):
-        show_graph = 'none'
-        df = df_speed
-
-    elif active_cell['column'] == 0:
-        show_graph = 'speed'
-        df = df_speed
-
-    elif active_cell['column'] == 1:
-        show_graph = 'power'
-        df = df_power
-
-    elif active_cell['column'] == 2:
-        show_graph = 'soc'
-        df = df_soc
-
+    # Update data in main table
     main_data[0]['Speed'] = f"{'{:.1f}'.format(df_speed['speed'][0])} km/h"
     main_data[0]['Power Consumption of Motor'] = f"{'{:.1f}'.format(df_power['power'][0])} W"
     main_data[0]['SOC of Battery'] = f"{'{:.1f}'.format(df_soc['soc_percent'][0])} %"
 
-    return main_data, module_data, disp(df, show_graph)
+    # Update data in activity table
+    module_data = determine_activity(
+        db_serv, module_data)
+
+    # Update graph and return
+    if (active_cell == None):
+        return main_data, module_data, choose_graph(df_speed, 'none')
+    elif active_cell['column'] == 0:
+        return main_data, module_data, choose_graph(df_speed, 'speed')
+    elif active_cell['column'] == 1:
+        return main_data, module_data, choose_graph(df_power, 'power')
+    elif active_cell['column'] == 2:
+        return main_data, module_data, choose_graph(df_soc, 'soc')
 
 
 def layout():
+    main_data, main_df, module_data, show_graph = initialize_data()
+
     return html.Div(children=[
         html.H1("Overview", style=H1, className="text-center"),
         html.H2("Car Status"),
@@ -241,7 +284,7 @@ def layout():
                              style_data_conditional=[
                                  {
                                      'if': {
-                                         'state': 'active'  # 'active' | 'selected'
+                                         'state': 'active'
                                      },
                                      'backgroundColor': 'tomato',
                                      'color': 'white'
@@ -249,7 +292,7 @@ def layout():
                                  },
                                  {
                                      'if': {
-                                         'state': 'selected'  # 'active' | 'selected'
+                                         'state': 'selected'
                                      },
                                      'backgroundColor': 'tomato',
                                      'color': 'white'
@@ -259,7 +302,7 @@ def layout():
                              ),
         html.Br(),
         html.Br(),
-        html.Div(children=disp(main_df, show_graph),
+        html.Div(children=choose_graph(main_df, show_graph),
                  id='extra-graph'),
         html.H2("Module Status"),
         dash_table.DataTable(data=module_data,

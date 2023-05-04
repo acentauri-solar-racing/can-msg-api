@@ -11,22 +11,26 @@ def load_icu_heartbeat(db_serv: DbService, n_entries) -> DataFrame:
     )
 
 
-def load_bms_heartbeat(db_serv: DbService, n_entries) -> DataFrame:
-    return preprocess_bms_heartbeat(
-        db_serv.query(BmsHeartbeat, n_entries)
-    )
+# def load_bms_heartbeat(db_serv: DbService, n_entries) -> DataFrame:
+#     return preprocess_bms_heartbeat(
+#         db_serv.query(BmsHeartbeat, n_entries)
+#     )
 
 
-def load_stwheel_heartbeat(db_serv: DbService, n_entries) -> DataFrame:
-    return preprocess_stwheel_heartbeat(
-        db_serv.query(StwheelHeartbeat, n_entries)
-    )
+# def load_stwheel_heartbeat(db_serv: DbService, n_entries) -> DataFrame:
+#     return preprocess_stwheel_heartbeat(
+#         db_serv.query(StwheelHeartbeat, n_entries)
+#     )
 
 
-def load_vcu_heartbeat(db_serv: DbService, n_entries) -> DataFrame:
-    return preprocess_vcu_heartbeat(
-        db_serv.query(StwheelHeartbeat, n_entries)
-    )
+# def load_vcu_heartbeat(db_serv: DbService, n_entries) -> DataFrame:
+#     return preprocess_vcu_heartbeat(
+#         db_serv.query(StwheelHeartbeat, n_entries)
+#     )
+
+
+def load_heartbeat(db_serv: DbService, orm_model: any) -> DataFrame:
+    return preprocess_heartbeat(db_serv.query(orm_model, 1))
 
 
 def load_mppt_power(db_serv: DbService, n_entries) -> Tuple[DataFrame]:
@@ -49,42 +53,6 @@ def load_bms_power(db_serv: DbService, n_entries) -> DataFrame:
 
 def load_bms_soc(db_serv: DbService, n_entries) -> DataFrame:
     return preprocess_bms_soc(
-        db_serv.query(BmsPackSoc, n_entries),
-    )
-
-
-def load_mppt_status0(db_serv: DbService, n_entries) -> DataFrame:
-    return preprocess_mppt_status(
-        db_serv.query(BmsPackSoc, n_entries),
-    )
-
-
-def load_mppt_status1(db_serv: DbService, n_entries) -> DataFrame:
-    return preprocess_mppt_status(
-        db_serv.query(BmsPackSoc, n_entries),
-    )
-
-
-def load_mppt_status2(db_serv: DbService, n_entries) -> DataFrame:
-    return preprocess_mppt_status(
-        db_serv.query(BmsPackSoc, n_entries),
-    )
-
-
-def load_dsensors_heartbeat(db_serv: DbService, n_entries) -> DataFrame:
-    return preprocess_dsensors_heartbeat(
-        db_serv.query(BmsPackSoc, n_entries),
-    )
-
-
-def load_fsensors_heartbeat(db_serv: DbService, n_entries) -> DataFrame:
-    return preprocess_fsensors_heartbeat(
-        db_serv.query(BmsPackSoc, n_entries),
-    )
-
-
-def load_logger_heartbeat(db_serv: DbService, n_entries) -> DataFrame:
-    return preprocess_logger_heartbeat(
         db_serv.query(BmsPackSoc, n_entries),
     )
 
@@ -156,42 +124,8 @@ def preprocess_bms_soc(df: DataFrame) -> DataFrame:
     return df
 
 
-def preprocess_mppt_status(df: DataFrame) -> DataFrame:
-    """prepare data frame for plotting"""
-    # parse timestamp
-    df['timestamp_dt'] = pd.to_datetime(
-        df['timestamp'], unit='s', origin="unix", utc=True)
-    return df
-
-
-def preprocess_stwheel_heartbeat(df: DataFrame) -> DataFrame:
-    """prepare data frame for plotting"""
-    # parse timestamp
-    df['timestamp_dt'] = pd.to_datetime(
-        df['timestamp'], unit='s', origin="unix", utc=True)
-    return df
-
-
-def preprocess_logger_heartbeat(df: DataFrame) -> DataFrame:
-    """prepare data frame for plotting"""
-    # parse timestamp
-    df['timestamp_dt'] = pd.to_datetime(
-        df['timestamp'], unit='s', origin="unix", utc=True)
-    return df
-
-
-
-def preprocess_fsensors_heartbeat(df: DataFrame) -> DataFrame:
-    """prepare data frame for plotting"""
-    # parse timestamp
-    df['timestamp_dt'] = pd.to_datetime(
-        df['timestamp'], unit='s', origin="unix", utc=True)
-    return df
-
-
-
-def preprocess_dsensors_heartbeat(df: DataFrame) -> DataFrame:
-    """prepare data frame for plotting"""
+def preprocess_heartbeat(df: DataFrame) -> DataFrame:
+    """prepare data frame for heartbeat tracking"""
     # parse timestamp
     df['timestamp_dt'] = pd.to_datetime(
         df['timestamp'], unit='s', origin="unix", utc=True)
