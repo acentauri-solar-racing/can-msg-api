@@ -87,6 +87,7 @@ def optional_graph(df: DataFrame,
                              title=title,
                              template="plotly_white",
                              y=column_name,
+                             x='timestamp_dt',
                              color_discrete_sequence=["tomato"],
                              markers=True
                              ).update_yaxes()
@@ -123,7 +124,7 @@ def choose_graph(df: DataFrame, type: str) -> html.Div:
         return html.Div(children=[
             dcc.Graph(figure=optional_graph(df,
                                             "Power",
-                                            "power",
+                                            "p_sum",
                                             'Time of data entry',
                                             'Power consumed / W')),
         ],
@@ -145,33 +146,44 @@ def choose_graph(df: DataFrame, type: str) -> html.Div:
 
 
 def calculate_power(db_serv: DbService):
-    # this needs to be checked by someone that actually knows what they're doing
-    # kinda wack, but I'm just adding the most recent values without checking if
-    # they're actually synchronous. feel free t_summary_o improve ;)
 
     # lowest index is most recent value
-    (df_mppt1, df_mppt2, df_mppt3) = load_mppt_power(db_serv, nr_data_points)
+    (df_mppt0, df_mppt1, df_mppt2) = load_mppt_power(db_serv, nr_data_points)
     df_bms = load_bms_power(db_serv, nr_data_points)
 
-    # load data into numpy arrays for processing
-    timestamps_dt = df_bms['timestamp_dt'].to_numpy()
-    timestamps = df_bms['timestamp'].to_numpy()
-    mppt1 = df_mppt1['p_out'].to_numpy()
-    mppt2 = df_mppt2['p_out'].to_numpy()
-    mppt3 = df_mppt3['p_out'].to_numpy()
-    bms = df_bms['p_out'].to_numpy()
+    df_mppt0 = df_mppt0.rename(columns={'p_out': 'p_out0'})
+    df_mppt1 = df_mppt1.rename(columns={'p_out': 'p_out1'})
+    df_mppt2 = df_mppt2.rename(columns={'p_out': 'p_out2'})
 
-    # determine the number of data points plotted
-    n = min(mppt1.size, mppt2.size, mppt3.size, bms.size, nr_data_points)
+    # values should not be matched if they have a time difference larger than 2 s
+    max_timediff = dt.timedelta(seconds=2)
+    # add all the data to one table with the closest timestamp
+    df_synch = pd.merge_asof(df_mppt0[['p_out0', 'timestamp_dt', ]
+                                      ].sort_values('timestamp_dt'),
+                             df_mppt1[['p_out1', 'timestamp_dt', ]
+                                      ].sort_values('timestamp_dt'),
+                             on='timestamp_dt',
+                             tolerance=max_timediff
+                             )
+    df_synch = pd.merge_asof(df_synch,
+                             df_mppt2[['p_out2', 'timestamp_dt', ]
+                                      ].sort_values('timestamp_dt'),
+                             on='timestamp_dt',
+                             tolerance=max_timediff
+                             )
+    df_synch = pd.merge_asof(df_synch,
+                             df_bms[['p_out', 'timestamp_dt', ]
+                                    ].sort_values('timestamp_dt'),
+                             on='timestamp_dt',
+                             tolerance=max_timediff
+                             )
+    # drop all the rows with nan values
+    df_synch = df_synch.dropna()
+    df_synch['p_sum'] = df_synch['p_out']+df_synch['p_out0'] + \
+        df_synch['p_out1']+df_synch['p_out2']
 
-    # calculate the power consumed
-    power = mppt1[:n]+mppt2[:n]+mppt3[:n]+bms[:n]
-
-    # transform back into dataframe
-    combined = np.vstack((power, timestamps[:n], timestamps_dt[:n])).T
-    df = pd.DataFrame(data=combined, columns=[
-                      'power', 'timestamp', 'timestamp_dt'])
-    return df
+    # rerverse order of timestamps to start with newest
+    return df_synch[::-1]
 
 
 def determine_activity(db_serv: DbService, module_data: list) -> list:
@@ -248,7 +260,7 @@ def refresh_data(n, active_cell, module_data, main_data):
 
     # Update data in main table
     main_data[0]['Speed'] = f"{'{:.1f}'.format(df_speed['speed'][0])} km/h"
-    main_data[0]['Power Consumption of Motor'] = f"{'{:.1f}'.format(df_power['power'][0])} W"
+    main_data[0]['Power Consumption of Motor'] = f"{'{:.1f}'.format(df_power['p_sum'][0])} W"
     main_data[0]['SOC of Battery'] = f"{'{:.1f}'.format(df_soc['soc_percent'][0])} %"
 
     # Update data in activity table
