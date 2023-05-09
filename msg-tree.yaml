@@ -427,15 +427,18 @@ logger:
   logger_heartbeat:
     id: "0x700"
     id_type: "std"
-    dlc: 1
+    dlc: 2
     data:
-      unused:
-        type: data_u8
+      card_fill_percent:
+        type: data_8
         idx: 0
+      disk_full:
+        type: data_8
+        idx: 1
   logger_time:
     id: "0x701"
     id_type: "std"
-    dlc: 7
+    dlc: 6
     data:
       year:
         type: data_8
@@ -455,9 +458,6 @@ logger:
       second:
         type: data_8
         idx: 5
-      subsecond:
-        type: data_8
-        idx: 6
 fsensors:
   fsensors_heartbeat:
     id: "0x710"
