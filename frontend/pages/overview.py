@@ -26,6 +26,11 @@ max_idle_time = 2  # seconds
 # Amount of datapoints shown on graph
 nr_data_points = 100
 
+# Pick ace color
+color_highlight = '#cadef5' #nature blue
+color_base = '#224c82' # dark solar panel blue
+color_red  = '#e11a27' # swiss red
+
 # List of tracked modules and their heartbeats. Append here.
 module_heartbeats = {
     "vcu": VcuHeartbeat,
@@ -50,7 +55,7 @@ def initialize_data() -> tuple:
     main_data = [
         {
             "Speed": f"no data",
-            "Power Consumption of Motor": f"no data",
+            "Power Consumption": f"no data",
             "SOC of Battery": f"no data",
         },
     ]
@@ -92,7 +97,7 @@ def optional_graph(
         template="plotly_white",
         y=column_name,
         x="timestamp_dt",
-        color_discrete_sequence=["tomato"],
+        color_discrete_sequence=[color_base],
         markers=True,
     ).update_yaxes()
     fig.update_layout(xaxis_title=xlabel, yaxis_title=ylabel, showlegend=False)
@@ -316,7 +321,7 @@ def refresh_data(n: int, active_cell: dict, module_data: list, main_data: list):
     # Update data in main table
     main_data[0]["Speed"] = f"{'{:.1f}'.format(df_speed['speed'][0])} km/h"
     main_data[0][
-        "Power Consumption of Motor"
+        "Power Consumption"
     ] = f"{'{:.1f}'.format(df_power['p_sum'][0])} W"
     main_data[0]["SOC of Battery"] = f"{'{:.1f}'.format(df_soc['soc_percent'][0])} %"
 
@@ -348,34 +353,44 @@ def layout():
                 style_as_list_view=True,
                 column_selectable="single",
                 selected_columns=[],
+                style_cell={
+                    'text-align': 'center',
+                },
                 style_data_conditional=[
                     {
                         "if": {"state": "active"},
-                        "backgroundColor": "tomato",
+                        "backgroundColor": color_base,
                         "color": "white",
+                        "border": f"1px solid {color_base}",
+
                     },
                     {
                         "if": {"state": "selected"},
-                        "backgroundColor": "tomato",
+                        "backgroundColor": color_base,
                         "color": "white",
+                        "border": f"1px solid {color_base}",
+
                     },
                 ],
             ),
-            html.Br(),
-            html.Br(),
             html.Div(children=choose_graph(main_df, show_graph), id="extra-graph"),
+            html.Br(),
+            html.Br(),
             html.H2("Module Status"),
             dash_table.DataTable(
                 data=module_data,
                 id="activity-table",
                 style_as_list_view=True,
+                style_cell={
+                    'text-align': 'right`',
+                },
                 style_data_conditional=[
                     {
                         "if": {
                             "filter_query": "{status} contains inactive",
                             "column_type": "any",
                         },
-                        "backgroundColor": "tomato",
+                        "backgroundColor": color_red,
                         "color": "white",
                     },
                 ],
