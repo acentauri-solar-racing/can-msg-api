@@ -1,6 +1,5 @@
 type_lookup.txt
 filter_select.txt
-db_seeder.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
