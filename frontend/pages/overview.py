@@ -241,9 +241,12 @@ def determine_activity(db_serv: DbService, module_data: list) -> list:
     """
 
     for i, orm_model in enumerate(module_heartbeats.values()):
-        df = load_heartbeat(db_serv, orm_model)
-        module_data = update_activity(module_data, i, df)
-
+        try: 
+            df = load_heartbeat(db_serv, orm_model)
+            module_data = update_activity(module_data, i, df)
+        except:
+            module_data[i]["last activity"] = "n/a"
+            module_data[i]["status"] = "error in databank"
     return module_data
 
 

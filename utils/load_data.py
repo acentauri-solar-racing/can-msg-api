@@ -5,34 +5,25 @@ import pandas as pd
 from typing import Tuple
 
 
+#for speed calculation
 def load_icu_heartbeat(db_serv: DbService, n_entries) -> DataFrame:
     return preprocess_icu_heartbeat(
         db_serv.query(IcuHeartbeat, n_entries)
     )
 
-
-# def load_bms_heartbeat(db_serv: DbService, n_entries) -> DataFrame:
-#     return preprocess_bms_heartbeat(
-#         db_serv.query(BmsHeartbeat, n_entries)
-#     )
-
-
-# def load_stwheel_heartbeat(db_serv: DbService, n_entries) -> DataFrame:
-#     return preprocess_stwheel_heartbeat(
-#         db_serv.query(StwheelHeartbeat, n_entries)
-#     )
-
-
-# def load_vcu_heartbeat(db_serv: DbService, n_entries) -> DataFrame:
-#     return preprocess_vcu_heartbeat(
-#         db_serv.query(StwheelHeartbeat, n_entries)
-#     )
-
-
+#for activity calculation
 def load_heartbeat(db_serv: DbService, orm_model: any) -> DataFrame:
     return preprocess_heartbeat(db_serv.query(orm_model, 1))
-
-
+    
+# for mppt status 
+def load_mppt_status_data(db_serv: DbService) -> Tuple[MpptStatus0, MpptStatus1, MpptStatus2]:
+    return (
+        db_serv.latest(MpptStatus0),
+        db_serv.latest(MpptStatus1),
+        db_serv.latest(MpptStatus2)
+    )
+    
+# for power calculations and mppt graph
 def load_mppt_power(db_serv: DbService, n_entries) -> Tuple[DataFrame]:
     return (preprocess_mppt_power(
         db_serv.query(MpptPowerMeas0, n_entries),
@@ -44,17 +35,25 @@ def load_mppt_power(db_serv: DbService, n_entries) -> Tuple[DataFrame]:
         db_serv.query(MpptPowerMeas2, n_entries)
     ))
 
-
+# for power calculations
 def load_bms_power(db_serv: DbService, n_entries) -> DataFrame:
     return preprocess_bms_power(
         db_serv.query(BmsPackVoltageCurrent, n_entries),
     )
 
-
+# for state of charge graph
 def load_bms_soc(db_serv: DbService, n_entries) -> DataFrame:
     return preprocess_bms_soc(
         db_serv.query(BmsPackSoc, n_entries),
     )
+    
+# for cell graph
+def load_cmu_data(db_serv: DbService(), n_entries):
+    (df1, df2) = preprocess_cmu(
+        db_serv.query(BmsCmu1Cells1, n_entries),
+        db_serv.query(BmsCmu1Cells2, n_entries)
+    )
+    return (db_serv.latest(BmsCmu1Stat), df1, df2)
 
 
 def preprocess_icu_heartbeat(df: DataFrame) -> DataFrame:
@@ -130,3 +129,22 @@ def preprocess_heartbeat(df: DataFrame) -> DataFrame:
     df['timestamp_dt'] = pd.to_datetime(
         df['timestamp'], unit='s', origin="unix", utc=True)
     return df
+
+def preprocess_cmu(df1: DataFrame, df2: DataFrame) -> Tuple[DataFrame,DataFrame]:
+    # convert from mV to V
+    df1['cell_0_volt'] *= 1e-3
+    df1['cell_1_volt'] *= 1e-3
+    df1['cell_2_volt'] *= 1e-3
+    df1['cell_3_volt'] *= 1e-3
+
+    df2['cell_4_volt'] *= 1e-3
+    df2['cell_5_volt'] *= 1e-3
+    df2['cell_6_volt'] *= 1e-3
+    df2['cell_7_volt'] *= 1e-3
+
+    # parse timestamps
+    df1['timestamp_dt'] = pd.to_datetime(
+        df1['timestamp'], unit='s', origin="unix", utc=True)
+    df2['timestamp_dt'] = pd.to_datetime(
+        df2['timestamp'], unit='s', origin="unix", utc=True)
+    return (df1, df2)

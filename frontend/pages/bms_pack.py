@@ -12,24 +12,9 @@ from db.db_service import DbService
 from pandas import DataFrame
 from frontend.styles import H1, H2
 from frontend.settings import RELOAD_INTERVAL
+from utils.load_data import load_bms_power
 
 dash.register_page(__name__, path="/bms_pack", title="BMS Pack")
-
-
-def load_bms_data(db_serv: DbService()):
-    return preprocess(
-        db_serv.query(BmsPackVoltageCurrent, 100),
-    )
-
-
-def preprocess(df: DataFrame) -> DataFrame:
-    # convert from mV, mA to V, A
-    df["battery_current"] *= 1e-3
-    df["battery_voltage"] *= 1e-3
-
-    # parse timestamps
-    df["timestamp"] = pd.to_datetime(df["timestamp"], unit="s", origin="unix", utc=True)
-    return df
 
 
 def bms_v_graph(df: DataFrame):
@@ -37,9 +22,10 @@ def bms_v_graph(df: DataFrame):
         df,
         title="Pack Voltage",
         template="plotly_white",
-        x="timestamp",
+        x="timestamp_dt",
         y=["battery_voltage"],
     ).update_yaxes(range=[0, 140])
+    fig.update_layout(xaxis_title='Timestamp')
     return fig
 
 
@@ -48,9 +34,10 @@ def bms_i_graph(df: DataFrame):
         df,
         title="Pack Current",
         template="plotly_white",
-        x="timestamp",
+        x="timestamp_dt",
         y=["battery_current"],
     ).update_yaxes(range=[0, 1.5])
+    fig.update_layout(xaxis_title='Timestamp')
     return fig
 
 
@@ -79,7 +66,7 @@ def disp_bms(df: DataFrame):
 )
 def refresh_data(n):
     db_serv: DbService = DbService()
-    df: DataFrame = load_bms_data(db_serv)
+    df: DataFrame = load_bms_power(db_serv, 100)
 
     try:
         return html.Div(
