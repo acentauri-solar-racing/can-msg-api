@@ -10,7 +10,7 @@ from dash import html, dcc, Input, Output, dash_table
 from db.models import *
 from db.db_service import DbService
 from pandas import DataFrame
-from frontend.styles import H1
+from frontend.styles import H1, H2
 from frontend.settings import RELOAD_INTERVAL
 from utils.load_data import *
 import datetime as dt
@@ -46,9 +46,6 @@ module_heartbeats = {
 }
 
 
-# INITIAL DISPLAY DATA:
-
-
 def initialize_data() -> tuple:
     """Produces the default data to be displayed before the page is refreshed"""
     # Initialize the main table
@@ -67,12 +64,15 @@ def initialize_data() -> tuple:
     for module in module_heartbeats:
         state["module"] = module
         module_data.append(copy.deepcopy(state))
+    
+    module_df = pd.DataFrame(module_data)
+
 
     # Don't show a graph until requested by a click.
     # Can be 'none', 'speed', 'power' or 'soc'
     show_graph = "none"
 
-    return main_data, main_df, module_data, show_graph
+    return main_data, main_df, module_data, show_graph, module_df
 
 
 def optional_graph(
@@ -339,13 +339,18 @@ def refresh_data(n: int, active_cell: dict, module_data: list, main_data: list):
         return main_data, module_data, choose_graph(df_soc, "soc")
 
 
-def layout():
-    main_data, main_df, module_data, show_graph = initialize_data()
+def layout() -> html.Div:
+    """Defines the layout of the page and returns it as a div
+
+    Returns:
+        html.Div: Div with the page layout
+    """
+    main_data, main_df, module_data, show_graph, module_df = initialize_data()
 
     return html.Div(
         children=[
             html.H1("Overview", style=H1, className="text-center"),
-            html.H2("Car Status"),
+            html.H2("Car Status", style = H2),
             dash_table.DataTable(
                 data=main_data,
                 id="main-table",
@@ -376,14 +381,15 @@ def layout():
             html.Div(children=choose_graph(main_df, show_graph), id="extra-graph"),
             html.Br(),
             html.Br(),
-            html.H2("Module Status"),
+            html.H2("Module Status", style = H2),
             dash_table.DataTable(
                 data=module_data,
                 id="activity-table",
                 style_as_list_view=True,
                 style_cell={
-                    'text-align': 'right`',
+                    'text-align': 'center',
                 },
+                columns=[{'id': c, 'name': c} for c in module_df.columns],
                 style_data_conditional=[
                     {
                         "if": {
@@ -393,7 +399,14 @@ def layout():
                         "backgroundColor": color_red,
                         "color": "white",
                     },
+                    
+                    {'if': {'column_id': 'module'},
+                        'width': '33%'},
+                    {'if': {'column_id': 'status'},
+                        'width': '33%'},
                 ],
+            
+                
             ),
             dcc.Interval(
                 id="interval-component", interval=RELOAD_INTERVAL, n_intervals=0

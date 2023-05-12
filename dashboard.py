@@ -12,8 +12,6 @@ def layout() -> dbc.Container:
     content = html.Div(page_container, style=CONTENT_STYLE)
     return html.Div(
         [dcc.Location(id="url"), sidebar(), content,
-         # html.Script(src="https://polyfill.io/v3/polyfill.min.js?features=es6"),
-         #html.Script(src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js", id="MathJax-script")
          ])
 
 

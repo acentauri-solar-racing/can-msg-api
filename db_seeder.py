@@ -16,17 +16,17 @@ def noise(mean: float, stddev) -> float:
 
 def gen_mppt_pow(db_serv: DbService(), num_entries: int):
     for i in range(num_entries):
-        vin1: float = noise(12., 0.5) * 1000  # unit mV
+        vin1: float = noise(-12., 0.5) * 1000  # unit mV
         iin1: float = noise(1., 0.1) * 1000  # unit mV
-        vout1: float = noise(12., 0.5) * 1000  # unit mV
+        vout1: float = noise(-12., 0.5) * 1000  # unit mV
         iout1: float = noise(1., 0.1) * 1000  # unit mV
-        vin2: float = noise(12., 0.5) * 1000  # unit mV
+        vin2: float = noise(-12., 0.5) * 1000  # unit mV
         iin2: float = noise(1., 0.1) * 1000  # unit mV
-        vout2: float = noise(12., 0.5) * 1000  # unit mV
+        vout2: float = noise(-12., 0.5) * 1000  # unit mV
         iout2: float = noise(1., 0.1) * 1000  # unit mV
-        vin3: float = noise(12., 0.5) * 1000  # unit mV
+        vin3: float = noise(-12., 0.5) * 1000  # unit mV
         iin3: float = noise(1., 0.1) * 1000  # unit mV
-        vout3: float = noise(12., 0.5) * 1000  # unit mV
+        vout3: float = noise(-12., 0.5) * 1000  # unit mV
         iout3: float = noise(1., 0.1) * 1000  # unit mV
 
         db_serv.add_entry(512, (vin1, iin1, vout1, iout1),
@@ -45,11 +45,11 @@ def gen_mppt_stat(db_serv: DbService(), num_entries: int):
     heatsink_temp: int = int(noise(35, 5))
 
     db_serv.add_entry(513, (mode, fault, enabled, ambient_temp, heatsink_temp),
-                      timestamp)  # MpptStatus0
+                      timestamp+300)  # MpptStatus0
     db_serv.add_entry(529, (mode, fault, enabled, ambient_temp, heatsink_temp),
-                      timestamp)  # MpptStatus0v
+                      timestamp+300)  # MpptStatus0v
     db_serv.add_entry(545, (mode, fault, enabled, ambient_temp, heatsink_temp),
-                      timestamp)  # MpptStatus0
+                      timestamp+300)  # MpptStatus0
 
 
 def gen_bms_cmu(db_serv: DbService(), num_entries: int):
@@ -77,7 +77,7 @@ def gen_bms_pack(db_serv: DbService(), num_entries: int):
     for i in range(num_entries):
         # BmsPackSoc
         soc_ah: float = noise(30, 5)
-        soc_percent: float = noise(42., 5)
+        soc_percent: float = noise(130., 5)
 
         db_serv.add_entry(
             1780, (soc_ah, soc_percent), timestamp + i)
@@ -86,7 +86,7 @@ def gen_bms_pack(db_serv: DbService(), num_entries: int):
 def gen_bms_vi(db_serv: DbService(), num_entries: int):
     for i in range(num_entries):
         # BmsPackVoltageCurrent
-        battery_voltage: float = noise(120., 35)
+        battery_voltage: float = noise(-120., 35)
         battery_current: float = noise(1., 0.2)
 
         db_serv.add_entry(
@@ -97,7 +97,7 @@ def gen_bms_soc(db_serv: DbService(), num_entries: int):
     for i in range(num_entries):
         # BmsPackSoc
         soc_ah: float = noise(420., 5)
-        soc_percent: float = noise(69., 5)
+        soc_percent: float = noise(155., 5)
 
         db_serv.add_entry(
             1780, (soc_ah, soc_percent), timestamp + i)
@@ -106,11 +106,11 @@ def gen_bms_soc(db_serv: DbService(), num_entries: int):
 def gen_icu_heartbeat(db_serv: DbService(), num_entries: int):
     for i in range(num_entries):
         # BmsPackSoc
-        speed: float = noise(20., 5)
+        speed: float = noise(80., 1)
         states: float = noise(100., 5)
 
         db_serv.add_entry(
-            336, (speed, states), timestamp + i)
+            336, (speed, states), timestamp + i+300)
 
 
 if __name__ == "__main__":
