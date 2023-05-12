@@ -9,7 +9,7 @@ from pathlib import Path
 
 # flatten the tree into lists of topic and field dicts
 ## slightly confusing that it says -> dict and outputs lists
-def flatten_tree() -> tuple:
+def flatten_tree(path: str = "msg-tree.yaml") -> tuple:
     try:
         from yaml import CLoader as Loader
     except ImportError:
@@ -36,7 +36,7 @@ def flatten_tree() -> tuple:
         yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, no_duplicates_constructor
     )
 
-    tree = yaml.full_load(Path("msg-tree.yaml").read_text())
+    tree = yaml.full_load(Path(path).read_text())
     ids: List = []
     topics_list: List = []
     topics_dict: dict = {}
