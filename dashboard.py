@@ -10,12 +10,13 @@ def layout() -> dbc.Container:
     """Set global container with sidebar and main content window"""
 
     content = html.Div(page_container, style=CONTENT_STYLE)
-
     return html.Div(
-        [dcc.Location(id="url"), sidebar(), content])
+        [dcc.Location(id="url"), sidebar(), content,
+         ])
 
 
 def main():
+
     # spawn new plotly instance
     app: Dash = Dash(name="Dashboard", external_stylesheets=[
                      dbc.themes.LUX, dbc.icons.BOOTSTRAP], use_pages=True, pages_folder="frontend", update_title=None)
@@ -23,7 +24,7 @@ def main():
     # set the global layout
     app.layout: dbc.Container = layout()
 
-    # run
+    # runt
     app.run(debug=True, port=8080)
 
 
