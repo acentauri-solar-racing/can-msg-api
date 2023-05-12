@@ -1,0 +1,15 @@
+can:
+  can_id_std:
+    id: 11
+    message: "Standard CAN message ID could not be identified"
+  can_id_ext:
+    id: 12
+    message: "Extended CAN message ID could not be identified"
+
+rtc:
+  rtc_read:
+    id: 21
+    message: "RTC time could not be read"
+  rtc_write:
+    id: 22
+    message: "RTC time could not be set"

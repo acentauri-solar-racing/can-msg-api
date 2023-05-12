@@ -258,6 +258,14 @@ stwheel:
       buttons_status:
         type: data_u16
         idx: 2
+  stwheel_error:
+    id: "0x112"
+    id_type: "std"
+    dlc: 2
+    data:
+      err_code:
+        type: data_u16
+        idx: 0
 
 vcu:
   vcu_heartbeat:
@@ -277,6 +285,14 @@ vcu:
       unused:
         type: data_u16
         idx: 3
+  vcu_error:
+    id: "0x111"
+    id_type: "std"
+    dlc: 2
+    data:
+      err_code:
+        type: data_u16
+        idx: 0
 
 icu:
   icu_heartbeat:
@@ -290,6 +306,14 @@ icu:
       states:
         type: data_u16
         idx: 2
+  icu_error:
+    id: "0x110"
+    id_type: "std"
+    dlc: 2
+    data:
+      err_code:
+        type: data_u16
+        idx: 0
 
 mppt: # there are three MPPTs
   # encoder value 0
@@ -423,6 +447,15 @@ tele:
       unused:
         type: data_u8
         idx: 0
+  tele_error:
+    id: "0x113"
+    id_type: "std"
+    dlc: 2
+    data:
+      err_code:
+        type: data_u16
+        idx: 0
+
 logger:
   logger_heartbeat:
     id: "0x700"
@@ -458,6 +491,15 @@ logger:
       second:
         type: data_8
         idx: 5
+  logger_error:
+    id: "0x114"
+    id_type: "std"
+    dlc: 2
+    data:
+      err_code:
+        type: data_u16
+        idx: 0
+
 fsensors:
   fsensors_heartbeat:
     id: "0x710"
@@ -467,6 +509,14 @@ fsensors:
       unused:
         type: data_u8
         idx: 0
+  fsensors_error:
+    id: "0x115"
+    id_type: "std"
+    dlc: 2
+    data:
+      err_code:
+        type: data_u16
+        idx: 0
 dsensors:
   dsensors_heartbeat:
     id: "0x713"
@@ -475,4 +525,12 @@ dsensors:
     data:
       unused:
         type: data_u8
+        idx: 0
+  dsensors_error:
+    id: "0x116"
+    id_type: "std"
+    dlc: 2
+    data:
+      err_code:
+        type: data_u16
         idx: 0
