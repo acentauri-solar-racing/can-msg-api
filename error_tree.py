@@ -40,9 +40,7 @@ def validate_tree() -> bool:
     return True
 
 if __name__ == "__main__":
-    if validate_tree():
-        print("Valid Tree")
-    else:
+    if not validate_tree():
         print("Done, ERROR state, invalid tree")
-
-    print("Done, messaging tree sourced to file system")
+    else:
+        print("Done, messaging tree sourced to file system")
