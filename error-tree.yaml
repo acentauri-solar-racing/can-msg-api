@@ -13,3 +13,8 @@ rtc:
   rtc_write:
     id: 22
     message: "RTC time could not be set"
+
+default:
+  default:
+    id: 90
+    message: "Error of unknown type has occured"
