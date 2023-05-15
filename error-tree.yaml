@@ -8,6 +8,9 @@ can:
   can_get_msg:
     id: 13
     message: "Failed to fetch CAN message from FIFO"
+  can_cllbck_undef:
+    id: 14
+    message: "Unexpected CAN message, no callback implemented"
 
 rtc:
   rtc_read:

@@ -261,11 +261,14 @@ stwheel:
   stwheel_error:
     id: "0x112"
     id_type: "std"
-    dlc: 2
+    dlc: 8
     data:
       err_code:
-        type: data_u16
+        type: data_u32
         idx: 0
+      additional_data:
+        type: data_u32
+        idx: 1
 
 vcu:
   vcu_heartbeat:
@@ -288,11 +291,14 @@ vcu:
   vcu_error:
     id: "0x111"
     id_type: "std"
-    dlc: 2
+    dlc: 8
     data:
       err_code:
-        type: data_u16
+        type: data_u32
         idx: 0
+      additional_data:
+        type: data_u32
+        idx: 1
 
 icu:
   icu_heartbeat:
@@ -309,11 +315,14 @@ icu:
   icu_error:
     id: "0x110"
     id_type: "std"
-    dlc: 2
+    dlc: 8
     data:
       err_code:
-        type: data_u16
+        type: data_u32
         idx: 0
+      additional_data:
+        type: data_u32
+        idx: 1
 
 mppt: # there are three MPPTs
   # encoder value 0
@@ -450,11 +459,14 @@ tele:
   tele_error:
     id: "0x113"
     id_type: "std"
-    dlc: 2
+    dlc: 8
     data:
       err_code:
-        type: data_u16
+        type: data_u32
         idx: 0
+      additional_data:
+        type: data_u32
+        idx: 1
 
 logger:
   logger_heartbeat:
@@ -494,11 +506,14 @@ logger:
   logger_error:
     id: "0x114"
     id_type: "std"
-    dlc: 2
+    dlc: 8
     data:
       err_code:
-        type: data_u16
+        type: data_u32
         idx: 0
+      additional_data:
+        type: data_u32
+        idx: 1
 
 fsensors:
   fsensors_heartbeat:
@@ -512,11 +527,14 @@ fsensors:
   fsensors_error:
     id: "0x115"
     id_type: "std"
-    dlc: 2
+    dlc: 8
     data:
       err_code:
-        type: data_u16
+        type: data_u32
         idx: 0
+      additional_data:
+        type: data_u32
+        idx: 1
 dsensors:
   dsensors_heartbeat:
     id: "0x713"
@@ -529,11 +547,14 @@ dsensors:
   dsensors_error:
     id: "0x116"
     id_type: "std"
-    dlc: 2
+    dlc: 8
     data:
       err_code:
-        type: data_u16
+        type: data_u32
         idx: 0
+      additional_data:
+        type: data_u32
+        idx: 1
 # Used for default implementations in templates
 default:
   default_heartbeat:
@@ -547,8 +568,11 @@ default:
   default_error:
     id: "0x889"
     id_type: "ext"
-    dlc: 2
+    dlc: 8
     data:
       err_code:
-        type: data_u16
+        type: data_u32
         idx: 0
+      additional_data:
+        type: data_u32
+        idx: 1
