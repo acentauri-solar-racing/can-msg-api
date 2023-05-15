@@ -534,3 +534,21 @@ dsensors:
       err_code:
         type: data_u16
         idx: 0
+# Used for default implementations in templates
+default:
+  default_heartbeat:
+    id: "0x888"
+    id_type: "ext"
+    dlc: 1
+    data:
+      unused:
+        type: data_u8
+        idx: 0
+  default_error:
+    id: "0x889"
+    id_type: "ext"
+    dlc: 2
+    data:
+      err_code:
+        type: data_u16
+        idx: 0

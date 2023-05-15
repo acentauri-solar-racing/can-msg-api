@@ -5,6 +5,9 @@ can:
   can_id_ext:
     id: 12
     message: "Extended CAN message ID could not be identified"
+  can_get_msg:
+    id: 13
+    message: "Failed to fetch CAN message from FIFO"
 
 rtc:
   rtc_read:
