@@ -19,6 +19,14 @@ rtc:
   rtc_write:
     id: 22
     message: "RTC time could not be set"
+  rtc_freq:
+    id: 33
+    message: "RTC frequency invalid. Set to 16 Hz."
+
+logic:
+  logic_fsm_loop:
+    id: 31
+    message: "Kicked out of the FSM loop, MCU is rebooted."
 
 default:
   default:
