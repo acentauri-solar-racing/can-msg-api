@@ -43,4 +43,4 @@ if __name__ == "__main__":
     if not validate_tree():
         print("Done, ERROR state, invalid tree")
     else:
-        print("Done, messaging tree sourced to file system")
+        print("Done, error tree valid")
