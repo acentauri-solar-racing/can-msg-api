@@ -111,6 +111,26 @@ def gen_icu_heartbeat(db_serv: DbService(), num_entries: int):
 
         db_serv.add_entry(
             336, (speed, states), timestamp + i+300)
+        
+
+def gen_icu_error(db_serv: DbService(), num_entries: int):
+    for i in range(num_entries):
+        # BmsPackSoc
+        id: float = 11
+        message: float = 0
+
+        db_serv.add_entry(
+            272, (id, message), timestamp + i+300)
+        
+def gen_vcu_error(db_serv: DbService(), num_entries: int):
+    for i in range(num_entries):
+        # BmsPackSoc
+        id: float = 12
+        message: float = 0
+
+        db_serv.add_entry(
+            273, (id, message), timestamp + i+302)
+
 
 
 if __name__ == "__main__":
@@ -124,4 +144,6 @@ if __name__ == "__main__":
     gen_bms_soc(db_serv, 100)
     gen_bms_pack(db_serv, 100)
     gen_icu_heartbeat(db_serv, 100)
+    gen_icu_error(db_serv, 100)
+    gen_vcu_error(db_serv, 100)
     print("done")

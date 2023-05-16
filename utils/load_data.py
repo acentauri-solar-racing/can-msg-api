@@ -13,7 +13,11 @@ def load_icu_heartbeat(db_serv: DbService, n_entries) -> DataFrame:
 
 #for activity calculation
 def load_heartbeat(db_serv: DbService, orm_model: any) -> DataFrame:
-    return preprocess_heartbeat(db_serv.query(orm_model, 1))
+    return preprocess_generic(db_serv.query(orm_model, 1))
+
+#for error log
+def load_errors(db_serv: DbService, orm_model: any, n_entries: int) -> DataFrame:
+    return preprocess_generic(db_serv.query(orm_model, n_entries))
     
 # for mppt status 
 def load_mppt_status_data(db_serv: DbService) -> Tuple[MpptStatus0, MpptStatus1, MpptStatus2]:
@@ -43,7 +47,7 @@ def load_bms_power(db_serv: DbService, n_entries) -> DataFrame:
 
 # for state of charge graph
 def load_bms_soc(db_serv: DbService, n_entries) -> DataFrame:
-    return preprocess_bms_soc(
+    return preprocess_generic(
         db_serv.query(BmsPackSoc, n_entries),
     )
     
@@ -56,26 +60,17 @@ def load_cmu_data(db_serv: DbService(), n_entries):
     return (db_serv.latest(BmsCmu1Stat), df1, df2)
 
 
+def preprocess_generic(df: DataFrame) -> DataFrame:
+    """prepare data frame for heartbeat tracking"""
+    # parse timestamp
+    df['timestamp_dt'] = pd.to_datetime(
+        df['timestamp'], unit='s', origin="unix", utc=True)
+    return df
+
 def preprocess_icu_heartbeat(df: DataFrame) -> DataFrame:
     """prepare data frame for plotting"""
     # rescale to km/h
     df['speed'] *= 3.6
-    # parse timestamp
-    df['timestamp_dt'] = pd.to_datetime(
-        df['timestamp'], unit='s', origin="unix", utc=True)
-    return df
-
-
-def preprocess_bms_heartbeat(df: DataFrame) -> DataFrame:
-    """prepare data frame"""
-    # parse timestamp
-    df['timestamp_dt'] = pd.to_datetime(
-        df['timestamp'], unit='s', origin="unix", utc=True)
-    return df
-
-
-def preprocess_vcu_heartbeat(df: DataFrame) -> DataFrame:
-    """prepare data frame"""
     # parse timestamp
     df['timestamp_dt'] = pd.to_datetime(
         df['timestamp'], unit='s', origin="unix", utc=True)
@@ -114,21 +109,6 @@ def preprocess_bms_power(df: DataFrame) -> DataFrame:
         df['timestamp'], unit='s', origin="unix", utc=True)
     return df
 
-
-def preprocess_bms_soc(df: DataFrame) -> DataFrame:
-    """prepare data frame for plotting"""
-    # parse timestamp
-    df['timestamp_dt'] = pd.to_datetime(
-        df['timestamp'], unit='s', origin="unix", utc=True)
-    return df
-
-
-def preprocess_heartbeat(df: DataFrame) -> DataFrame:
-    """prepare data frame for heartbeat tracking"""
-    # parse timestamp
-    df['timestamp_dt'] = pd.to_datetime(
-        df['timestamp'], unit='s', origin="unix", utc=True)
-    return df
 
 def preprocess_cmu(df1: DataFrame, df2: DataFrame) -> Tuple[DataFrame,DataFrame]:
     # convert from mV to V
