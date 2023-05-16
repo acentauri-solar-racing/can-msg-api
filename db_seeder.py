@@ -126,7 +126,7 @@ def gen_vcu_error(db_serv: DbService(), num_entries: int):
     for i in range(num_entries):
         # BmsPackSoc
         id: float = 12
-        message: float = 0
+        message: float = 3
 
         db_serv.add_entry(
             273, (id, message), timestamp + i+302)

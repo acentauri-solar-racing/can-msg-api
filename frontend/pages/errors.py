@@ -57,8 +57,8 @@ def refresh_data(n):
         #print(error)
         error_data.append({"module": error["module"], 
                            "error message": next(error_type["message"] for error_type in error_types if error_type["id"] == error["err_code"]),
-                           "additional data": error["additional_data"],
-                           "time": error["timestamp_dt"].strftime("%Y-%m-%d %H:%M:%S")})
+                           "time": error["timestamp_dt"].strftime("%Y-%m-%d %M:%H:%S"), #CHECKKK not sure why the format is messed up
+                           "additional data": ['', error["additional_data"]][error["additional_data"]!=0],})
     return error_data
 
 
@@ -71,7 +71,6 @@ def layout():
                     dash_table.DataTable(
                         data=error_data,
                         id="error-table",
-                        style_data={"font_size": "25px", "font_weight": "heavy"},
                         style_as_list_view=True,
                         style_cell={
                             'text-align': 'center',
