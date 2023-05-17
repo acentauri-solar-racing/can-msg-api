@@ -120,7 +120,7 @@ def gen_icu_error(db_serv: DbService(), num_entries: int):
         message: float = 0
 
         db_serv.add_entry(
-            272, (id, message), timestamp + i+300)
+            272, (id, message), timestamp + i)
         
 def gen_vcu_error(db_serv: DbService(), num_entries: int):
     for i in range(num_entries):
@@ -129,7 +129,7 @@ def gen_vcu_error(db_serv: DbService(), num_entries: int):
         message: float = 3
 
         db_serv.add_entry(
-            273, (id, message), timestamp + i+302)
+            273, (id, message), timestamp + i+1)
 
 
 

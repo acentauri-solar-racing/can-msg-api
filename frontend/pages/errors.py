@@ -13,6 +13,7 @@ from frontend.styles import H1, H2
 from frontend.settings import RELOAD_INTERVAL
 from utils.load_data import load_errors
 from utils.helpers import flatten_tree
+import datetime as dt
 
 dash.register_page(__name__, path="/errors", title="Errors")
 
@@ -57,7 +58,7 @@ def refresh_data(n):
         #print(error)
         error_data.append({"module": error["module"], 
                            "error message": next(error_type["message"] for error_type in error_types if error_type["id"] == error["err_code"]),
-                           "time": error["timestamp_dt"].strftime("%Y-%m-%d %M:%H:%S"), #CHECKKK not sure why the format is messed up
+                           "time": dt.datetime.fromtimestamp(error["timestamp"]).strftime("%Y-%m-%d %H:%M:%S"), 
                            "additional data": ['', error["additional_data"]][error["additional_data"]!=0],})
     return error_data
 
