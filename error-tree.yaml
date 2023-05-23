@@ -20,8 +20,13 @@ rtc:
     id: 22
     message: "RTC time could not be set"
   rtc_freq:
-    id: 33
+    id: 23
     message: "RTC frequency invalid. Set to 16 Hz."
+
+tele:
+  tele_corrupt_msg:
+    id: 31
+    message: "Transmitted checksum in BLE message wrong"
 
 logic:
   logic_fsm_loop:
