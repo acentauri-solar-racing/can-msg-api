@@ -60,6 +60,202 @@ bms:
         type: data_16
         idx: 3
 
+  bms_cmu_2_stat:
+    id: "0x604"
+    id_type: "std"
+    dlc: 8
+    data:
+      serial_num:
+        type: data_u32
+        idx: 0
+      pcb_temp:
+        type: data_16
+        idx: 2
+      cell_temp:
+        type: data_16
+        idx: 3
+  bms_cmu_2_cells_1:
+    id: "0x605"
+    id_type: "std"
+    dlc: 8
+    data:
+      cell_0_volt:
+        type: data_16
+        idx: 0
+      cell_1_volt:
+        type: data_16
+        idx: 1
+      cell_2_volt:
+        type: data_16
+        idx: 2
+      cell_3_volt:
+        type: data_16
+        idx: 3
+  bms_cmu_2_cells_2:
+    id: "0x606"
+    id_type: "std"
+    dlc: 8
+    data:
+      cell_4_volt:
+        type: data_16
+        idx: 0
+      cell_5_volt:
+        type: data_16
+        idx: 1
+      cell_6_volt:
+        type: data_16
+        idx: 2
+      cell_7_volt:
+        type: data_16
+        idx: 3
+
+  bms_cmu_3_stat:
+    id: "0x607"
+    id_type: "std"
+    dlc: 8
+    data:
+      serial_num:
+        type: data_u32
+        idx: 0
+      pcb_temp:
+        type: data_16
+        idx: 2
+      cell_temp:
+        type: data_16
+        idx: 3
+  bms_cmu_3_cells_1:
+    id: "0x608"
+    id_type: "std"
+    dlc: 8
+    data:
+      cell_0_volt:
+        type: data_16
+        idx: 0
+      cell_1_volt:
+        type: data_16
+        idx: 1
+      cell_2_volt:
+        type: data_16
+        idx: 2
+      cell_3_volt:
+        type: data_16
+        idx: 3
+  bms_cmu_3_cells_2:
+    id: "0x609"
+    id_type: "std"
+    dlc: 8
+    data:
+      cell_4_volt:
+        type: data_16
+        idx: 0
+      cell_5_volt:
+        type: data_16
+        idx: 1
+      cell_6_volt:
+        type: data_16
+        idx: 2
+      cell_7_volt:
+        type: data_16
+        idx: 3
+
+  bms_cmu_4_stat:
+    id: "0x610"
+    id_type: "std"
+    dlc: 8
+    data:
+      serial_num:
+        type: data_u32
+        idx: 0
+      pcb_temp:
+        type: data_16
+        idx: 2
+      cell_temp:
+        type: data_16
+        idx: 3
+  bms_cmu_4_cells_1:
+    id: "0x611"
+    id_type: "std"
+    dlc: 8
+    data:
+      cell_0_volt:
+        type: data_16
+        idx: 0
+      cell_1_volt:
+        type: data_16
+        idx: 1
+      cell_2_volt:
+        type: data_16
+        idx: 2
+      cell_3_volt:
+        type: data_16
+        idx: 3
+  bms_cmu_4_cells_2:
+    id: "0x612"
+    id_type: "std"
+    dlc: 8
+    data:
+      cell_4_volt:
+        type: data_16
+        idx: 0
+      cell_5_volt:
+        type: data_16
+        idx: 1
+      cell_6_volt:
+        type: data_16
+        idx: 2
+      cell_7_volt:
+        type: data_16
+        idx: 3
+
+  bms_cmu_5_stat:
+    id: "0x613"
+    id_type: "std"
+    dlc: 8
+    data:
+      serial_num:
+        type: data_u32
+        idx: 0
+      pcb_temp:
+        type: data_16
+        idx: 2
+      cell_temp:
+        type: data_16
+        idx: 3
+  bms_cmu_5_cells_1:
+    id: "0x614"
+    id_type: "std"
+    dlc: 8
+    data:
+      cell_0_volt:
+        type: data_16
+        idx: 0
+      cell_1_volt:
+        type: data_16
+        idx: 1
+      cell_2_volt:
+        type: data_16
+        idx: 2
+      cell_3_volt:
+        type: data_16
+        idx: 3
+  bms_cmu_5_cells_2:
+    id: "0x615"
+    id_type: "std"
+    dlc: 8
+    data:
+      cell_4_volt:
+        type: data_16
+        idx: 0
+      cell_5_volt:
+        type: data_16
+        idx: 1
+      cell_6_volt:
+        type: data_16
+        idx: 2
+      cell_7_volt:
+        type: data_16
+        idx: 3
+
   bms_pack_soc:
     id: "0x6F4"
     id_type: "std"
