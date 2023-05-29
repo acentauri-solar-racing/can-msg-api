@@ -24,7 +24,7 @@ def bms_v_graph(df: DataFrame):
         template="plotly_white",
         x="timestamp_dt",
         y=["battery_voltage"],
-    ).update_yaxes(range=[0, 140])
+    ).update_yaxes(range=[df['battery_voltage'].min()- 10, df['battery_voltage'].max()+ 10])
     fig.update_layout(xaxis_title='Timestamp')
     return fig
 
@@ -36,7 +36,7 @@ def bms_i_graph(df: DataFrame):
         template="plotly_white",
         x="timestamp_dt",
         y=["battery_current"],
-    ).update_yaxes(range=[0, 1.5])
+    ).update_yaxes(range=[df['battery_current'].min()- 5, df['battery_current'].max()+ 5])
     fig.update_layout(xaxis_title='Timestamp')
     return fig
 
