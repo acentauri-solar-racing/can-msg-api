@@ -159,7 +159,7 @@ bms:
         idx: 3
 
   bms_cmu_4_stat:
-    id: "0x610"
+    id: "0x60A"
     id_type: "std"
     dlc: 8
     data:
@@ -173,7 +173,7 @@ bms:
         type: data_16
         idx: 3
   bms_cmu_4_cells_1:
-    id: "0x611"
+    id: "0x60B"
     id_type: "std"
     dlc: 8
     data:
@@ -190,7 +190,7 @@ bms:
         type: data_16
         idx: 3
   bms_cmu_4_cells_2:
-    id: "0x612"
+    id: "0x60C"
     id_type: "std"
     dlc: 8
     data:
@@ -208,7 +208,7 @@ bms:
         idx: 3
 
   bms_cmu_5_stat:
-    id: "0x613"
+    id: "0x60D"
     id_type: "std"
     dlc: 8
     data:
@@ -222,7 +222,7 @@ bms:
         type: data_16
         idx: 3
   bms_cmu_5_cells_1:
-    id: "0x614"
+    id: "0x60E"
     id_type: "std"
     dlc: 8
     data:
@@ -239,7 +239,7 @@ bms:
         type: data_16
         idx: 3
   bms_cmu_5_cells_2:
-    id: "0x615"
+    id: "0x60F"
     id_type: "std"
     dlc: 8
     data:
