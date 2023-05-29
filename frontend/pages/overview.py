@@ -51,9 +51,9 @@ def initialize_data() -> tuple:
     # Initialize the main table
     main_data = [
         {
-            "Speed": f"no data",
-            "Power Consumption": f"no data",
-            "SOC of Battery": f"no data",
+            "Speed": "no data",
+            "Power Consumption": "no data",
+            "SOC of Battery": "no data",
         },
     ]
     main_df = pd.DataFrame()
@@ -64,7 +64,7 @@ def initialize_data() -> tuple:
     for module in module_heartbeats:
         state["module"] = module
         module_data.append(copy.deepcopy(state))
-    
+
     module_df = pd.DataFrame(module_data)
 
 
@@ -246,7 +246,7 @@ def determine_activity(db_serv: DbService, module_data: list) -> list:
     """
 
     for i, orm_model in enumerate(module_heartbeats.values()):
-        try: 
+        try:
             df = load_heartbeat(db_serv, orm_model)
             module_data = update_activity(module_data, i, df)
         except:
@@ -319,11 +319,17 @@ def refresh_data(n: int, active_cell: dict, module_data: list, main_data: list):
     df_power: DataFrame = calculate_power(db_serv)
 
     # Update data in main table
-    main_data[0]["Speed"] = f"{'{:.1f}'.format(df_speed['speed'][0])} km/h"
-    main_data[0][
-        "Power Consumption"
-    ] = f"{'{:.1f}'.format(df_power['p_sum'][0])} W"
-    main_data[0]["SOC of Battery"] = f"{'{:.1f}'.format(df_soc['soc_percent'][0])} %"
+
+    if len(df_speed.index) > 0:
+        main_data[0]["Speed"] = f"{'{:.1f}'.format(df_speed['speed'][0])} km/h"
+
+    if len(df_power.index) > 0:
+        main_data[0][
+            "Power Consumption"
+        ] = f"{'{:.1f}'.format(df_power['p_sum'][0])} W"
+
+    if len(df_soc.index) > 0:
+        main_data[0]["SOC of Battery"] = f"{'{:.1f}'.format(df_soc['soc_percent'][0])} %"
 
     # Update data in activity table
     module_data = determine_activity(db_serv, module_data)
@@ -399,14 +405,14 @@ def layout() -> html.Div:
                         "backgroundColor": color_red,
                         "color": "white",
                     },
-                    
+
                     {'if': {'column_id': 'module'},
                         'width': '33%'},
                     {'if': {'column_id': 'status'},
                         'width': '33%'},
                 ],
-            
-                
+
+
             ),
             dcc.Interval(
                 id="interval-component", interval=RELOAD_INTERVAL, n_intervals=0
