@@ -91,6 +91,7 @@ class LogEventHandler(FileSystemEventHandler):
 
                 # target file changes when log files roll over / new log started
                 if event.src_path != self.curr_file_name:
+                    print("opened file: " + str(event.src_path))
                     self.old_line_number = 0
                     self.curr_file_name = event.src_path
 
@@ -98,6 +99,9 @@ class LogEventHandler(FileSystemEventHandler):
                     # only analyze the newly added lines in the file
                     # for loop goes from old line num till end of file
                     for line in itertools.islice(f, self.old_line_number, None):
+                        if (self.old_line_number % 500 == 0):
+                            print("reading line nr " + str(self.old_line_number))
+
                         # skip empty lines
                         temp = line.strip()
                         if not temp:
@@ -125,17 +129,18 @@ class LogEventHandler(FileSystemEventHandler):
         try:
             unpacked_data: Tuple = self.data_structs[key].unpack(binascii.unhexlify(data))
 
-            if any(map(lambda x: math.isnan(x) or x is None or x > 2147483647, unpacked_data)):
+            # https://en.wikipedia.org/wiki/2,147,483,647
+            if any(map(lambda x: math.isnan(x) or x is None or x > 0x7FFFFFFF, unpacked_data)):
                 raise ValueError("Invalid data input")
 
             self.db.add_entry(key, unpacked_data, timestamp)
         except ValueError:
-            print("data contains nan or None or is too large for INT")
+            print("\r\ndata contains nan or None or is too large for INT")
             print("id: " + str(hex(key)))
             print("data: " + str(unpacked_data))
             print("timestamp: " + str(timestamp) + "\r\n")
         except:
-            print("failed inserting msg to DB w/ id: " + str(hex(key)))
+            print("\r\nfailed inserting msg to DB w/ id: " + str(hex(key)))
             print("data: " + str(unpacked_data))
             print("timestamp: " + str(timestamp) + "\r\n")
 
