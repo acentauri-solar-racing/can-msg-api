@@ -6,6 +6,7 @@ import os
 import binascii
 import struct
 import time
+import math
 
 from utils import helpers
 from utils.type_lookup import type_lookup
@@ -106,15 +107,37 @@ class LogEventHandler(FileSystemEventHandler):
                         self.old_line_number += 1
 
     def _process_line(self, line: str) -> None:
-        timestamp_string, channel_string, frame, rx_or_tx = line.split(sep=" ")
+        try:
+            timestamp_string, channel_string, frame, rx_or_tx = line.split(sep=" ")
+            timestamp = float(timestamp_string[1:-1])
+        except:
+            print("line stripping failed, invalid log line: \r\n" + str(line));
+            return
 
-        timestamp = float(timestamp_string[1:-1])
-        can_id, data = frame.split("#", maxsplit=1)
+        try:
+            can_id, data = frame.split("#", maxsplit=1)
+            key = helpers.conv_hex_str(can_id)
+        except:
+            print("couldn't extract log data for msg with id: " + str(hex(key)))
+            print("possibly unknown ID")
+            return
 
-        key = helpers.conv_hex_str(can_id)
+        try:
+            unpacked_data: Tuple = self.data_structs[key].unpack(binascii.unhexlify(data))
 
-        unpacked_data: Tuple = self.data_structs[key].unpack(binascii.unhexlify(data))
-        self.db.add_entry(key, unpacked_data, timestamp)
+            if any(map(lambda x: math.isnan(x) or x is None or x > 2147483647, unpacked_data)):
+                raise ValueError("Invalid data input")
+
+            self.db.add_entry(key, unpacked_data, timestamp)
+        except ValueError:
+            print("data contains nan or None or is too large for INT")
+            print("id: " + str(hex(key)))
+            print("data: " + str(unpacked_data))
+            print("timestamp: " + str(timestamp) + "\r\n")
+        except:
+            print("failed inserting msg to DB w/ id: " + str(hex(key)))
+            print("data: " + str(unpacked_data))
+            print("timestamp: " + str(timestamp) + "\r\n")
 
 
 if __name__ == "__main__":
