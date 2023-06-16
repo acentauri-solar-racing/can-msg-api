@@ -27,8 +27,11 @@ tele:
   tele_corrupt_msg:
     id: 31
     message: "Transmitted checksum in BLE message wrong"
-  tele_ble_init:
+  tele_init:
     id: 32
+    message: "Initialization of telemetry unit failed"
+  tele_ble_init:
+    id: 33
     message: "Initialization of ublox bluetooth module failed."
 
 logic:
