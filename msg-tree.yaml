@@ -498,7 +498,7 @@ vcu:
   vcu_pv_enable_0:
     id: "0x209"
     id_type: "std"
-    dlc: 1
+    dlc: 8
     data:
       enable:
         type: data_u8
@@ -506,7 +506,7 @@ vcu:
   vcu_pv_enable_1:
     id:  "0x219"
     id_type: "std"
-    dlc: 1
+    dlc: 8
     data:
       enable:
         type: data_u8
@@ -514,7 +514,7 @@ vcu:
   vcu_pv_enable_2:
     id: "0x229"
     id_type: "std"
-    dlc: 1
+    dlc: 8
     data:
       enable:
         type: data_u8
