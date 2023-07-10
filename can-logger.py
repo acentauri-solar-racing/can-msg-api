@@ -1,20 +1,58 @@
 import os
 from datetime import datetime as dt
+from typing import Any
 
-# File Size
-f_size = 32768
+from can import SizedRotatingLogger, Bus
+from can.typechecking import StringPathLike
 
-# Get Port
-port = input("Enter COM Port:")
+########################################################################################################################
+# Configuration Parameters
+########################################################################################################################
 
-# Get current timestamp for the file name
-dt_string = dt.isoformat(dt.now())
-file_name = dt_string[:-7] + ".log"         # Cut-off subseconds and add file extension
-file_name = file_name.replace(":", "_")     # Create valid filename
+interface = "pcan"  # Type of CAN Analyzer Device
+channel = "PCAN_USBBUS1"  # Channel of CAN Analyzer Device
+file_size = 100000000  # Maximum size of a log file´in bytes
 
-cmd_string = "python -m can.logger -i seeedstudio -b 500000 -s %s -c %s -f logs/%s" % (f_size, port, file_name)
+########################################################################################################################
 
-# start logger
-os.popen(cmd_string)
+# Create File Name
+dt_string = dt.isoformat(dt.now())  # Get current timestamp
+file_name = dt_string[:-7] + ".log"  # Cut-off subseconds and add file extension
+file_name = file_name.replace(":", "_")  # Create valid filename
+file_name = "logs/" + file_name  # Create the file in the right folder
 
-print ("Logger running in %s. Press CTR + C to stop it" % (file_name))
+# Bus instance
+bus = Bus(channel=channel, interface=interface)
+
+class CustomLogger(SizedRotatingLogger):
+    def __init__(self, base_filename: StringPathLike, **kwargs: Any):
+        super().__init__(base_filename, **kwargs)
+
+    # TODO: Implement custom enter function
+    def __enter__(self):
+        super().__enter__()
+
+    # TODO: Implement custom exit function
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        super().__exit__(self, exc_type, exc_val, exc_tb)
+
+
+# Logger instance
+logger = CustomLogger(
+    base_filename=file_name,
+    max_bytes=file_size, )
+
+print("Starting Logger")
+
+try:
+    while True:
+        msg = bus.recv(1)
+        if msg is not None:
+            logger(msg)
+except KeyboardInterrupt:
+    pass
+finally:
+    bus.shutdown()
+    logger.stop()
+
+print("Logger terminated")
