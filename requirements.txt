@@ -10,3 +10,4 @@ pyserial
 python-can
 python-dotenv
 watchdog
+uptime
