@@ -10,7 +10,7 @@ from dash import html, dcc, Input, Output, dash_table
 from db.models import *
 from db.db_service import DbService
 from pandas import DataFrame
-from frontend.styles import H1, H2
+import frontend.styles as styles
 from frontend.settings import RELOAD_INTERVAL
 from utils.load_data import *
 import datetime as dt
@@ -25,11 +25,6 @@ max_idle_time = 2  # seconds
 
 # Amount of datapoints shown on graph
 nr_data_points = 100
-
-# Pick ace color
-color_highlight = '#cadef5' #nature blue
-color_base = '#224c82' # dark solar panel blue
-color_red  = '#e11a27' # swiss red
 
 # List of tracked modules and their heartbeats. Append here.
 module_heartbeats = {
@@ -67,7 +62,6 @@ def initialize_data() -> tuple:
 
     module_df = pd.DataFrame(module_data)
 
-
     # Don't show a graph until requested by a click.
     # Can be 'none', 'speed', 'power' or 'soc'
     show_graph = "none"
@@ -76,7 +70,7 @@ def initialize_data() -> tuple:
 
 
 def optional_graph(
-    df: DataFrame, title: str, column_name: str, xlabel: str, ylabel: str
+        df: DataFrame, title: str, column_name: str, xlabel: str, ylabel: str
 ) -> go.Figure:
     """Settings for the optional graph that is triggered by a click on the main
     table.
@@ -97,7 +91,7 @@ def optional_graph(
         template="plotly_white",
         y=column_name,
         x="timestamp_dt",
-        color_discrete_sequence=[color_base],
+        color_discrete_sequence=[styles.COLOR_SELECTED],
         markers=True,
     ).update_yaxes()
     fig.update_layout(xaxis_title=xlabel, yaxis_title=ylabel, showlegend=False)
@@ -226,7 +220,7 @@ def calculate_power(db_serv: DbService, max_timediff: int = 2) -> DataFrame:
     # drop all the rows with nan values
     df_synch = df_synch.dropna()
     df_synch["p_sum"] = (
-        df_synch["p_out"] + df_synch["p_out0"] + df_synch["p_out1"] + df_synch["p_out2"]
+            df_synch["p_out"] + df_synch["p_out0"] + df_synch["p_out1"] + df_synch["p_out2"]
     )
 
     # rerverse order of timestamps to start with newest
@@ -288,18 +282,11 @@ def update_activity(module_data: list, index: int, df: DataFrame) -> list:
 
 
 @dash.callback(
-    Output("main-table", "data"),
-    Output("activity-table", "data"),
-    Output("extra-graph", "children"),
-    # Triggers after the time interval is over
-    Input("interval-component", "n_intervals"),
-    # Triggers when a new active cell is selected in the main table
-    Input("main-table", "active_cell"),
-    # Do not trigger callbacks, but the data is needed for refresh:
-    Input("activity-table", "data"),
-    Input("main-table", "data"),
-)
-def refresh_data(n: int, active_cell: dict, module_data: list, main_data: list):
+    Output("performance-table", "data"),
+    Output("battery-table", "data"),
+    Output("module-table", "data"),
+    Input("interval-component", "n_intervals"))  # Triggers after the time interval is over
+def refresh_data(n: int):
     """Refreshes the data in the tables & graphs, and chooses whether a graph
     should be displayed dependent on the active cell.
 
@@ -319,30 +306,36 @@ def refresh_data(n: int, active_cell: dict, module_data: list, main_data: list):
     df_power: DataFrame = calculate_power(db_serv)
 
     # Update data in main table
+    performance_data = [{'': 'Speed [km/h]', '5\' Min': '90', '5\' Max': '90', '5\' Avg': '90', 'Current': '120'},
+                        {'': 'SOC [%]', '5\' Min': '90', '5\' Max': '90', '5\' Avg': '90', 'Current': '120'},
+                        {'': 'Battery Voltage [V]', '5\' Min': '90', '5\' Max': '90', '5\' Avg': '90',
+                         'Current': '120'},
+                        {'': 'Battery Current [A]', '5\' Min': '90', '5\' Max': '90', '5\' Avg': '90',
+                         'Current': '120'},
+                        {'': 'Battery Power [W]', '5\' Min': '90', '5\' Max': '90', '5\' Avg': '90', 'Current': '120'},
+                        {'': 'Solar Array Power [W]', '5\' Min': '90', '5\' Max': '90', '5\' Avg': '90',
+                         'Current': '120'}]
 
-    if len(df_speed.index) > 0:
-        main_data[0]["Speed"] = f"{'{:.1f}'.format(df_speed['speed'][0])} km/h"
+    battery_data = [{'': 'Battery Temperature [°C]', 'Min': '38', 'Max': '45', '5\' Diff': '1'},
+                    {'': 'Cell Voltage [mV]', 'Min': '3900', 'Max': '4200', '5\' Diff': '20'}]
 
-    if len(df_power.index) > 0:
-        main_data[0][
-            "Power Consumption"
-        ] = f"{'{:.1f}'.format(df_power['p_sum'][0])} W"
+    module_data = [{'': 'Status'}]
+    for m in module_heartbeats:
+        module_data[0].update({m: 'active'})
 
-    if len(df_soc.index) > 0:
-        main_data[0]["SOC of Battery"] = f"{'{:.1f}'.format(df_soc['soc_percent'][0])} %"
-
+    # {'id': c, 'name': c} for c in module_df.columns]
     # Update data in activity table
-    module_data = determine_activity(db_serv, module_data)
+    return performance_data, battery_data, module_data
 
-    # Update graph and return
-    if active_cell == None:
-        return main_data, module_data, choose_graph(df_speed, "none")
-    elif active_cell["column"] == 0:
-        return main_data, module_data, choose_graph(df_speed, "speed")
-    elif active_cell["column"] == 1:
-        return main_data, module_data, choose_graph(df_power, "power")
-    elif active_cell["column"] == 2:
-        return main_data, module_data, choose_graph(df_soc, "soc")
+def get_graph():
+    pass
+
+def getCols_moduleTable() -> list[str]:
+    cols = [{'name': '', 'id': ''}]
+    for col in module_heartbeats:
+        cols.append({'name': col, 'id': col})
+
+    return cols
 
 
 def layout() -> html.Div:
@@ -351,69 +344,41 @@ def layout() -> html.Div:
     Returns:
         html.Div: Div with the page layout
     """
-    main_data, main_df, module_data, show_graph, module_df = initialize_data()
+    performance_data, main_df, battery_data, show_graph, module_df = initialize_data()
 
     return html.Div(
         children=[
-            html.H1("Overview", style=H1, className="text-center"),
-            html.H2("Car Status", style = H2),
+            html.H1("Overview", style=styles.H1, className="text-center"),
             dash_table.DataTable(
-                data=main_data,
-                id="main-table",
-                style_data={"font_size": "25px", "font_weight": "heavy"},
+                id="performance-table",
+                data=performance_data,
+                cell_selectable=False,
+                style_cell=styles.PERFORMANCE_CELL,
+                style_cell_conditional=styles.PERFORMANCE_CELL_CONDITIONAL,
                 style_as_list_view=True,
-                column_selectable="single",
-                selected_columns=[],
-                style_cell={
-                    'text-align': 'center',
-                },
-                style_data_conditional=[
-                    {
-                        "if": {"state": "active"},
-                        "backgroundColor": color_base,
-                        "color": "white",
-                        "border": f"1px solid {color_base}",
-
-                    },
-                    {
-                        "if": {"state": "selected"},
-                        "backgroundColor": color_base,
-                        "color": "white",
-                        "border": f"1px solid {color_base}",
-
-                    },
-                ],
-            ),
-            html.Div(children=choose_graph(main_df, show_graph), id="extra-graph"),
+                style_data_conditional=styles.DATA_CONDITIONAL),
             html.Br(),
             html.Br(),
-            html.H2("Module Status", style = H2),
             dash_table.DataTable(
-                data=module_data,
-                id="activity-table",
+                id="battery-table",
+                data=battery_data,
+                cell_selectable=False,
+                style_cell=styles.BATTERY_CELL,
+                style_cell_conditional=styles.BATTERY_CELL_CONDITIONAL,
                 style_as_list_view=True,
-                style_cell={
-                    'text-align': 'center',
-                },
-                columns=[{'id': c, 'name': c} for c in module_df.columns],
-                style_data_conditional=[
-                    {
-                        "if": {
-                            "filter_query": "{status} contains inactive",
-                            "column_type": "any",
-                        },
-                        "backgroundColor": color_red,
-                        "color": "white",
-                    },
-
-                    {'if': {'column_id': 'module'},
-                        'width': '33%'},
-                    {'if': {'column_id': 'status'},
-                        'width': '33%'},
-                ],
-
-
-            ),
+                style_data_conditional=styles.DATA_CONDITIONAL),
+            html.Br(),
+            html.Br(),
+            dash_table.DataTable(
+                id="module-table",
+                columns=getCols_moduleTable(),
+                data=battery_data,
+                cell_selectable=False,
+                style_cell=styles.MODULE_CELL,
+                style_cell_conditional=styles.MODULE_CELL_CONDITIONAL,
+                style_as_list_view=True,
+                style_data_conditional=styles.DATA_CONDITIONAL),
+            dcc.Graph(figure=get_graph()),
             dcc.Interval(
                 id="interval-component", interval=RELOAD_INTERVAL, n_intervals=0
             ),
