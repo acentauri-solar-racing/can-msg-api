@@ -74,7 +74,7 @@ def initialize_data() -> tuple:
     # Can be 'none', 'speed', 'power' or 'soc'
     show_graph = "none"
 
-    return main_data, main_df, module_data, show_graph, module_df
+    return main_data, module_data
 
 
 def optional_graph(
@@ -104,63 +104,6 @@ def optional_graph(
     ).update_yaxes()
     fig.update_layout(xaxis_title=xlabel, yaxis_title=ylabel, showlegend=False)
     return fig
-
-
-def choose_graph(df: DataFrame, type: str) -> html.Div:
-    """Adds the chosen graph to a dividor
-
-    Args:
-        df (DataFrame): SQL database
-        type (str): 'none', 'speed', 'power' or 'soc'
-
-    Returns:
-        html.Div: Div with the corresponding dcc.Graph
-    """
-    if type == "none":
-        return html.Div(
-            children=[],
-        )
-    elif type == "speed":
-        return html.Div(
-            children=[
-                dcc.Graph(
-                    figure=optional_graph(
-                        df, "Speed", "speed", "Time of data entry", "Speed / km/h"
-                    )
-                ),
-            ],
-        )
-    elif type == "power":
-        return html.Div(
-            children=[
-                dcc.Graph(
-                    figure=optional_graph(
-                        df, "Power", "p_sum", "Time of data entry", "Power consumed / W"
-                    )
-                ),
-            ],
-        )
-    elif type == "soc":
-        return html.Div(
-            children=[
-                dcc.Graph(
-                    figure=optional_graph(
-                        df,
-                        "State of Charge",
-                        "soc_percent",
-                        "Time of data entry",
-                        "State of charge / %",
-                    )
-                ),
-            ],
-        )
-    else:
-        return html.Div(
-            children=[
-                html.H3(f"Error, cannot display {type}"),
-            ],
-        )
-
 
 def determine_activity(db_serv: DbService, module_data: list) -> list:
     """Updates the module_data list for all modules by checking if the last
@@ -218,7 +161,6 @@ def update_activity(module_data: list, index: int, df: DataFrame) -> list:
 
 @dash.callback(
     Output("performance-table", "data"),
-    Output("battery-table", "data"),
     Output("module-table", "data"),
     Input("interval-component", "n_intervals"))  # Triggers after the time interval is over
 def refresh_data(n: int):
@@ -360,16 +302,13 @@ def refresh_data(n: int):
                          '{:d}\' Mean'.format(timespan_displayed): maxCellTemp_mean,
                          'Last': maxCellTemp_last}]
 
-    battery_data = [{'': 'Battery Cell Temperature [°C]', 'Min': '38', 'Max': '45', '5\' Diff': '1'},
-                    {'': 'Battery Cell Voltage [mV]', 'Min': '3900', 'Max': '4200', '5\' Diff': '20'}]
-
     module_data = [{'': 'Status'}]
     for m in module_heartbeats:
         module_data[0].update({m: 'active'})
 
     # {'id': c, 'name': c} for c in module_df.columns]
     # Update data in activity table
-    return performance_data, battery_data, module_data
+    return performance_data, module_data
 
 
 def get_graph():
@@ -390,7 +329,7 @@ def layout() -> html.Div:
     Returns:
         html.Div: Div with the page layout
     """
-    performance_data, main_df, battery_data, show_graph, module_df = initialize_data()
+    performance_data, module_data = initialize_data()
 
     return html.Div(
         children=[
@@ -406,19 +345,9 @@ def layout() -> html.Div:
             html.Br(),
             html.Br(),
             dash_table.DataTable(
-                id="battery-table",
-                data=battery_data,
-                cell_selectable=False,
-                style_cell=styles.PERFORMANCE_CELL,
-                style_cell_conditional=styles.PERFORMANCE_CELL_CONDITIONAL,
-                style_as_list_view=True,
-                style_data_conditional=styles.DATA_CONDITIONAL),
-            html.Br(),
-            html.Br(),
-            dash_table.DataTable(
                 id="module-table",
                 columns=getCols_moduleTable(),
-                data=battery_data,
+                data=module_data,
                 cell_selectable=False,
                 style_cell=styles.MODULE_CELL,
                 style_cell_conditional=styles.MODULE_CELL_CONDITIONAL,
