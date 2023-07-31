@@ -1,17 +1,14 @@
 import dash
-import plotly.express as px
 import pandas as pd
-import plotly.graph_objs as go
 
-from typing import Tuple
 from dash import html, dcc, Input, Output, dash_table
 
 from db.models import *
 from db.db_service import DbService
 from pandas import DataFrame
-from frontend.styles import H1, H2
+from frontend.styles import H1
 from frontend.settings import RELOAD_INTERVAL
-from utils.load_data import load_errors
+from db.load_data import load_errors
 from utils.helpers import flatten_tree
 import datetime as dt
 

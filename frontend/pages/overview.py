@@ -1,20 +1,18 @@
 import dash
 import plotly.express as px
-import pandas as pd
 import plotly.graph_objs as go
-import numpy as np
 import time
 
 from dash import html, dcc, Input, Output, dash_table
 
-from db.models import *
 from db.db_service import DbService
 from pandas import DataFrame
 import frontend.styles as styles
 from frontend.settings import RELOAD_INTERVAL
-from utils.load_data import *
+from db.load_data import *
 import datetime as dt
 import copy
+from collections import deque
 
 dash.register_page(__name__, path="/", title="Overview")
 
@@ -23,8 +21,10 @@ dash.register_page(__name__, path="/", title="Overview")
 # Time allowed until the module is flagged as inactive
 max_idle_time = 2  # seconds
 
-# Amount of datapoints shown on graph
-nr_data_points = 100
+# Time span that is displayed in the graphs (e.g. if it's set to 5, then the values of the last five minutes are displayed)
+timespan_displayed = 5  # minutes
+# Frequency with which the heartbeats are sent
+heartbeat_frequency = 16  # [Hz]
 
 # List of tracked modules and their heartbeats. Append here.
 module_heartbeats = {
@@ -39,6 +39,9 @@ module_heartbeats = {
     "fsensors": FsensorsHeartbeat,
     "dsensors": DsensorsHeartbeat,
 }
+
+
+speed_data = deque()
 
 
 def initialize_data() -> tuple:
@@ -169,8 +172,8 @@ def calculate_power(db_serv: DbService, max_timediff: int = 2) -> DataFrame:
     """
 
     # lowest index is most recent value
-    (df_mppt0, df_mppt1, df_mppt2) = load_mppt_power(db_serv, nr_data_points)
-    df_bms = load_bms_power(db_serv, nr_data_points)
+    (df_mppt0, df_mppt1, df_mppt2) = load_mppt_power(db_serv, timespan_displayed)
+    df_bms = load_bms_pack_data(db_serv, timespan_displayed)
 
     df_mppt0 = df_mppt0.rename(columns={"p_out": "p_out0"})
     df_mppt1 = df_mppt1.rename(columns={"p_out": "p_out1"})
@@ -301,23 +304,95 @@ def refresh_data(n: int):
     """
     # Refresh data from databank
     db_serv: DbService = DbService()
-    df_speed: DataFrame = load_icu_heartbeat(db_serv, nr_data_points)
-    df_soc: DataFrame = load_bms_soc(db_serv, nr_data_points)
-    df_power: DataFrame = calculate_power(db_serv)
+
+    # Car Speed
+    df_speed: DataFrame = load_speed(db_serv, timespan_displayed * 60 * heartbeat_frequency)
+    speed_last = df_speed['speed'][0]
+    speed_max = df_speed['speed'].max()
+    speed_min = df_speed['speed'].min()
+    speed_mean = df_speed['speed'].mean()
+
+    # PV String voltage, current, power
+    df_pv_string_1, df_pv_string_2, df_pv_string_3 = load_mppt_power(db_serv, timespan_displayed * 60 * heartbeat_frequency)
+    pv1Volt_last = df_pv_string_1['v_in'][0]
+    pv1Volt_max = df_pv_string_1['v_in'].max()
+    pv1Volt_min = df_pv_string_1['v_in'].min()
+    pv1Volt_mean = df_pv_string_1['v_in'].mean()
+
+    pv2Volt_last = df_pv_string_2['v_in'][0]
+    pv2Volt_max = df_pv_string_2['v_in'].max()
+    pv2Volt_min = df_pv_string_2['v_in'].min()
+    pv2Volt_mean = df_pv_string_2['v_in'].mean()
+
+    pv3Volt_last = df_pv_string_3['v_in'][0]
+    pv3Volt_max = df_pv_string_3['v_in'].max()
+    pv3Volt_min = df_pv_string_3['v_in'].min()
+    pv3Volt_mean = df_pv_string_3['v_in'].mean()
+
+    pv1Curr_last = df_pv_string_1['i_in'][0]
+    pv1Curr_max = df_pv_string_1['i_in'].max()
+    pv1Curr_min = df_pv_string_1['i_in'].min()
+    pv1Curr_mean = df_pv_string_1['i_in'].mean()
+
+    pv2Curr_last = df_pv_string_2['i_in'][0]
+    pv2Curr_max = df_pv_string_2['i_in'].max()
+    pv2Curr_min = df_pv_string_2['i_in'].min()
+    pv2Curr_mean = df_pv_string_2['i_in'].mean()
+
+    pv3Curr_last = df_pv_string_3['i_in'][0]
+    pv3Curr_max = df_pv_string_3['i_in'].max()
+    pv3Curr_min = df_pv_string_3['i_in'].min()
+    pv3Curr_mean = df_pv_string_3['i_in'].mean()
+
+    # Battery State of Charge
+    df_soc: DataFrame = load_bms_soc(db_serv, timespan_displayed * 60 * heartbeat_frequency)
+    soc_last = df_soc['soc_percent'][0]
+    soc_max = df_soc['soc_percent'].max()
+    soc_min = df_soc['soc_percent'].min()
+    soc_mean = df_soc['soc_percent'].mean()
+
+    # Battery Voltage, Current and Power
+    df_bat_pack = load_bms_pack_data(db_serv, timespan_displayed * 60 * heartbeat_frequency)
+    batPow_last = df_bat_pack['battery_power'][0]
+    batPow_max = df_bat_pack['battery_power'].max()
+    batPow_min = df_bat_pack['battery_power'].min()
+    batPow_mean = df_bat_pack['battery_power'].mean()
+
+    batVolt_last = df_bat_pack['battery_voltage'][0]
+    batVolt_max = df_bat_pack['battery_voltage'].max()
+    batVolt_min = df_bat_pack['battery_voltage'].min()
+    batVolt_mean = df_bat_pack['battery_voltage'].mean()
+
+    batCurr_last = df_bat_pack['battery_current'][0]
+    batCurr_max = df_bat_pack['battery_current'].max()
+    batCurr_min = df_bat_pack['battery_current'].min()
+    batCurr_mean = df_bat_pack['battery_current'].mean()
+    # df_mppt_power : DataFrame = calculate_power(db_serv)
 
     # Update data in main table
-    performance_data = [{'': 'Speed [km/h]', '5\' Min': '90', '5\' Max': '90', '5\' Avg': '90', 'Current': '120'},
-                        {'': 'SOC [%]', '5\' Min': '90', '5\' Max': '90', '5\' Avg': '90', 'Current': '120'},
-                        {'': 'Battery Voltage [V]', '5\' Min': '90', '5\' Max': '90', '5\' Avg': '90',
-                         'Current': '120'},
-                        {'': 'Battery Current [A]', '5\' Min': '90', '5\' Max': '90', '5\' Avg': '90',
-                         'Current': '120'},
-                        {'': 'Battery Power [W]', '5\' Min': '90', '5\' Max': '90', '5\' Avg': '90', 'Current': '120'},
-                        {'': 'Solar Array Power [W]', '5\' Min': '90', '5\' Max': '90', '5\' Avg': '90',
-                         'Current': '120'}]
+    performance_data = [{'': 'Speed [km/h]', '{:d}\' Min'.format(timespan_displayed): '{:3.1f}'.format(speed_min),
+                         '{:d}\' Max'.format(timespan_displayed): '{:3.1f}'.format(speed_max),
+                         '{:d}\' Mean'.format(timespan_displayed): '{:3.1f}'.format(speed_mean),
+                         'Last': '{:3.1f}'.format(speed_last)},
+                        {'': 'Battery Power [W]', '{:d}\' Min'.format(timespan_displayed): '{:6.1f}'.format(batPow_min),
+                         '{:d}\' Max'.format(timespan_displayed): '{:6.1f}'.format(batPow_max),
+                         '{:d}\' Mean'.format(timespan_displayed): '{:6.1f}'.format(batPow_mean),
+                         'Last': '{:6.1f}'.format(batPow_last)},
+                        {'': 'Battery SOC [%]', '{:d}\' Min'.format(timespan_displayed): '{:3.1f}'.format(soc_min),
+                         '{:d}\' Max'.format(timespan_displayed): '{:3.1f}'.format(soc_max),
+                         '{:d}\' Mean'.format(timespan_displayed): '{:3.1f}'.format(soc_mean),
+                         'Last': '{:3.1f}'.format(soc_last)},
+                        {'': 'Battery Voltage [V]', '{:d}\' Min'.format(timespan_displayed): '{:3.1f}'.format(batVolt_min),
+                         '{:d}\' Max'.format(timespan_displayed): '{:3.1f}'.format(batVolt_max),
+                         '{:d}\' Mean'.format(timespan_displayed): '{:3.1f}'.format(batVolt_mean),
+                         'Last': '{:3.1f}'.format(batVolt_last)},
+                        {'': 'Battery Current [mA]', '{:d}\' Min'.format(timespan_displayed): '{:6.1f}'.format(batCurr_min),
+                         '{:d}\' Max'.format(timespan_displayed): '{:6.1f}'.format(batCurr_max),
+                         '{:d}\' Mean'.format(timespan_displayed): '{:6.1f}'.format(batCurr_mean),
+                         'Last': '{:6.1f}'.format(batCurr_last)}]
 
-    battery_data = [{'': 'Battery Temperature [°C]', 'Min': '38', 'Max': '45', '5\' Diff': '1'},
-                    {'': 'Cell Voltage [mV]', 'Min': '3900', 'Max': '4200', '5\' Diff': '20'}]
+    battery_data = [{'': 'Battery Cell Temperature [°C]', 'Min': '38', 'Max': '45', '5\' Diff': '1'},
+                    {'': 'Battery Cell Voltage [mV]', 'Min': '3900', 'Max': '4200', '5\' Diff': '20'}]
 
     module_data = [{'': 'Status'}]
     for m in module_heartbeats:
@@ -327,8 +402,10 @@ def refresh_data(n: int):
     # Update data in activity table
     return performance_data, battery_data, module_data
 
+
 def get_graph():
     pass
+
 
 def getCols_moduleTable() -> list[str]:
     cols = [{'name': '', 'id': ''}]

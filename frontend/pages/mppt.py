@@ -1,19 +1,16 @@
 import dash
 import plotly.express as px
 import dash_bootstrap_components as dbc
-import pandas as pd
 
-from typing import Tuple
 from dash import html, dcc, Input, Output
 
-from db.models import *
 from db.db_service import DbService
 from pandas import DataFrame
 from frontend.styles import H1, H2
 from frontend.settings import RELOAD_INTERVAL
 import plotly.graph_objs as go
 
-from utils.load_data import load_mppt_power, load_mppt_status_data
+from db.load_data import load_mppt_power, load_mppt_status_data
 
 dash.register_page(__name__, path="/mppt", title="MPPT")
 

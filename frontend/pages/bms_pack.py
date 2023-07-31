@@ -1,18 +1,15 @@
 import dash
 import plotly.express as px
 import dash_bootstrap_components as dbc
-import pandas as pd
 import plotly.graph_objs as go
 
-from typing import Tuple
 from dash import html, dcc, Input, Output
 
-from db.models import *
 from db.db_service import DbService
 from pandas import DataFrame
 from frontend.styles import H1, H2
 from frontend.settings import RELOAD_INTERVAL
-from utils.load_data import load_bms_power
+from db.load_data import load_bms_pack_data
 
 dash.register_page(__name__, path="/bms_pack", title="BMS Pack")
 
@@ -66,7 +63,7 @@ def disp_bms(df: DataFrame):
 )
 def refresh_data(n):
     db_serv: DbService = DbService()
-    df: DataFrame = load_bms_power(db_serv, 100)
+    df: DataFrame = load_bms_pack_data(db_serv, 100)
 
     try:
         return html.Div(

@@ -6,8 +6,8 @@ from typing import Tuple
 
 
 #for speed calculation
-def load_icu_heartbeat(db_serv: DbService, n_entries) -> DataFrame:
-    return preprocess_icu_heartbeat(
+def load_speed(db_serv: DbService, n_entries) -> DataFrame:
+    return preprocess_speed(
         db_serv.query(IcuHeartbeat, n_entries)
     )
 
@@ -28,7 +28,7 @@ def load_mppt_status_data(db_serv: DbService) -> Tuple[MpptStatus0, MpptStatus1,
     )
 
 # for power calculations and mppt graph
-def load_mppt_power(db_serv: DbService, n_entries) -> Tuple[DataFrame]:
+def load_mppt_power(db_serv: DbService, n_entries) -> Tuple[DataFrame,DataFrame,DataFrame]:
     return (preprocess_mppt_power(
         db_serv.query(MpptPowerMeas0, n_entries),
     ),
@@ -40,8 +40,8 @@ def load_mppt_power(db_serv: DbService, n_entries) -> Tuple[DataFrame]:
     ))
 
 # for power calculations
-def load_bms_power(db_serv: DbService, n_entries) -> DataFrame:
-    return preprocess_bms_power(
+def load_bms_pack_data(db_serv: DbService, n_entries) -> DataFrame:
+    return preprocess_bms_pack_data(
         db_serv.query(BmsPackVoltageCurrent, n_entries),
     )
 
@@ -59,7 +59,7 @@ def preprocess_generic(df: DataFrame) -> DataFrame:
         df['timestamp'], unit='s', origin="unix", utc=True)
     return df
 
-def preprocess_icu_heartbeat(df: DataFrame) -> DataFrame:
+def preprocess_speed(df: DataFrame) -> DataFrame:
     """prepare data frame for plotting"""
     # rescale to km/h
     df['speed'] *= 3.6
@@ -87,14 +87,12 @@ def preprocess_mppt_power(df: DataFrame) -> DataFrame:
     return df
 
 
-def preprocess_bms_power(df: DataFrame) -> DataFrame:
+def preprocess_bms_pack_data(df: DataFrame) -> DataFrame:
     """prepare data frame for plotting"""
-    # rescale voltages since given in mV
-    df['battery_voltage'] *= 1e-3
-    df['battery_current'] *= 1e-3
+    df['battery_voltage'] *= 1e-3    # Rescale to volts
 
-    # P = UI
-    df['p_out'] = df['battery_voltage'] * df['battery_current']
+    # P = UI (current is given in mV -> multiply with 1e-3 to get W)
+    df['battery_power'] = df['battery_voltage'] * df['battery_current'] * 1e-3
 
     # parse timestamp
     df['timestamp_dt'] = pd.to_datetime(

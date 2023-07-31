@@ -86,8 +86,8 @@ def gen_bms_pack(db_serv: DbService(), num_entries: int):
 def gen_bms_vi(db_serv: DbService(), num_entries: int):
     for i in range(num_entries):
         # BmsPackVoltageCurrent
-        battery_voltage: float = noise(-120., 35)
-        battery_current: float = noise(1., 0.2)
+        battery_voltage: float = noise(120000., 5000)
+        battery_current: float = noise(-500., 40)
 
         db_serv.add_entry(
             1786, (battery_voltage, battery_current), timestamp + i)
@@ -131,9 +131,7 @@ def gen_vcu_error(db_serv: DbService(), num_entries: int):
         db_serv.add_entry(
             273, (id, message), timestamp + i+1)
 
-
-
-if __name__ == "__main__":
+def main() -> None:
     print("Seeding fake data")
     db_serv: DbService = DbService()
 
@@ -147,3 +145,6 @@ if __name__ == "__main__":
     gen_icu_error(db_serv, 100)
     gen_vcu_error(db_serv, 100)
     print("done")
+
+if __name__ == "__main__":
+    main()
