@@ -41,7 +41,12 @@ module_heartbeats = {
 }
 
 
-speed_data = deque()
+def getMinMaxMeanLast(df: DataFrame, col: str, numberFormat: str) -> Tuple[str, str, str, str]:
+    if (df.empty):
+        return ('No Data','No Data','No Data','No Data')
+    else:
+        return (('{:' + numberFormat + '}').format(df[col][0]), ('{:' + numberFormat + '}').format(df[col].min()),
+                ('{:' + numberFormat + '}').format(df[col].max()), ('{:' + numberFormat + '}').format(df[col].mean()))
 
 
 def initialize_data() -> tuple:
@@ -157,79 +162,6 @@ def choose_graph(df: DataFrame, type: str) -> html.Div:
         )
 
 
-def calculate_power(db_serv: DbService, max_timediff: int = 2) -> DataFrame:
-    """Returns a the sum of the power consumption measured by the 3 MPPTs and
-    the BMS. The timestamp of the data is found with the merge_asof method
-    (the data measured most recently after the timestamp is considered).
-    Datapoints more than max_diff seconds apart are not linked.
-
-    Args:
-        db_serv (DbService): SQL database
-        max_timediff (int): Optional. Maximum time difference until power measurements are no longer added.
-
-    Returns:
-        DataFrame: Synchronised dataframe with p_sum column for total power
-    """
-
-    # lowest index is most recent value
-    (df_mppt0, df_mppt1, df_mppt2) = load_mppt_power(db_serv, timespan_displayed)
-    df_bms = load_bms_pack_data(db_serv, timespan_displayed)
-
-    df_mppt0 = df_mppt0.rename(columns={"p_out": "p_out0"})
-    df_mppt1 = df_mppt1.rename(columns={"p_out": "p_out1"})
-    df_mppt2 = df_mppt2.rename(columns={"p_out": "p_out2"})
-
-    # values should not be matched if they have a time difference larger than 2 s
-    max_timediff = dt.timedelta(seconds=max_timediff)
-    # add all the data to one table with the closest timestamp
-    df_synch = pd.merge_asof(
-        df_mppt0[
-            [
-                "p_out0",
-                "timestamp_dt",
-            ]
-        ].sort_values("timestamp_dt"),
-        df_mppt1[
-            [
-                "p_out1",
-                "timestamp_dt",
-            ]
-        ].sort_values("timestamp_dt"),
-        on="timestamp_dt",
-        tolerance=max_timediff,
-    )
-    df_synch = pd.merge_asof(
-        df_synch,
-        df_mppt2[
-            [
-                "p_out2",
-                "timestamp_dt",
-            ]
-        ].sort_values("timestamp_dt"),
-        on="timestamp_dt",
-        tolerance=max_timediff,
-    )
-    df_synch = pd.merge_asof(
-        df_synch,
-        df_bms[
-            [
-                "p_out",
-                "timestamp_dt",
-            ]
-        ].sort_values("timestamp_dt"),
-        on="timestamp_dt",
-        tolerance=max_timediff,
-    )
-    # drop all the rows with nan values
-    df_synch = df_synch.dropna()
-    df_synch["p_sum"] = (
-            df_synch["p_out"] + df_synch["p_out0"] + df_synch["p_out1"] + df_synch["p_out2"]
-    )
-
-    # rerverse order of timestamps to start with newest
-    return df_synch[::-1]
-
-
 def determine_activity(db_serv: DbService, module_data: list) -> list:
     """Updates the module_data list for all modules by checking if the last
     data entry of the corresponding heartbeats is more than max_idle_time ago.
@@ -307,89 +239,126 @@ def refresh_data(n: int):
 
     # Car Speed
     df_speed: DataFrame = load_speed(db_serv, timespan_displayed * 60 * heartbeat_frequency)
-    speed_last = df_speed['speed'][0]
-    speed_max = df_speed['speed'].max()
-    speed_min = df_speed['speed'].min()
-    speed_mean = df_speed['speed'].mean()
+    speed_min, speed_max, speed_mean, speed_last = getMinMaxMeanLast(df_speed, 'speed', '3.1f')
 
-    # PV String voltage, current, power
-    df_pv_string_1, df_pv_string_2, df_pv_string_3 = load_mppt_power(db_serv, timespan_displayed * 60 * heartbeat_frequency)
-    pv1Volt_last = df_pv_string_1['v_in'][0]
-    pv1Volt_max = df_pv_string_1['v_in'].max()
-    pv1Volt_min = df_pv_string_1['v_in'].min()
-    pv1Volt_mean = df_pv_string_1['v_in'].mean()
+    # PV String voltage, String current, output power
+    df_pv, df_pv_string_0, df_pv_string_1, df_pv_string_2, df_pv_string_3 = load_mppt_power(db_serv,
+                                                                                            timespan_displayed * 60 * heartbeat_frequency)
+    pv0Volt_min,pv0Volt_max,pv0Volt_mean,pv0Volt_last = getMinMaxMeanLast(df_pv_string_0, 'v_in', '3.1f')
+    pv1Volt_min,pv1Volt_max,pv1Volt_mean,pv1Volt_last = getMinMaxMeanLast(df_pv_string_1, 'v_in', '3.1f')
+    pv2Volt_min,pv2Volt_max,pv2Volt_mean,pv2Volt_last = getMinMaxMeanLast(df_pv_string_2, 'v_in', '3.1f')
+    pv3Volt_min,pv3Volt_max,pv3Volt_mean,pv3Volt_last = getMinMaxMeanLast(df_pv_string_3, 'v_in', '3.1f')
 
-    pv2Volt_last = df_pv_string_2['v_in'][0]
-    pv2Volt_max = df_pv_string_2['v_in'].max()
-    pv2Volt_min = df_pv_string_2['v_in'].min()
-    pv2Volt_mean = df_pv_string_2['v_in'].mean()
+    pv0Curr_min,pv0Curr_max,pv0Curr_mean,pv0Curr_last = getMinMaxMeanLast(df_pv_string_0, 'i_in', '6.1f')
+    pv1Curr_min,pv1Curr_max,pv1Curr_mean,pv1Curr_last = getMinMaxMeanLast(df_pv_string_1, 'i_in', '6.1f')
+    pv2Curr_min,pv2Curr_max,pv2Curr_mean,pv2Curr_last = getMinMaxMeanLast(df_pv_string_2, 'i_in', '6.1f')
+    pv3Curr_min,pv3Curr_max,pv3Curr_mean,pv3Curr_last = getMinMaxMeanLast(df_pv_string_3, 'i_in', '6.1f')
 
-    pv3Volt_last = df_pv_string_3['v_in'][0]
-    pv3Volt_max = df_pv_string_3['v_in'].max()
-    pv3Volt_min = df_pv_string_3['v_in'].min()
-    pv3Volt_mean = df_pv_string_3['v_in'].mean()
-
-    pv1Curr_last = df_pv_string_1['i_in'][0]
-    pv1Curr_max = df_pv_string_1['i_in'].max()
-    pv1Curr_min = df_pv_string_1['i_in'].min()
-    pv1Curr_mean = df_pv_string_1['i_in'].mean()
-
-    pv2Curr_last = df_pv_string_2['i_in'][0]
-    pv2Curr_max = df_pv_string_2['i_in'].max()
-    pv2Curr_min = df_pv_string_2['i_in'].min()
-    pv2Curr_mean = df_pv_string_2['i_in'].mean()
-
-    pv3Curr_last = df_pv_string_3['i_in'][0]
-    pv3Curr_max = df_pv_string_3['i_in'].max()
-    pv3Curr_min = df_pv_string_3['i_in'].min()
-    pv3Curr_mean = df_pv_string_3['i_in'].mean()
+    pvPow_min,pvPow_max,pvPow_mean,pvPow_last = getMinMaxMeanLast(df_pv, 'p_out', '3.1f')
+    pv0Pow_min,pv0Pow_max,pv0Pow_mean,pv0Pow_last = getMinMaxMeanLast(df_pv_string_0, 'p_out', '3.1f')
+    pv1Pow_min,pv1Pow_max,pv1Pow_mean,pv1Pow_last = getMinMaxMeanLast(df_pv_string_1, 'p_out', '3.1f')
+    pv2Pow_min,pv2Pow_max,pv2Pow_mean,pv2Pow_last = getMinMaxMeanLast(df_pv_string_2, 'p_out', '3.1f')
+    pv3Pow_min,pv3Pow_max,pv3Pow_mean,pv3Pow_last = getMinMaxMeanLast(df_pv_string_3, 'p_out', '3.1f')
 
     # Battery State of Charge
     df_soc: DataFrame = load_bms_soc(db_serv, timespan_displayed * 60 * heartbeat_frequency)
-    soc_last = df_soc['soc_percent'][0]
-    soc_max = df_soc['soc_percent'].max()
-    soc_min = df_soc['soc_percent'].min()
-    soc_mean = df_soc['soc_percent'].mean()
+    soc_min,soc_max,soc_mean,soc_last = getMinMaxMeanLast(df_soc, 'soc_percent', '3.1f')
 
     # Battery Voltage, Current and Power
     df_bat_pack = load_bms_pack_data(db_serv, timespan_displayed * 60 * heartbeat_frequency)
-    batPow_last = df_bat_pack['battery_power'][0]
-    batPow_max = df_bat_pack['battery_power'].max()
-    batPow_min = df_bat_pack['battery_power'].min()
-    batPow_mean = df_bat_pack['battery_power'].mean()
+    batPow_min,batPow_max,batPow_mean,batPow_last = getMinMaxMeanLast(df_bat_pack,'battery_power','3.1f')
+    batVolt_min,batVolt_max,batVolt_mean,batVolt_last = getMinMaxMeanLast(df_bat_pack,'battery_voltage','3.1f')
+    batCurr_min,batCurr_max,batCurr_mean,batCurr_last = getMinMaxMeanLast(df_bat_pack,'battery_current','6.1f')
 
-    batVolt_last = df_bat_pack['battery_voltage'][0]
-    batVolt_max = df_bat_pack['battery_voltage'].max()
-    batVolt_min = df_bat_pack['battery_voltage'].min()
-    batVolt_mean = df_bat_pack['battery_voltage'].mean()
+    # Battery Maximum Cell Voltage, Minimum Cell Voltage
+    df_cellVolt = load_bms_cell_voltage(db_serv, timespan_displayed * 60 * heartbeat_frequency)
+    maxCellVolt_min,maxCellVolt_max,maxCellVolt_mean,maxCellVolt_last = getMinMaxMeanLast(df_cellVolt, 'max_cell_voltage', '2.3f')
+    minCellVolt_min,minCellVolt_max,minCellVolt_mean,minCellVolt_last = getMinMaxMeanLast(df_cellVolt, 'min_cell_voltage', '2.3f')
 
-    batCurr_last = df_bat_pack['battery_current'][0]
-    batCurr_max = df_bat_pack['battery_current'].max()
-    batCurr_min = df_bat_pack['battery_current'].min()
-    batCurr_mean = df_bat_pack['battery_current'].mean()
-    # df_mppt_power : DataFrame = calculate_power(db_serv)
+    # Battery Maximum Cell Temperature, Minimum Cell Temperature
+    df_cellTemp= load_bms_cell_temp(db_serv, timespan_displayed * 60 * heartbeat_frequency)
+    maxCellTemp_min,maxCellTemp_max,maxCellTemp_mean,maxCellTemp_last = getMinMaxMeanLast(df_cellVolt, 'max_cell_temp', '2.3f')
+    minCellTemp_min,minCellTemp_max,minCellTemp_mean,minCellTemp_last = getMinMaxMeanLast(df_cellVolt, 'min_cell_temp', '2.3f')
+
+    # Motor Power = Power from Solar Array + Power from Battery
+    df_motorPow = DataFrame()
+    df_motorPow['pow'] = df_pv['p_out'] + df_bat_pack['battery_power']
+    motorPow_min,motorPow_max,motorPow_mean,motorPow_last = getMinMaxMeanLast(df_motorPow,'pow', '3.1f')
 
     # Update data in main table
-    performance_data = [{'': 'Speed [km/h]', '{:d}\' Min'.format(timespan_displayed): '{:3.1f}'.format(speed_min),
-                         '{:d}\' Max'.format(timespan_displayed): '{:3.1f}'.format(speed_max),
-                         '{:d}\' Mean'.format(timespan_displayed): '{:3.1f}'.format(speed_mean),
-                         'Last': '{:3.1f}'.format(speed_last)},
-                        {'': 'Battery Power [W]', '{:d}\' Min'.format(timespan_displayed): '{:6.1f}'.format(batPow_min),
-                         '{:d}\' Max'.format(timespan_displayed): '{:6.1f}'.format(batPow_max),
-                         '{:d}\' Mean'.format(timespan_displayed): '{:6.1f}'.format(batPow_mean),
-                         'Last': '{:6.1f}'.format(batPow_last)},
-                        {'': 'Battery SOC [%]', '{:d}\' Min'.format(timespan_displayed): '{:3.1f}'.format(soc_min),
-                         '{:d}\' Max'.format(timespan_displayed): '{:3.1f}'.format(soc_max),
-                         '{:d}\' Mean'.format(timespan_displayed): '{:3.1f}'.format(soc_mean),
-                         'Last': '{:3.1f}'.format(soc_last)},
-                        {'': 'Battery Voltage [V]', '{:d}\' Min'.format(timespan_displayed): '{:3.1f}'.format(batVolt_min),
-                         '{:d}\' Max'.format(timespan_displayed): '{:3.1f}'.format(batVolt_max),
-                         '{:d}\' Mean'.format(timespan_displayed): '{:3.1f}'.format(batVolt_mean),
-                         'Last': '{:3.1f}'.format(batVolt_last)},
-                        {'': 'Battery Current [mA]', '{:d}\' Min'.format(timespan_displayed): '{:6.1f}'.format(batCurr_min),
-                         '{:d}\' Max'.format(timespan_displayed): '{:6.1f}'.format(batCurr_max),
-                         '{:d}\' Mean'.format(timespan_displayed): '{:6.1f}'.format(batCurr_mean),
-                         'Last': '{:6.1f}'.format(batCurr_last)}]
+    performance_data = [{'': 'Speed [km/h]', '{:d}\' Min'.format(timespan_displayed): speed_min,
+                         '{:d}\' Max'.format(timespan_displayed): speed_max,
+                         '{:d}\' Mean'.format(timespan_displayed): speed_mean,
+                         'Last': speed_last},
+                        {'': 'Motor Output Power [W]',
+                         '{:d}\' Min'.format(timespan_displayed): motorPow_min,
+                         '{:d}\' Max'.format(timespan_displayed):motorPow_max,
+                         '{:d}\' Mean'.format(timespan_displayed): motorPow_mean,
+                         'Last': motorPow_last}, {},
+                        {'': 'PV Output Power [W]',
+                         '{:d}\' Min'.format(timespan_displayed): pvPow_min,
+                         '{:d}\' Max'.format(timespan_displayed): pvPow_max,
+                         '{:d}\' Mean'.format(timespan_displayed): pvPow_mean,
+                         'Last': pvPow_last},
+                        {'': 'PV String 0 Output Power [W]',
+                         '{:d}\' Min'.format(timespan_displayed): pv0Pow_min,
+                         '{:d}\' Max'.format(timespan_displayed): pv0Pow_max,
+                         '{:d}\' Mean'.format(timespan_displayed): pv0Pow_mean,
+                         'Last': pv0Pow_last},
+                        {'': 'PV String 1 Output Power [W]',
+                         '{:d}\' Min'.format(timespan_displayed): pv1Pow_min,
+                         '{:d}\' Max'.format(timespan_displayed): pv1Pow_max,
+                         '{:d}\' Mean'.format(timespan_displayed): pv1Pow_mean,
+                         'Last': pv1Pow_last},
+                        {'': 'PV String 2 Output Power [W]',
+                         '{:d}\' Min'.format(timespan_displayed): pv2Pow_min,
+                         '{:d}\' Max'.format(timespan_displayed): pv2Pow_max,
+                         '{:d}\' Mean'.format(timespan_displayed): pv2Pow_mean,
+                         'Last': pv2Pow_last},
+                        {'': 'PV String 3 Output Power [W]',
+                         '{:d}\' Min'.format(timespan_displayed): pv3Pow_min,
+                         '{:d}\' Max'.format(timespan_displayed): pv3Pow_max,
+                         '{:d}\' Mean'.format(timespan_displayed): pv3Pow_mean,
+                         'Last': pv3Pow_last}, {},
+                        {'': 'Battery Output Power [W]',
+                         '{:d}\' Min'.format(timespan_displayed): batPow_min,
+                         '{:d}\' Max'.format(timespan_displayed): batPow_max,
+                         '{:d}\' Mean'.format(timespan_displayed): batPow_mean,
+                         'Last': batPow_last},
+                        {'': 'Battery SOC [%]', '{:d}\' Min'.format(timespan_displayed): soc_min,
+                         '{:d}\' Max'.format(timespan_displayed): soc_max,
+                         '{:d}\' Mean'.format(timespan_displayed): soc_mean,
+                         'Last': soc_last},
+                        {'': 'Battery Voltage [V]',
+                         '{:d}\' Min'.format(timespan_displayed): batVolt_min,
+                         '{:d}\' Max'.format(timespan_displayed): batVolt_max,
+                         '{:d}\' Mean'.format(timespan_displayed): batVolt_mean,
+                         'Last': batVolt_last},
+                        {'': 'Battery Output Current [mA]',
+                         '{:d}\' Min'.format(timespan_displayed): batCurr_min,
+                         '{:d}\' Max'.format(timespan_displayed): batCurr_max,
+                         '{:d}\' Mean'.format(timespan_displayed): batCurr_mean,
+                         'Last': batCurr_last},
+                        {'': 'Battery Minimum Cell Voltage [mV]',
+                         '{:d}\' Min'.format(timespan_displayed): minCellVolt_min,
+                         '{:d}\' Max'.format(timespan_displayed): minCellVolt_max,
+                         '{:d}\' Mean'.format(timespan_displayed): minCellVolt_mean,
+                         'Last': minCellVolt_last},
+                        {'': 'Battery Maximum Cell Voltage [mV]',
+                         '{:d}\' Min'.format(timespan_displayed): maxCellVolt_min,
+                         '{:d}\' Max'.format(timespan_displayed): maxCellVolt_max,
+                         '{:d}\' Mean'.format(timespan_displayed): maxCellVolt_mean,
+                         'Last': maxCellVolt_last},
+                        {'': 'Battery Minimum Cell Temperature [°C]',
+                         '{:d}\' Min'.format(timespan_displayed): minCellTemp_min,
+                         '{:d}\' Max'.format(timespan_displayed): minCellTemp_max,
+                         '{:d}\' Mean'.format(timespan_displayed): minCellTemp_mean,
+                         'Last': minCellTemp_last},
+                        {'': 'Battery Maximum Cell Temperature [°C]',
+                         '{:d}\' Min'.format(timespan_displayed): maxCellTemp_min,
+                         '{:d}\' Max'.format(timespan_displayed): maxCellTemp_max,
+                         '{:d}\' Mean'.format(timespan_displayed): maxCellTemp_mean,
+                         'Last': maxCellTemp_last}]
 
     battery_data = [{'': 'Battery Cell Temperature [°C]', 'Min': '38', 'Max': '45', '5\' Diff': '1'},
                     {'': 'Battery Cell Voltage [mV]', 'Min': '3900', 'Max': '4200', '5\' Diff': '20'}]
@@ -440,8 +409,8 @@ def layout() -> html.Div:
                 id="battery-table",
                 data=battery_data,
                 cell_selectable=False,
-                style_cell=styles.BATTERY_CELL,
-                style_cell_conditional=styles.BATTERY_CELL_CONDITIONAL,
+                style_cell=styles.PERFORMANCE_CELL,
+                style_cell_conditional=styles.PERFORMANCE_CELL_CONDITIONAL,
                 style_as_list_view=True,
                 style_data_conditional=styles.DATA_CONDITIONAL),
             html.Br(),

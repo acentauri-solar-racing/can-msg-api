@@ -16,24 +16,30 @@ def noise(mean: float, stddev) -> float:
 
 def gen_mppt_pow(db_serv: DbService(), num_entries: int):
     for i in range(num_entries):
-        vin1: float = noise(-12., 0.5) * 1000  # unit mV
+        vin0: float = noise(12., 0.5) * 1000  # unit mV
+        iin0: float = noise(1., 0.1) * 1000  # unit mV
+        vout0: float = noise(12., 0.5) * 1000  # unit mV
+        iout0: float = noise(1., 0.1) * 1000  # unit mV
+        vin1: float = noise(12., 0.5) * 1000  # unit mV
         iin1: float = noise(1., 0.1) * 1000  # unit mV
-        vout1: float = noise(-12., 0.5) * 1000  # unit mV
+        vout1: float = noise(12., 0.5) * 1000  # unit mV
         iout1: float = noise(1., 0.1) * 1000  # unit mV
-        vin2: float = noise(-12., 0.5) * 1000  # unit mV
+        vin2: float = noise(12., 0.5) * 1000  # unit mV
         iin2: float = noise(1., 0.1) * 1000  # unit mV
-        vout2: float = noise(-12., 0.5) * 1000  # unit mV
+        vout2: float = noise(12., 0.5) * 1000  # unit mV
         iout2: float = noise(1., 0.1) * 1000  # unit mV
-        vin3: float = noise(-12., 0.5) * 1000  # unit mV
+        vin3: float = noise(12., 0.5) * 1000  # unit mV
         iin3: float = noise(1., 0.1) * 1000  # unit mV
-        vout3: float = noise(-12., 0.5) * 1000  # unit mV
+        vout3: float = noise(12., 0.5) * 1000  # unit mV
         iout3: float = noise(1., 0.1) * 1000  # unit mV
 
-        db_serv.add_entry(512, (vin1, iin1, vout1, iout1),
+        db_serv.add_entry(512, (vin0, iin0, vout0, iout0),
                           timestamp + i)  # MpptPowerMeas0
-        db_serv.add_entry(528, (vin2, iin2, vout2, iout2),
+        db_serv.add_entry(528, (vin1, iin1, vout1, iout1),
+                          timestamp + i)  # MpptPowerMeas0
+        db_serv.add_entry(544, (vin2, iin2, vout2, iout2),
                           timestamp + i)  # MpptPowerMeas1
-        db_serv.add_entry(544, (vin3, iin3, vout3, iout3),
+        db_serv.add_entry(560, (vin3, iin3, vout3, iout3),
                           timestamp + i)  # MpptPowerMeas2
 
 

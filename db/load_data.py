@@ -28,21 +28,33 @@ def load_mppt_status_data(db_serv: DbService) -> Tuple[MpptStatus0, MpptStatus1,
     )
 
 # for power calculations and mppt graph
-def load_mppt_power(db_serv: DbService, n_entries) -> Tuple[DataFrame,DataFrame,DataFrame]:
-    return (preprocess_mppt_power(
-        db_serv.query(MpptPowerMeas0, n_entries),
-    ),
-        preprocess_mppt_power(
-        db_serv.query(MpptPowerMeas1, n_entries)
-    ),
-        preprocess_mppt_power(
-        db_serv.query(MpptPowerMeas2, n_entries)
-    ))
+def load_mppt_power(db_serv: DbService, n_entries) -> Tuple[DataFrame,DataFrame,DataFrame,DataFrame,DataFrame]:
+
+    df_mppt0 = preprocess_mppt_power(db_serv.query(MpptPowerMeas0, n_entries))
+    df_mppt1 = preprocess_mppt_power(db_serv.query(MpptPowerMeas1, n_entries))
+    df_mppt2 = preprocess_mppt_power(db_serv.query(MpptPowerMeas2, n_entries))
+    df_mppt3 = preprocess_mppt_power(db_serv.query(MpptPowerMeas3, n_entries))
+
+    df_mppt = DataFrame()
+    df_mppt['p_out'] = df_mppt0['p_out'] + df_mppt1['p_out'] + df_mppt2['p_out'] + df_mppt3['p_out']
+
+    return (df_mppt,df_mppt0,df_mppt1,df_mppt2,df_mppt3)
+
 
 # for power calculations
 def load_bms_pack_data(db_serv: DbService, n_entries) -> DataFrame:
     return preprocess_bms_pack_data(
         db_serv.query(BmsPackVoltageCurrent, n_entries),
+    )
+
+def load_bms_cell_voltage(db_serv: DbService, n_entries) -> DataFrame:
+    return preprocess_generic(
+        db_serv.query((BmsMinMaxCellVoltage), n_entries)
+    )
+
+def load_bms_cell_temp(db_serv: DbService, n_entries) -> DataFrame:
+    return preprocess_generic(
+        db_serv.query((BmsMinMaxCellTemp), n_entries)
     )
 
 # for state of charge graph
@@ -53,50 +65,44 @@ def load_bms_soc(db_serv: DbService, n_entries) -> DataFrame:
 
 
 def preprocess_generic(df: DataFrame) -> DataFrame:
-    """prepare data frame for heartbeat tracking"""
-    # parse timestamp
+
     df['timestamp_dt'] = pd.to_datetime(
         df['timestamp'], unit='s', origin="unix", utc=True)
+
     return df
 
 def preprocess_speed(df: DataFrame) -> DataFrame:
     """prepare data frame for plotting"""
     # rescale to km/h
     df['speed'] *= 3.6
-    # parse timestamp
-    df['timestamp_dt'] = pd.to_datetime(
-        df['timestamp'], unit='s', origin="unix", utc=True)
-    return df
+
+    return preprocess_generic(df)
 
 
 def preprocess_mppt_power(df: DataFrame) -> DataFrame:
     """prepare data frame for plotting"""
     # rescale voltages since given in mV. Only relevant quantities are adjusted!
     df['v_out'] *= 1e-3
-    df['i_out'] *= 1e-3
+    # df['i_out'] *= 1e-3
     df['v_in'] *= 1e-3
-    df['i_in'] *= 1e-3
+    # df['i_in'] *= 1e-3
 
     # P = UI
-    df['p_out'] = df['v_out'] * df['i_out']
-    df['p_in'] = df['v_in'] * df['i_in']
+    df['p_out'] = df['v_out'] * df['i_out'] * 1e-3
+    df['p_in'] = df['v_in'] * df['i_in'] * 1e-3
 
-    # parse timestamp
-    df['timestamp_dt'] = pd.to_datetime(
-        df['timestamp'], unit='s', origin="unix", utc=True)
-    return df
+    return preprocess_generic(df)
 
 
 def preprocess_bms_pack_data(df: DataFrame) -> DataFrame:
+
     """prepare data frame for plotting"""
-    df['battery_voltage'] *= 1e-3    # Rescale to volts
+    df['battery_voltage'] *= 1e-3    # Rescale
+    df['battery_current'] *= -1
 
     # P = UI (current is given in mV -> multiply with 1e-3 to get W)
     df['battery_power'] = df['battery_voltage'] * df['battery_current'] * 1e-3
 
-    # parse timestamp
-    df['timestamp_dt'] = pd.to_datetime(
-        df['timestamp'], unit='s', origin="unix", utc=True)
-    return df
+    return preprocess_generic(df)
 
 
