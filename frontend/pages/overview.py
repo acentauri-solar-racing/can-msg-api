@@ -43,10 +43,12 @@ module_heartbeats = {
 
 def getMinMaxMeanLast(df: DataFrame, col: str, numberFormat: str) -> Tuple[str, str, str, str]:
     if (df.empty):
-        return ('No Data','No Data','No Data','No Data')
+        return ('No Data', 'No Data', 'No Data', 'No Data')
     else:
-        return (('{:' + numberFormat + '}').format(df[col][0]), ('{:' + numberFormat + '}').format(df[col].min()),
-                ('{:' + numberFormat + '}').format(df[col].max()), ('{:' + numberFormat + '}').format(df[col].mean()))
+        return (('{:' + numberFormat + '}').format(df[col].min()),
+                ('{:' + numberFormat + '}').format(df[col].max()),
+                ('{:' + numberFormat + '}').format(df[col].mean()),
+                ('{:' + numberFormat + '}').format(df[col][0]),)
 
 
 def initialize_data() -> tuple:
@@ -54,9 +56,11 @@ def initialize_data() -> tuple:
     # Initialize the main table
     main_data = [
         {
-            "Speed": "no data",
-            "Power Consumption": "no data",
-            "SOC of Battery": "no data",
+            "": 'No Data',
+            '{:d}\' Min'.format(timespan_displayed): '',
+            '{:d}\' Max'.format(timespan_displayed): 'No Data',
+            '{:d}\' Mean'.format(timespan_displayed): 'No Data',
+            'Last': 'No Data',
         },
     ]
     main_df = pd.DataFrame()
@@ -104,6 +108,7 @@ def optional_graph(
     ).update_yaxes()
     fig.update_layout(xaxis_title=xlabel, yaxis_title=ylabel, showlegend=False)
     return fig
+
 
 def determine_activity(db_serv: DbService, module_data: list) -> list:
     """Updates the module_data list for all modules by checking if the last
@@ -159,11 +164,33 @@ def update_activity(module_data: list, index: int, df: DataFrame) -> list:
     return module_data
 
 
+# @dash.callback(
+#     Output("module-table", "selected_cells"),
+#
+# )
+# def select_row(selected_cells) -> {}:
+#     print(selected_cells)
+#     print("callback")
+#     return selected_cells
+
+
+# @dash.callback (
+#     Output("graphs", "children"),
+#     Input("performance-table", "selected_rows")
+# )
+# def update_graphs(selected_columns):
+#     print(selected_columns)
+#     print("update called")
+#     return html.Div([])
+
+
 @dash.callback(
     Output("performance-table", "data"),
     Output("module-table", "data"),
-    Input("interval-component", "n_intervals"))  # Triggers after the time interval is over
-def refresh_data(n: int):
+    Output("graph", "children"),
+    Input("interval-component", "n_intervals"),  # Triggers after the time interval is over
+    Input("performance-table", "active_cell"))
+def refresh_data(n_intervals: int, active_cell):
     """Refreshes the data in the tables & graphs, and chooses whether a graph
     should be displayed dependent on the active cell.
 
@@ -186,46 +213,81 @@ def refresh_data(n: int):
     # PV String voltage, String current, output power
     df_pv, df_pv_string_0, df_pv_string_1, df_pv_string_2, df_pv_string_3 = load_mppt_power(db_serv,
                                                                                             timespan_displayed * 60 * heartbeat_frequency)
-    pv0Volt_min,pv0Volt_max,pv0Volt_mean,pv0Volt_last = getMinMaxMeanLast(df_pv_string_0, 'v_in', '3.1f')
-    pv1Volt_min,pv1Volt_max,pv1Volt_mean,pv1Volt_last = getMinMaxMeanLast(df_pv_string_1, 'v_in', '3.1f')
-    pv2Volt_min,pv2Volt_max,pv2Volt_mean,pv2Volt_last = getMinMaxMeanLast(df_pv_string_2, 'v_in', '3.1f')
-    pv3Volt_min,pv3Volt_max,pv3Volt_mean,pv3Volt_last = getMinMaxMeanLast(df_pv_string_3, 'v_in', '3.1f')
+    pv0Volt_min, pv0Volt_max, pv0Volt_mean, pv0Volt_last = getMinMaxMeanLast(df_pv_string_0, 'v_in', '3.1f')
+    pv1Volt_min, pv1Volt_max, pv1Volt_mean, pv1Volt_last = getMinMaxMeanLast(df_pv_string_1, 'v_in', '3.1f')
+    pv2Volt_min, pv2Volt_max, pv2Volt_mean, pv2Volt_last = getMinMaxMeanLast(df_pv_string_2, 'v_in', '3.1f')
+    pv3Volt_min, pv3Volt_max, pv3Volt_mean, pv3Volt_last = getMinMaxMeanLast(df_pv_string_3, 'v_in', '3.1f')
 
-    pv0Curr_min,pv0Curr_max,pv0Curr_mean,pv0Curr_last = getMinMaxMeanLast(df_pv_string_0, 'i_in', '6.1f')
-    pv1Curr_min,pv1Curr_max,pv1Curr_mean,pv1Curr_last = getMinMaxMeanLast(df_pv_string_1, 'i_in', '6.1f')
-    pv2Curr_min,pv2Curr_max,pv2Curr_mean,pv2Curr_last = getMinMaxMeanLast(df_pv_string_2, 'i_in', '6.1f')
-    pv3Curr_min,pv3Curr_max,pv3Curr_mean,pv3Curr_last = getMinMaxMeanLast(df_pv_string_3, 'i_in', '6.1f')
+    pv0Curr_min, pv0Curr_max, pv0Curr_mean, pv0Curr_last = getMinMaxMeanLast(df_pv_string_0, 'i_in', '6.1f')
+    pv1Curr_min, pv1Curr_max, pv1Curr_mean, pv1Curr_last = getMinMaxMeanLast(df_pv_string_1, 'i_in', '6.1f')
+    pv2Curr_min, pv2Curr_max, pv2Curr_mean, pv2Curr_last = getMinMaxMeanLast(df_pv_string_2, 'i_in', '6.1f')
+    pv3Curr_min, pv3Curr_max, pv3Curr_mean, pv3Curr_last = getMinMaxMeanLast(df_pv_string_3, 'i_in', '6.1f')
 
-    pvPow_min,pvPow_max,pvPow_mean,pvPow_last = getMinMaxMeanLast(df_pv, 'p_out', '3.1f')
-    pv0Pow_min,pv0Pow_max,pv0Pow_mean,pv0Pow_last = getMinMaxMeanLast(df_pv_string_0, 'p_out', '3.1f')
-    pv1Pow_min,pv1Pow_max,pv1Pow_mean,pv1Pow_last = getMinMaxMeanLast(df_pv_string_1, 'p_out', '3.1f')
-    pv2Pow_min,pv2Pow_max,pv2Pow_mean,pv2Pow_last = getMinMaxMeanLast(df_pv_string_2, 'p_out', '3.1f')
-    pv3Pow_min,pv3Pow_max,pv3Pow_mean,pv3Pow_last = getMinMaxMeanLast(df_pv_string_3, 'p_out', '3.1f')
+    pvPow_min, pvPow_max, pvPow_mean, pvPow_last = getMinMaxMeanLast(df_pv, 'p_out', '3.1f')
+    pv0Pow_min, pv0Pow_max, pv0Pow_mean, pv0Pow_last = getMinMaxMeanLast(df_pv_string_0, 'p_out', '3.1f')
+    pv1Pow_min, pv1Pow_max, pv1Pow_mean, pv1Pow_last = getMinMaxMeanLast(df_pv_string_1, 'p_out', '3.1f')
+    pv2Pow_min, pv2Pow_max, pv2Pow_mean, pv2Pow_last = getMinMaxMeanLast(df_pv_string_2, 'p_out', '3.1f')
+    pv3Pow_min, pv3Pow_max, pv3Pow_mean, pv3Pow_last = getMinMaxMeanLast(df_pv_string_3, 'p_out', '3.1f')
 
     # Battery State of Charge
     df_soc: DataFrame = load_bms_soc(db_serv, timespan_displayed * 60 * heartbeat_frequency)
-    soc_min,soc_max,soc_mean,soc_last = getMinMaxMeanLast(df_soc, 'soc_percent', '3.1f')
+    soc_min, soc_max, soc_mean, soc_last = getMinMaxMeanLast(df_soc, 'soc_percent', '3.1f')
 
     # Battery Voltage, Current and Power
     df_bat_pack = load_bms_pack_data(db_serv, timespan_displayed * 60 * heartbeat_frequency)
-    batPow_min,batPow_max,batPow_mean,batPow_last = getMinMaxMeanLast(df_bat_pack,'battery_power','3.1f')
-    batVolt_min,batVolt_max,batVolt_mean,batVolt_last = getMinMaxMeanLast(df_bat_pack,'battery_voltage','3.1f')
-    batCurr_min,batCurr_max,batCurr_mean,batCurr_last = getMinMaxMeanLast(df_bat_pack,'battery_current','6.1f')
+    batPow_min, batPow_max, batPow_mean, batPow_last = getMinMaxMeanLast(df_bat_pack, 'battery_power', '3.1f')
+    batVolt_min, batVolt_max, batVolt_mean, batVolt_last = getMinMaxMeanLast(df_bat_pack, 'battery_voltage', '3.1f')
+    batCurr_min, batCurr_max, batCurr_mean, batCurr_last = getMinMaxMeanLast(df_bat_pack, 'battery_current', '6.1f')
 
     # Battery Maximum Cell Voltage, Minimum Cell Voltage
     df_cellVolt = load_bms_cell_voltage(db_serv, timespan_displayed * 60 * heartbeat_frequency)
-    maxCellVolt_min,maxCellVolt_max,maxCellVolt_mean,maxCellVolt_last = getMinMaxMeanLast(df_cellVolt, 'max_cell_voltage', '2.3f')
-    minCellVolt_min,minCellVolt_max,minCellVolt_mean,minCellVolt_last = getMinMaxMeanLast(df_cellVolt, 'min_cell_voltage', '2.3f')
+    maxCellVolt_min, maxCellVolt_max, maxCellVolt_mean, maxCellVolt_last = getMinMaxMeanLast(df_cellVolt,
+                                                                                             'max_cell_voltage', '2.3f')
+    minCellVolt_min, minCellVolt_max, minCellVolt_mean, minCellVolt_last = getMinMaxMeanLast(df_cellVolt,
+                                                                                             'min_cell_voltage', '2.3f')
 
     # Battery Maximum Cell Temperature, Minimum Cell Temperature
-    df_cellTemp= load_bms_cell_temp(db_serv, timespan_displayed * 60 * heartbeat_frequency)
-    maxCellTemp_min,maxCellTemp_max,maxCellTemp_mean,maxCellTemp_last = getMinMaxMeanLast(df_cellVolt, 'max_cell_temp', '2.3f')
-    minCellTemp_min,minCellTemp_max,minCellTemp_mean,minCellTemp_last = getMinMaxMeanLast(df_cellVolt, 'min_cell_temp', '2.3f')
+    df_cellTemp = load_bms_cell_temp(db_serv, timespan_displayed * 60 * heartbeat_frequency)
+    maxCellTemp_min, maxCellTemp_max, maxCellTemp_mean, maxCellTemp_last = getMinMaxMeanLast(df_cellTemp,
+                                                                                             'max_cell_temp', '2.3f')
+    minCellTemp_min, minCellTemp_max, minCellTemp_mean, minCellTemp_last = getMinMaxMeanLast(df_cellTemp,
+                                                                                             'min_cell_temp', '2.3f')
 
     # Motor Power = Power from Solar Array + Power from Battery
     df_motorPow = DataFrame()
+    # df_motorPow['timestamp_dt'] = df_pv['timestamp_dt']
     df_motorPow['pow'] = df_pv['p_out'] + df_bat_pack['battery_power']
-    motorPow_min,motorPow_max,motorPow_mean,motorPow_last = getMinMaxMeanLast(df_motorPow,'pow', '3.1f')
+    motorPow_min, motorPow_max, motorPow_mean, motorPow_last = getMinMaxMeanLast(df_motorPow, 'pow', '3.1f')
+
+    main_table_dict = {'Speed [km/h]': df_speed, 'Motor Output Power [W]': df_motorPow, 'PV Output Power [W]': df_pv,
+                       'PV String 0 Output Power [W]': df_pv_string_0,
+                       'PV String 1 Output Power [W]': df_pv_string_1, 'PV String 2 Output Power [W]': df_pv_string_2,
+                       'PV String 3 Output Power [W]': df_pv_string_3,
+                       'Battery Output Power [W]': df_bat_pack, 'Battery SOC [%]': df_soc,
+                       'Battery Voltage [V]': df_bat_pack,
+                       'Battery Output Current [mA]': df_bat_pack,
+                       'Battery Minimum Cell Voltage [mV]': df_cellVolt,
+                       'Battery Maximum Cell Voltage [mV]': df_cellVolt,
+                       'Battery Minimum Cell Temperature [°C]': df_cellTemp,
+                       'Battery Maximum Cell Temperature [°C]': df_cellTemp}
+
+    main_table_rows = [[df_speed, 'speed'],
+                       [df_motorPow, 'pow'],
+                       [],
+                       [df_pv, 'p_out'],
+                       [df_pv_string_0, 'p_out'],
+                       [df_pv_string_1, 'p_out'],
+                       [df_pv_string_2, 'p_out'],
+                       [df_pv_string_3, 'p_out'],
+                       [],
+                       [df_bat_pack, 'battery_power'],
+                       [df_soc, 'soc_percent'],
+                       [df_bat_pack, 'battery_voltage'],
+                       [df_bat_pack, 'battery_current'],
+                       [df_cellVolt, 'max_cell_voltage'],
+                       [df_cellVolt, 'min_cell_voltage'],
+                       [df_cellTemp, 'max_cell_temp'],
+                       [df_cellTemp, 'min_cell_temp']]
 
     # Update data in main table
     performance_data = [{'': 'Speed [km/h]', '{:d}\' Min'.format(timespan_displayed): speed_min,
@@ -234,7 +296,7 @@ def refresh_data(n: int):
                          'Last': speed_last},
                         {'': 'Motor Output Power [W]',
                          '{:d}\' Min'.format(timespan_displayed): motorPow_min,
-                         '{:d}\' Max'.format(timespan_displayed):motorPow_max,
+                         '{:d}\' Max'.format(timespan_displayed): motorPow_max,
                          '{:d}\' Mean'.format(timespan_displayed): motorPow_mean,
                          'Last': motorPow_last}, {},
                         {'': 'PV Output Power [W]',
@@ -302,17 +364,26 @@ def refresh_data(n: int):
                          '{:d}\' Mean'.format(timespan_displayed): maxCellTemp_mean,
                          'Last': maxCellTemp_last}]
 
+    print(active_cell)
+
+    graph_df = None if active_cell == None else main_table_rows[int(active_cell['row'])][0]
+    y = None if active_cell == None else main_table_rows[int(active_cell['row'])][1]
+    graph = getGraph(active_cell, graph_df, y)
+
     module_data = [{'': 'Status'}]
     for m in module_heartbeats:
         module_data[0].update({m: 'active'})
 
     # {'id': c, 'name': c} for c in module_df.columns]
     # Update data in activity table
-    return performance_data, module_data
+    return performance_data, module_data, graph
 
 
-def get_graph():
-    pass
+def getGraph(active_cell: {}, df: DataFrame, y: str) -> html.Div:
+    if active_cell == None:
+        return None
+    return html.Div(
+        children=[dcc.Graph(figure=px.line(df, title='Graph', template='plotly_white', x='timestamp_dt', y=y))])
 
 
 def getCols_moduleTable() -> list[str]:
@@ -337,7 +408,8 @@ def layout() -> html.Div:
             dash_table.DataTable(
                 id="performance-table",
                 data=performance_data,
-                cell_selectable=False,
+                # row_selectable="multi",
+                cell_selectable=True,
                 style_cell=styles.PERFORMANCE_CELL,
                 style_cell_conditional=styles.PERFORMANCE_CELL_CONDITIONAL,
                 style_as_list_view=True,
@@ -353,7 +425,7 @@ def layout() -> html.Div:
                 style_cell_conditional=styles.MODULE_CELL_CONDITIONAL,
                 style_as_list_view=True,
                 style_data_conditional=styles.DATA_CONDITIONAL),
-            dcc.Graph(figure=get_graph()),
+            html.Div(id="graph"),
             dcc.Interval(
                 id="interval-component", interval=RELOAD_INTERVAL, n_intervals=0
             ),

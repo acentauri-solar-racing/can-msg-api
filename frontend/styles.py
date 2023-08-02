@@ -36,16 +36,6 @@ PERFORMANCE_CELL_CONDITIONAL = [
      'width': '60%'}
 ]
 
-BATTERY_CELL = {
-    'text-align': 'center',
-    'width': '{}%'.format(10)
-}
-
-BATTERY_CELL_CONDITIONAL = [
-    {'if': {'column_id': ''},
-     'width': '70%'}
-]
-
 
 MODULE_CELL = {
     'text-align': 'center',
