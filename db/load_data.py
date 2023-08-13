@@ -2,11 +2,11 @@ from db.models import *
 from db.db_service import DbService
 from pandas import DataFrame
 import pandas as pd
-from typing import Tuple
+from typing import Tuple, Union
 
 
 #for speed calculation
-def load_speed(db_serv: DbService, n_entries) -> DataFrame:
+def load_speed(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
     return preprocess_speed(
         db_serv.query(IcuHeartbeat, n_entries)
     )
@@ -28,17 +28,17 @@ def load_mppt_status_data(db_serv: DbService) -> Tuple[MpptStatus0, MpptStatus1,
     )
 
 # for power calculations and mppt graph
-def load_mppt_power(db_serv: DbService, n_entries) -> Tuple[DataFrame,DataFrame,DataFrame,DataFrame,DataFrame]:
+def load_mppt_power(db_serv: DbService, n_entries) -> Union[Tuple[DataFrame,DataFrame,DataFrame,DataFrame,DataFrame], None]:
 
     df_mppt0 = preprocess_mppt_power(db_serv.query(MpptPowerMeas0, n_entries))
     df_mppt1 = preprocess_mppt_power(db_serv.query(MpptPowerMeas1, n_entries))
     df_mppt2 = preprocess_mppt_power(db_serv.query(MpptPowerMeas2, n_entries))
     df_mppt3 = preprocess_mppt_power(db_serv.query(MpptPowerMeas3, n_entries))
 
-    df_mppt = DataFrame()
-    df_mppt['p_out'] = df_mppt0['p_out'] + df_mppt1['p_out'] + df_mppt2['p_out'] + df_mppt3['p_out']
+    df_pv = DataFrame()
+    df_pv['p_out'] = df_mppt0['p_out'] + df_mppt1['p_out'] + df_mppt2['p_out'] + df_mppt3['p_out']
 
-    return (df_mppt,df_mppt0,df_mppt1,df_mppt2,df_mppt3)
+    return (df_pv,df_mppt0,df_mppt1,df_mppt2,df_mppt3)
 
 
 # for power calculations
@@ -106,3 +106,8 @@ def preprocess_bms_pack_data(df: DataFrame) -> DataFrame:
     return preprocess_generic(df)
 
 
+def refresh_motorPow() -> Union[DataFrame, None]:
+    return None
+
+def refresh_mpptPow() -> Union[DataFrame, None]:
+    return None
