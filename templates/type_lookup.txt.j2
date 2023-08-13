@@ -1,2 +1,3 @@
-{% for topic in topics %}{{helpers.clean_id(topic.id)}}:<{{helpers.gen_format_str(topic.data)}}
+{% for topic in topics %}{{helpers.clean_id(topic.id)}}:
+{%- if (endians[topic.id] == "little") -%}<{%- else -%}>{%- endif -%}{{helpers.gen_format_str(topic.data)}}
 {% endfor %}

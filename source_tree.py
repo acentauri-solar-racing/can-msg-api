@@ -147,10 +147,15 @@ def write_tree_to_fs():
     def generate_type_index_file() -> None:
         template = env.get_template("type_lookup.txt.j2")
 
+        endians = {}
+        for topic in topics:
+            endians[topic["id"]] = (list(topic["data"].values())[0]["endian"])
+
         # create string from the template
         content = template.render(
             topics=topics,
             type_lookup=type_lookup,
+            endians=endians
         )
         # write the string into a txt filecalled type_lookup.txt
         with open("type_lookup.txt", mode="w", encoding="utf-8") as results:
