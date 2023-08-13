@@ -1,4 +1,632 @@
+bms:
+  bms_heartbeat:
+    id: "0x600"
+    id_type: "std"
+    dlc: 8
+    data:
+      bmu_heartbeat:
+        type: data_u32
+        idx: 0
+        endian: "little"
+      serial_num:
+        type: data_u32
+        idx: 1
+        endian: "little"
+
+  bms_cmu_1_stat:
+    id: "0x601"
+    id_type: "std"
+    dlc: 8
+    data:
+      serial_num:
+        type: data_u32
+        idx: 0
+        endian: "little"
+      pcb_temp:
+        type: data_16
+        idx: 2
+        endian: "little"
+      cell_temp:
+        type: data_16
+        idx: 3
+        endian: "little"
+  bms_cmu_1_cells_1:
+    id: "0x602"
+    id_type: "std"
+    dlc: 8
+    data:
+      cell_0_volt:
+        type: data_16
+        idx: 0
+        endian: "little"
+      cell_1_volt:
+        type: data_16
+        idx: 1
+        endian: "little"
+      cell_2_volt:
+        type: data_16
+        idx: 2
+        endian: "little"
+      cell_3_volt:
+        type: data_16
+        idx: 3
+        endian: "little"
+  bms_cmu_1_cells_2:
+    id: "0x603"
+    id_type: "std"
+    dlc: 8
+    data:
+      cell_4_volt:
+        type: data_16
+        idx: 0
+        endian: "little"
+      cell_5_volt:
+        type: data_16
+        idx: 1
+        endian: "little"
+      cell_6_volt:
+        type: data_16
+        idx: 2
+        endian: "little"
+      cell_7_volt:
+        type: data_16
+        idx: 3
+        endian: "little"
+
+  bms_cmu_2_stat:
+    id: "0x604"
+    id_type: "std"
+    dlc: 8
+    data:
+      serial_num:
+        type: data_u32
+        idx: 0
+        endian: "little"
+      pcb_temp:
+        type: data_16
+        idx: 2
+        endian: "little"
+      cell_temp:
+        type: data_16
+        idx: 3
+        endian: "little"
+  bms_cmu_2_cells_1:
+    id: "0x605"
+    id_type: "std"
+    dlc: 8
+    data:
+      cell_0_volt:
+        type: data_16
+        idx: 0
+        endian: "little"
+      cell_1_volt:
+        type: data_16
+        idx: 1
+        endian: "little"
+      cell_2_volt:
+        type: data_16
+        idx: 2
+        endian: "little"
+      cell_3_volt:
+        type: data_16
+        idx: 3
+        endian: "little"
+  bms_cmu_2_cells_2:
+    id: "0x606"
+    id_type: "std"
+    dlc: 8
+    data:
+      cell_4_volt:
+        type: data_16
+        idx: 0
+        endian: "little"
+      cell_5_volt:
+        type: data_16
+        idx: 1
+        endian: "little"
+      cell_6_volt:
+        type: data_16
+        idx: 2
+        endian: "little"
+      cell_7_volt:
+        type: data_16
+        idx: 3
+        endian: "little"
+
+  bms_cmu_3_stat:
+    id: "0x607"
+    id_type: "std"
+    dlc: 8
+    data:
+      serial_num:
+        type: data_u32
+        idx: 0
+        endian: "little"
+      pcb_temp:
+        type: data_16
+        idx: 2
+        endian: "little"
+      cell_temp:
+        type: data_16
+        idx: 3
+        endian: "little"
+  bms_cmu_3_cells_1:
+    id: "0x608"
+    id_type: "std"
+    dlc: 8
+    data:
+      cell_0_volt:
+        type: data_16
+        idx: 0
+        endian: "little"
+      cell_1_volt:
+        type: data_16
+        idx: 1
+        endian: "little"
+      cell_2_volt:
+        type: data_16
+        idx: 2
+        endian: "little"
+      cell_3_volt:
+        type: data_16
+        idx: 3
+        endian: "little"
+  bms_cmu_3_cells_2:
+    id: "0x609"
+    id_type: "std"
+    dlc: 8
+    data:
+      cell_4_volt:
+        type: data_16
+        idx: 0
+        endian: "little"
+      cell_5_volt:
+        type: data_16
+        idx: 1
+        endian: "little"
+      cell_6_volt:
+        type: data_16
+        idx: 2
+        endian: "little"
+      cell_7_volt:
+        type: data_16
+        idx: 3
+        endian: "little"
+
+  bms_cmu_4_stat:
+    id: "0x60A"
+    id_type: "std"
+    dlc: 8
+    data:
+      serial_num:
+        type: data_u32
+        idx: 0
+        endian: "little"
+      pcb_temp:
+        type: data_16
+        idx: 2
+        endian: "little"
+      cell_temp:
+        type: data_16
+        idx: 3
+        endian: "little"
+  bms_cmu_4_cells_1:
+    id: "0x60B"
+    id_type: "std"
+    dlc: 8
+    data:
+      cell_0_volt:
+        type: data_16
+        idx: 0
+        endian: "little"
+      cell_1_volt:
+        type: data_16
+        idx: 1
+        endian: "little"
+      cell_2_volt:
+        type: data_16
+        idx: 2
+        endian: "little"
+      cell_3_volt:
+        type: data_16
+        idx: 3
+        endian: "little"
+  bms_cmu_4_cells_2:
+    id: "0x60C"
+    id_type: "std"
+    dlc: 8
+    data:
+      cell_4_volt:
+        type: data_16
+        idx: 0
+        endian: "little"
+      cell_5_volt:
+        type: data_16
+        idx: 1
+        endian: "little"
+      cell_6_volt:
+        type: data_16
+        idx: 2
+        endian: "little"
+      cell_7_volt:
+        type: data_16
+        idx: 3
+        endian: "little"
+
+  bms_cmu_5_stat:
+    id: "0x60D"
+    id_type: "std"
+    dlc: 8
+    data:
+      serial_num:
+        type: data_u32
+        idx: 0
+        endian: "little"
+      pcb_temp:
+        type: data_16
+        idx: 2
+        endian: "little"
+      cell_temp:
+        type: data_16
+        idx: 3
+        endian: "little"
+  bms_cmu_5_cells_1:
+    id: "0x60E"
+    id_type: "std"
+    dlc: 8
+    data:
+      cell_0_volt:
+        type: data_16
+        idx: 0
+        endian: "little"
+      cell_1_volt:
+        type: data_16
+        idx: 1
+        endian: "little"
+      cell_2_volt:
+        type: data_16
+        idx: 2
+        endian: "little"
+      cell_3_volt:
+        type: data_16
+        idx: 3
+        endian: "little"
+  bms_cmu_5_cells_2:
+    id: "0x60F"
+    id_type: "std"
+    dlc: 8
+    data:
+      cell_4_volt:
+        type: data_16
+        idx: 0
+        endian: "little"
+      cell_5_volt:
+        type: data_16
+        idx: 1
+        endian: "little"
+      cell_6_volt:
+        type: data_16
+        idx: 2
+        endian: "little"
+      cell_7_volt:
+        type: data_16
+        idx: 3
+        endian: "little"
+
+  bms_pack_soc:
+    id: "0x6F4"
+    id_type: "std"
+    dlc: 8
+    data:
+      soc_ah:
+        type: data_fp
+        idx: 0
+        endian: "little"
+      soc_percent:
+        type: data_fp
+        idx: 1
+        endian: "little"
+
+  bms_pack_balance_soc:
+    id: "0x6F5"
+    id_type: "std"
+    dlc: 8
+    data:
+      soc_ah:
+        type: data_fp
+        idx: 0
+        endian: "little"
+      soc_percent:
+        type: data_fp
+        idx: 1
+        endian: "little"
+
+  bms_charger_contr:
+    id: "0x6F6"
+    id_type: "std"
+    dlc: 8
+    data:
+      char_cell_volt_err:
+        type: data_16
+        idx: 0
+        endian: "little"
+      temp_marg:
+        type: data_16
+        idx: 1
+        endian: "little"
+      disc_cell_volt_err:
+        type: data_16
+        idx: 2
+        endian: "little"
+      pack_cap:
+        type: data_16
+        idx: 3
+        endian: "little"
+
+  bms_precharge_status:
+    id: "0x6F7"
+    id_type: "std"
+    dlc: 8
+    data:
+      precharge_contactor_driver_status:
+        type: data_u8
+        idx: 0
+        endian: "little"
+      precharge_state:
+        type: data_u8
+        idx: 1
+        endian: "little"
+      contactor_supply_voltage:
+        type: data_u16
+        idx: 1
+        endian: "little"
+      unused:
+        type: data_u16
+        idx: 2
+        endian: "little"
+      precharge_timer_status:
+        type: data_u8
+        idx: 6
+        endian: "little"
+      precharge_timer_counter:
+        type: data_u8
+        idx: 7
+        endian: "little"
+
+  bms_min_max_cell_voltage:
+    id: "0x6F8"
+    id_type: "std"
+    dlc: 8
+    data:
+      min_cell_voltage:
+        type: data_u16
+        idx: 0
+        endian: "little"
+      max_cell_voltage:
+        type: data_u16
+        idx: 1
+        endian: "little"
+      min_cell_voltage_cmu_num:
+        type: data_u8
+        idx: 4
+        endian: "little"
+      min_cell_voltage_cell_num:
+        type: data_u8
+        idx: 5
+        endian: "little"
+      max_cell_voltage_cmu_num:
+        type: data_u8
+        idx: 6
+        endian: "little"
+      max_cell_voltage_cell_num:
+        type: data_u8
+        idx: 7
+        endian: "little"
+
+  bms_min_max_cell_temp:
+    id: "0x6F9"
+    id_type: "std"
+    dlc: 8
+    data:
+      min_cell_temp:
+        type: data_u16
+        idx: 0
+        endian: "little"
+      max_cell_temp:
+        type: data_u16
+        idx: 1
+        endian: "little"
+      min_cell_temp_cmu_num:
+        type: data_u8
+        idx: 4
+        endian: "little"
+      unused_0:
+        type: data_u8
+        idx: 5
+        endian: "little"
+      max_cell_temp_cmu_num:
+        type: data_u8
+        idx: 6
+        endian: "little"
+      unused_1:
+        type: data_u8
+        idx: 7
+        endian: "little"
+
+  bms_pack_voltage_current:
+    id: "0x6FA"
+    id_type: "std"
+    dlc: 8
+    data:
+      battery_voltage:
+        type: data_u32
+        idx: 0
+        endian: "little"
+      battery_current:
+        type: data_32
+        idx: 1
+        endian: "little"
+
+  bms_pack_status:
+    id: "0x6FB"
+    id_type: "std"
+    dlc: 8
+    data:
+      balance_voltage_threshold_rising:
+        type: data_u16
+        idx: 0
+        endian: "little"
+      balance_voltage_threshold_falling:
+        type: data_u16
+        idx: 1
+        endian: "little"
+      status_flags:
+        type: data_u8
+        idx: 4
+        endian: "little"
+      bms_cmu_count:
+        type: data_u8
+        idx: 5
+        endian: "little"
+      bms_bmu_firmware_build_num:
+        type: data_u16
+        idx: 3
+        endian: "little"
+
+  bms_fan_status:
+    id: "0x6FC"
+    id_type: "std"
+    dlc: 8
+    data:
+      fan_speed_0:
+        type: data_u16
+        idx: 0
+        endian: "little"
+      fan_speed_1:
+        type: data_u16
+        idx: 1
+        endian: "little"
+      current_consumption_fan_contactors:
+        type: data_u16
+        idx: 2
+        endian: "little"
+      current_consumption_cmus:
+        type: data_u16
+        idx: 3
+        endian: "little"
+
+  bms_extended_pack_status:
+    id: "0x6FD"
+    id_type: "std"
+    dlc: 8
+    data:
+      status_flags:
+        type: data_u32
+        idx: 0
+        endian: "little"
+      bmu_hardware_version:
+        type: data_u8
+        idx: 4
+        endian: "little"
+      bmu_model_id:
+        type: data_u8
+        idx: 5
+        endian: "little"
+      unused:
+        type: data_u16
+        idx: 3
+        endian: "little"
+
+dsensors:
+  dsensors_heartbeat:
+    id: "0x713"
+    id_type: "std"
+    dlc: 1
+    data:
+      unused:
+        type: data_u8
+        idx: 0
+        endian: "little"
+  dsensors_error:
+    id: "0x116"
+    id_type: "std"
+    dlc: 8
+    data:
+      err_code:
+        type: data_u32
+        idx: 0
+        endian: "little"
+      additional_data:
+        type: data_u32
+        idx: 1
+        endian: "little"
+
+fsensors:
+  fsensors_heartbeat:
+    id: "0x710"
+    id_type: "std"
+    dlc: 1
+    data:
+      unused:
+        type: data_u8
+        idx: 0
+        endian: "little"
+  fsensors_error:
+    id: "0x115"
+    id_type: "std"
+    dlc: 8
+    data:
+      err_code:
+        type: data_u32
+        idx: 0
+        endian: "little"
+      additional_data:
+        type: data_u32
+        idx: 1
+        endian: "little"
+
+icu:
+  icu_heartbeat:
+    id: "0x150"
+    id_type: "std"
+    dlc: 6
+    data:
+      speed:
+        type: data_fp
+        idx: 0
+        endian: "little"
+      states:
+        type: data_u16
+        idx: 2
+        endian: "little"
+  icu_error:
+    id: "0x110"
+    id_type: "std"
+    dlc: 8
+    data:
+      err_code:
+        type: data_u32
+        idx: 0
+        endian: "little"
+      additional_data:
+        type: data_u32
+        idx: 1
+        endian: "little"
+
 logger:
+  logger_heartbeat:
+    id: "0x700"
+    id_type: "std"
+    dlc: 2
+    data:
+      card_fill_percent:
+        type: data_8
+        idx: 0
+        endian: "little"
+      disk_full:
+        type: data_8
+        idx: 1
+        endian: "little"
   logger_time:
     id: "0x701"
     id_type: "std"
@@ -28,7 +656,344 @@ logger:
         type: data_8
         idx: 5
         endian: "little"
+  logger_error:
+    id: "0x114"
+    id_type: "std"
+    dlc: 8
+    data:
+      err_code:
+        type: data_u32
+        idx: 0
+        endian: "little"
+      additional_data:
+        type: data_u32
+        idx: 1
+        endian: "little"
 
+mppt: # there are four MPPTs
+  # encoder value 0
+  mppt_power_meas_0:
+    id: "0x200"
+    id_type: "std"
+    dlc: 8
+    data:
+      v_in:
+        type: data_16
+        idx: 0
+        endian: "big"
+      i_in:
+        type: data_16
+        idx: 1
+        endian: "big"
+      v_out:
+        type: data_16
+        idx: 2
+        endian: "big"
+      i_out:
+        type: data_16
+        idx: 3
+        endian: "big"
+  mppt_status_0:
+    id: "0x201"
+    id_type: "std"
+    dlc: 5
+    data:
+      mode:
+        type: data_u8
+        idx: 0
+        endian: "big"
+      fault:
+        type: data_u8
+        idx: 1
+        endian: "big"
+      enabled:
+        type: data_u8
+        idx: 2
+        endian: "big"
+      ambient_temp:
+        type: data_8
+        idx: 3
+        endian: "big"
+      heatsink_temp:
+        type: data_8
+        idx: 4
+        endian: "big"
+  # encoder value 1
+  mppt_power_meas_1:
+    id: "0x210"
+    id_type: "std"
+    dlc: 8
+    data:
+      v_in:
+        type: data_16
+        idx: 0
+        endian: "big"
+      i_in:
+        type: data_16
+        idx: 1
+        endian: "big"
+      v_out:
+        type: data_16
+        idx: 2
+        endian: "big"
+      i_out:
+        type: data_16
+        idx: 3
+        endian: "big"
+  mppt_status_1:
+    id: "0x211"
+    id_type: "std"
+    dlc: 5
+    data:
+      mode:
+        type: data_u8
+        idx: 0
+        endian: "big"
+      fault:
+        type: data_u8
+        idx: 1
+        endian: "big"
+      enabled:
+        type: data_u8
+        idx: 2
+        endian: "big"
+      ambient_temp:
+        type: data_8
+        idx: 3
+        endian: "big"
+      heatsink_temp:
+        type: data_8
+        idx: 4
+        endian: "big"
+  # encoder value 2
+  mppt_power_meas_2:
+    id: "0x220"
+    id_type: "std"
+    dlc: 8
+    data:
+      v_in:
+        type: data_16
+        idx: 0
+        endian: "big"
+      i_in:
+        type: data_16
+        idx: 1
+        endian: "big"
+      v_out:
+        type: data_16
+        idx: 2
+        endian: "big"
+      i_out:
+        type: data_16
+        idx: 3
+        endian: "big"
+  mppt_status_2:
+    id: "0x221"
+    id_type: "std"
+    dlc: 5
+    data:
+      mode:
+        type: data_u8
+        idx: 0
+        endian: "big"
+      fault:
+        type: data_u8
+        idx: 1
+        endian: "big"
+      enabled:
+        type: data_u8
+        idx: 2
+        endian: "big"
+      ambient_temp:
+        type: data_8
+        idx: 3
+        endian: "big"
+      heatsink_temp:
+        type: data_8
+        idx: 4
+        endian: "big"
+  # encoder value 3
+  mppt_power_meas_3:
+    id: "0x230"
+    id_type: "std"
+    dlc: 8
+    data:
+      v_in:
+        type: data_16
+        idx: 0
+        endian: "big"
+      i_in:
+        type: data_16
+        idx: 1
+        endian: "big"
+      v_out:
+        type: data_16
+        idx: 2
+        endian: "big"
+      i_out:
+        type: data_16
+        idx: 3
+        endian: "big"
+  mppt_status_3:
+    id: "0x231"
+    id_type: "std"
+    dlc: 5
+    data:
+      mode:
+        type: data_u8
+        idx: 0
+        endian: "big"
+      fault:
+        type: data_u8
+        idx: 1
+        endian: "big"
+      enabled:
+        type: data_u8
+        idx: 2
+        endian: "big"
+      ambient_temp:
+        type: data_8
+        idx: 3
+        endian: "big"
+      heatsink_temp:
+        type: data_8
+        idx: 4
+        endian: "big"
+
+stwheel:
+  stwheel_heartbeat:
+    id: "0x100"
+    id_type: "std"
+    dlc: 6
+    data:
+      acc_pedal:
+        type: data_u16
+        idx: 0
+        endian: "little"
+      rec_pedal:
+        type: data_u16
+        idx: 1
+        endian: "little"
+      buttons_status:
+        type: data_u16
+        idx: 2
+        endian: "little"
+  stwheel_error:
+    id: "0x112"
+    id_type: "std"
+    dlc: 8
+    data:
+      err_code:
+        type: data_u32
+        idx: 0
+        endian: "little"
+      additional_data:
+        type: data_u32
+        idx: 1
+        endian: "little"
+
+tele:
+  tele_solar_heartbeat:
+    id: "0x300"
+    id_type: "std"
+    dlc: 1
+    data:
+      unused:
+        type: data_u8
+        idx: 0
+        endian: "little"
+  tele_chase_heartbeat:
+    id: "0x301"
+    id_type: "std"
+    dlc: 1
+    data:
+      unused:
+        type: data_u8
+        idx: 0
+        endian: "little"
+  tele_error:
+    id: "0x113"
+    id_type: "std"
+    dlc: 8
+    data:
+      err_code:
+        type: data_u32
+        idx: 0
+        endian: "little"
+      additional_data:
+        type: data_u32
+        idx: 1
+        endian: "little"
+
+vcu:
+  vcu_heartbeat:
+    id: "0x505"
+    id_type: "std"
+    dlc: 6
+    data:
+      ignition_key:
+        type: data_u16
+        idx: 0
+        endian: "little"
+      switch_pos:
+        type: data_u16
+        idx: 1
+        endian: "little"
+      peripherals:
+        type: data_u16
+        idx: 2
+        endian: "little"
+  vcu_error:
+    id: "0x111"
+    id_type: "std"
+    dlc: 8
+    data:
+      err_code:
+        type: data_u32
+        idx: 0
+        endian: "little"
+      additional_data:
+        type: data_u32
+        idx: 1
+        endian: "little"
+  vcu_pv_enable_0:
+    id: "0x209"
+    id_type: "std"
+    dlc: 1
+    data:
+      enable:
+        type: data_u8
+        idx: 0
+        endian: "little"
+  vcu_pv_enable_1:
+    id:  "0x219"
+    id_type: "std"
+    dlc: 1
+    data:
+      enable:
+        type: data_u8
+        idx: 0
+        endian: "little"
+  vcu_pv_enable_2:
+    id: "0x229"
+    id_type: "std"
+    dlc: 1
+    data:
+      enable:
+        type: data_u8
+        idx: 0
+        endian: "little"
+  vcu_pv_enable_3:
+    id: "0x239"
+    id_type: "std"
+    dlc: 1
+    data:
+      enable:
+        type: data_u8
+        idx: 0
+        endian: "little"
+
+# Used for default implementations in templates
 default:
   default_heartbeat:
     id: "0x888"

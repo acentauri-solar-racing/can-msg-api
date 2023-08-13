@@ -147,8 +147,6 @@ def write_tree_to_fs():
     def generate_type_index_file() -> None:
         template = env.get_template("type_lookup.txt.j2")
 
-        print(topics)
-
         # create string from the template
         content = template.render(
             topics=topics,
