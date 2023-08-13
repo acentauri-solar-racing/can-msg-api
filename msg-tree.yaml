@@ -12,3 +12,27 @@ bms:
         type: data_u32
         idx: 1
         endian: "little"
+
+default:
+  default_heartbeat:
+    id: "0x888"
+    id_type: "ext"
+    dlc: 1
+    data:
+      unused:
+        type: data_u8
+        idx: 0
+        endian: "little"
+  default_error:
+    id: "0x889"
+    id_type: "ext"
+    dlc: 8
+    data:
+      err_code:
+        type: data_u32
+        idx: 0
+        endian: "little"
+      additional_data:
+        type: data_u32
+        idx: 1
+        endian: "little"
