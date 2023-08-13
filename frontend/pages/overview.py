@@ -73,47 +73,55 @@ class TableDataRow(TableRow):
         self.selected = selected
 
     def refresh(self) -> {}:
-        self.min, self.max, self.mean, self.last = getMinMaxMeanLast(main_table_data[self.df_name], self.df_col,
+        self.min, self.max, self.mean, self.last = getMinMaxMeanLast(main_table_data[self.df_name].df, self.df_col,
                                                                      self.numberFormat)
         return super().refresh()
 
 
-class TableDataFrame(DataFrame):
+class TableDataFrame:
+    df: Union[DataFrame, None]
+
     def _refresh(self) -> Union[DataFrame, None]:
         return None
     def refresh(self) -> None:
-        df = self._refresh()
-        if df is not None:
-            self = df
+        new_df = self._refresh()
+        if new_df is not None:
+            self.df = new_df
 
-    def _load_from_db(db_service: DbService, n_entries: int) -> Union[DataFrame, None]:
+    def _load_from_db(self, db_service: DbService, n_entries: int) -> Union[DataFrame, None]:
+        print("not overwritten")    # TODO: Remove this
         return None
 
     def load_from_db(self, db_service: DbService, n_entries: int):
-        self = self._load_from_db(db_service,n_entries)             # TODO: Adapt this to partly loading from db
+        # print("Loading from DB")    # TODO: Remove this
+        self.df = self._load_from_db(db_service,n_entries)             # TODO: Adapt this to partly loading from db
 
-    def __init__(self, refresh: (lambda : Union[None, DataFrame]) = (lambda : None), load_from_db: (lambda db_service, n_entries: Union[None, DataFrame]) = (lambda : None)):
+    def __init__(self, refresh: (lambda : Union[None, DataFrame]) = (lambda : None), load_from_db: (lambda db_service, n_entries: Union[None, DataFrame]) = (lambda db_service, n_entries: None)):
         super().__init__()
-        self.load_from_db = load_from_db
-        self.refresh = refresh
+        self._load_from_db = load_from_db
+        self._refresh = refresh
 
 
 main_table_data = {'df_speed': TableDataFrame(load_from_db=load_speed),
                    'df_motorPow': TableDataFrame(refresh=refresh_motorPow),
-                   'df_mpptPow' : TableDataFrame(load_from_db=load_mppt_power),
-                   'df_bat_pack': TableDataRow(load_from_db=load_bms_pack_data),
-                   'df_soc': TableDataRow(load_from_db=load_bms_soc),
-                   'df_cellVolt': TableDataRow(load_from_db=load_bms_cell_voltage),}
+                   'df_mpptPow0' : TableDataFrame(load_from_db=load_mppt_power0),
+                   'df_mpptPow1' : TableDataFrame(load_from_db=load_mppt_power1),
+                   'df_mpptPow2' : TableDataFrame(load_from_db=load_mppt_power2),
+                   'df_mpptPow3' : TableDataFrame(load_from_db=load_mppt_power3),
+                   'df_bat_pack': TableDataFrame(load_from_db=load_bms_pack_data),
+                   'df_soc': TableDataFrame(load_from_db=load_bms_soc),
+                   'df_cellVolt': TableDataFrame(load_from_db=load_bms_cell_voltage),
+                   'df_cellTemp': TableDataFrame(load_from_db=load_bms_cell_temp)}
 
 main_table_layout = [TableDataRow(title='Speed [km/h]', df_name='df_speed', df_col='speed', numberFormat='3.1f'),
                      TableDataRow(title='Motor Output Power [W]',df_name='df_motorPow', df_col='pow',
                                     numberFormat='3.1f'),
                      TableRow(),
-                    TableDataRow(title='PV Output Power [W]',df_name='df_mpptPow', df_col='p_out', numberFormat='3.1f'),
-                    TableDataRow(title='PV String 0 Output Power [W]',df_name='df_mpptPow', df_col='p_out0', numberFormat='3.1f'),
-                     TableDataRow(title='PV String 1 Output Power [W]',df_name='df_mpptPow', df_col='p_out1', numberFormat='3.1f'),
-                     TableDataRow(title='PV String 2 Output Power [W]',df_name='df_mpptPow', df_col='p_out2', numberFormat='3.1f'),
-                     TableDataRow(title='PV String 3 Output Power [W]',df_name='df_mpptPow', df_col='p_out3', numberFormat='3.1f'),
+                    # TableDataRow(title='PV Output Power [W]',df_name='df_mpptPow', df_col='p_out', numberFormat='3.1f'),
+                    TableDataRow(title='PV String 0 Output Power [W]',df_name='df_mpptPow0', df_col='p_out', numberFormat='3.1f'),
+                     TableDataRow(title='PV String 1 Output Power [W]',df_name='df_mpptPow1', df_col='p_out', numberFormat='3.1f'),
+                     TableDataRow(title='PV String 2 Output Power [W]',df_name='df_mpptPow2', df_col='p_out', numberFormat='3.1f'),
+                     TableDataRow(title='PV String 3 Output Power [W]',df_name='df_mpptPow3', df_col='p_out', numberFormat='3.1f'),
                     TableRow(),
                     TableDataRow(title='Battery Output Power [W]',df_name='df_bat_pack', df_col='battery_power', numberFormat='3.1f'),
                     TableDataRow(title='Battery SOC [%]', df_name='df_soc', df_col='soc_percent', numberFormat='3.1f'),
@@ -291,27 +299,27 @@ def refresh_data(n_intervals: int, active_cell):
     """
     db_serv: DbService = DbService()
 
-    df_speed: DataFrame = load_speed(db_serv, timespan_displayed * 60 * heartbeat_frequency)  # Car Speed
-    df_pv, df_pv_string_0, df_pv_string_1, df_pv_string_2, df_pv_string_3 = load_mppt_power(db_serv,
-                                                                                            timespan_displayed * 60 * heartbeat_frequency)  # PV String voltage, String current, output power
-    df_soc: DataFrame = load_bms_soc(db_serv, timespan_displayed * 60 * heartbeat_frequency)  # Battery State of Charge
-    df_bat_pack = load_bms_pack_data(db_serv,
-                                     timespan_displayed * 60 * heartbeat_frequency)  # Battery Voltage, Current and Power
-    df_cellVolt = load_bms_cell_voltage(db_serv,
-                                        timespan_displayed * 60 * heartbeat_frequency)  # Battery Maximum Cell Voltage, Minimum Cell Voltage
-    df_cellTemp = load_bms_cell_temp(db_serv,
-                                     timespan_displayed * 60 * heartbeat_frequency)  # Battery Maximum Cell Temperature, Minimum Cell Temperature
-
-    df_motorPow = DataFrame()  # Motor Power = Power from Solar Array + Power from Battery
-    # df_motorPow['timestamp_dt'] = df_pv['timestamp_dt']
-    df_motorPow['pow'] = df_pv['p_out'] + df_bat_pack['battery_power']
-    motorPow_min, motorPow_max, motorPow_mean, motorPow_last = getMinMaxMeanLast(df_motorPow, 'pow', '3.1f')
+    # df_speed: DataFrame = load_speed(db_serv, timespan_displayed * 60 * heartbeat_frequency)  # Car Speed
+    # df_pv, df_pv_string_0, df_pv_string_1, df_pv_string_2, df_pv_string_3 = load_mppt_power(db_serv,
+    #                                                                                         timespan_displayed * 60 * heartbeat_frequency)  # PV String voltage, String current, output power
+    # df_soc: DataFrame = load_bms_soc(db_serv, timespan_displayed * 60 * heartbeat_frequency)  # Battery State of Charge
+    # df_bat_pack = load_bms_pack_data(db_serv,
+    #                                  timespan_displayed * 60 * heartbeat_frequency)  # Battery Voltage, Current and Power
+    # df_cellVolt = load_bms_cell_voltage(db_serv,
+    #                                     timespan_displayed * 60 * heartbeat_frequency)  # Battery Maximum Cell Voltage, Minimum Cell Voltage
+    # df_cellTemp = load_bms_cell_temp(db_serv,
+    #                                  timespan_displayed * 60 * heartbeat_frequency)  # Battery Maximum Cell Temperature, Minimum Cell Temperature
+    #
+    # df_motorPow = DataFrame()  # Motor Power = Power from Solar Array + Power from Battery
+    # # df_motorPow['timestamp_dt'] = df_pv['timestamp_dt']
+    # df_motorPow['pow'] = df_pv['p_out'] + df_bat_pack['battery_power']
+    # motorPow_min, motorPow_max, motorPow_mean, motorPow_last = getMinMaxMeanLast(df_motorPow, 'pow', '3.1f')
 
     main_table = []
 
     # Refresh data
     for key in main_table_data:
-        main_table_data[key].load_from_db()
+        main_table_data[key].load_from_db(db_serv, timespan_displayed * 60 * heartbeat_frequency)
         main_table_data[key].refresh()
 
     # Refresh Layout

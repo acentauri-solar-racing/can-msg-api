@@ -20,7 +20,7 @@ def load_errors(db_serv: DbService, orm_model: any, n_entries: int) -> DataFrame
     return preprocess_generic(db_serv.query(orm_model, n_entries))
 
 # for mppt status
-def load_mppt_status_data(db_serv: DbService) -> Tuple[MpptStatus0, MpptStatus1, MpptStatus2]:
+def load_mppt_status_data(db_serv: DbService) -> Union[DataFrame, None]:
     return (
         db_serv.latest(MpptStatus0),
         db_serv.latest(MpptStatus1),
@@ -28,37 +28,40 @@ def load_mppt_status_data(db_serv: DbService) -> Tuple[MpptStatus0, MpptStatus1,
     )
 
 # for power calculations and mppt graph
-def load_mppt_power(db_serv: DbService, n_entries) -> Union[Tuple[DataFrame,DataFrame,DataFrame,DataFrame,DataFrame], None]:
+def load_mppt_power0(db_serv: DbService, n_entries) -> Union[DataFrame,None]:
+    return preprocess_mppt_power(db_serv.query(MpptPowerMeas0, n_entries))
 
-    df_mppt0 = preprocess_mppt_power(db_serv.query(MpptPowerMeas0, n_entries))
-    df_mppt1 = preprocess_mppt_power(db_serv.query(MpptPowerMeas1, n_entries))
-    df_mppt2 = preprocess_mppt_power(db_serv.query(MpptPowerMeas2, n_entries))
-    df_mppt3 = preprocess_mppt_power(db_serv.query(MpptPowerMeas3, n_entries))
+# for power calculations and mppt graph
+def load_mppt_power1(db_serv: DbService, n_entries) -> Union[DataFrame,None]:
+    return preprocess_mppt_power(db_serv.query(MpptPowerMeas1, n_entries))
 
-    df_pv = DataFrame()
-    df_pv['p_out'] = df_mppt0['p_out'] + df_mppt1['p_out'] + df_mppt2['p_out'] + df_mppt3['p_out']
+# for power calculations and mppt graph
+def load_mppt_power2(db_serv: DbService, n_entries) -> Union[DataFrame,None]:
+    return preprocess_mppt_power(db_serv.query(MpptPowerMeas2, n_entries))
 
-    return (df_pv,df_mppt0,df_mppt1,df_mppt2,df_mppt3)
+# for power calculations and mppt graph
+def load_mppt_power3(db_serv: DbService, n_entries) -> Union[DataFrame,None]:
+    return preprocess_mppt_power(db_serv.query(MpptPowerMeas3, n_entries))
 
 
 # for power calculations
-def load_bms_pack_data(db_serv: DbService, n_entries) -> DataFrame:
+def load_bms_pack_data(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
     return preprocess_bms_pack_data(
         db_serv.query(BmsPackVoltageCurrent, n_entries),
     )
 
-def load_bms_cell_voltage(db_serv: DbService, n_entries) -> DataFrame:
+def load_bms_cell_voltage(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
     return preprocess_generic(
         db_serv.query((BmsMinMaxCellVoltage), n_entries)
     )
 
-def load_bms_cell_temp(db_serv: DbService, n_entries) -> DataFrame:
+def load_bms_cell_temp(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
     return preprocess_generic(
         db_serv.query((BmsMinMaxCellTemp), n_entries)
     )
 
 # for state of charge graph
-def load_bms_soc(db_serv: DbService, n_entries) -> DataFrame:
+def load_bms_soc(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
     return preprocess_generic(
         db_serv.query(BmsPackSoc, n_entries),
     )

@@ -10,7 +10,7 @@ from frontend.styles import H1, H2
 from frontend.settings import RELOAD_INTERVAL
 import plotly.graph_objs as go
 
-from db.load_data import load_mppt_power, load_mppt_status_data
+import db.load_data
 
 dash.register_page(__name__, path="/mppt", title="MPPT")
 
