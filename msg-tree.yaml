@@ -1,16 +1,32 @@
-bms:
-  bms_heartbeat:
-    id: "0x600"
+logger:
+  logger_time:
+    id: "0x701"
     id_type: "std"
-    dlc: 8
+    dlc: 6
     data:
-      bmu_heartbeat:
-        type: data_u32
+      year:
+        type: data_8
         idx: 0
         endian: "little"
-      serial_num:
-        type: data_u32
+      month:
+        type: data_8
         idx: 1
+        endian: "little"
+      day:
+        type: data_8
+        idx: 2
+        endian: "little"
+      hour:
+        type: data_8
+        idx: 3
+        endian: "little"
+      minute:
+        type: data_8
+        idx: 4
+        endian: "little"
+      second:
+        type: data_8
+        idx: 5
         endian: "little"
 
 default:
