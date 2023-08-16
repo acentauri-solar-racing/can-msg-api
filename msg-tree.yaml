@@ -993,6 +993,89 @@ vcu:
         idx: 0
         endian: "little"
 
+inverter:
+  set_duty:
+    id: "0x0045"
+    id_type: "ext"
+    dlc: 4
+    data:
+      duty_cycle:
+        type: data_32
+        idx: 0
+        endian: "big"
+  set_current:
+    id: "0x0145"
+    id_type: "ext"
+    dlc: 4
+    data:
+      current_ma:
+        type: data_32
+        idx: 0
+        endian: "big"
+  set_current_brake:
+    id: "0x0245"
+    id_type: "ext"
+    dlc: 4
+    data:
+      current_ma:
+        type: data_32
+        idx: 0
+        endian: "big"
+  set_rpm:
+    id: "0x0345"
+    id_type: "ext"
+    dlc: 4
+    data:
+      rpm:
+        type: data_32
+        idx: 0
+        endian: "big"
+  set_pos:
+    id: "0x0445"
+    id_type: "ext"
+    dlc: 4
+    data:
+      pos_deg:
+        type: data_32
+        idx: 0
+        endian: "big"
+  set_current_rel:
+    id: "0x0A45"
+    id_type: "ext"
+    dlc: 4
+    data:
+      percent:
+        type: data_32
+        idx: 0
+        endian: "big"
+  set_current_brake_rel:
+    id: "0x0B45"
+    id_type: "ext"
+    dlc: 4
+    data:
+      percent:
+        type: data_32
+        idx: 0
+        endian: "big"
+  set_current_handbrake:
+    id: "0x0C45"
+    id_type: "ext"
+    dlc: 4
+    data:
+      current_ma:
+        type: data_32
+        idx: 0
+        endian: "big"
+  set_current_handbrake_rel:
+    id: "0x0D45"
+    id_type: "ext"
+    dlc: 4
+    data:
+      percent:
+        type: data_32
+        idx: 0
+        endian: "big"
+
 # Used for default implementations in templates
 default:
   default_heartbeat:
