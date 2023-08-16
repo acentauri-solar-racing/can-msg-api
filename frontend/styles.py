@@ -1,6 +1,8 @@
 ########################################################################################################################
 # Colors
 ########################################################################################################################
+COLOR_BACKGROUND = '#fefefe'
+COLOR_BORDER = '#dddddd'
 COLOR_SELECTED = '#224c82' # dark solar panel blue
 COLOR_HIGHLIGHT = '#e11a27' # swiss red
 
@@ -26,47 +28,67 @@ SIDEBAR_STYLE = {
 # Table Styles
 ########################################################################################################################
 
-PERFORMANCE_CELL = {
+TABLE = {
+        'border': '1px solid %s' % COLOR_BORDER
+}
+
+TABLE_CELL = {
     'text-align': 'center',
     'width': '{}%'.format(10)
 }
 
-PERFORMANCE_CELL_CONDITIONAL = [
+TABLE_CELL_CONDITIONAL = [
     {'if': {'column_id': ''},
-     'width': '60%'}
+     'width': '60%'},
 ]
 
+TABLE_DATA = {
+    # "font-size": "25px", "font_weight": "heavy"
+}
 
-MODULE_CELL = {
+TABLE_DATA_CONDITIONAL = [
+    {
+        'if':{'column_id': ''},
+        'textAlign':'left'
+    },
+    {'if': {'state': 'selected'},
+     'backgroundColor': COLOR_BACKGROUND,
+     'border-bottom': '1px solid %s' % COLOR_BORDER,
+     'border-top': '1px solid %s' % COLOR_BORDER,
+     'border-right': '1 px solid blue',
+     'border-left': 'none',
+
+     # 'border': 'none'
+     }
+]
+
+# modules table specific
+TABLE_CELL_MODULES = {
     'text-align': 'center',
     'width': '{}%'.format(9)
 }
 
-MODULE_CELL_CONDITIONAL = [
+# modules table specific
+TABLE_CELL_CONDITIONAL_MODULES = [
     {'if': {'column_id': ''},
      'width': '10%'}
-]
-
-
-TABLE_DATA = {
-    # "font_size": "25px", "font_weight": "heavy"
-}
-
-DATA_CONDITIONAL = [
-    {
-        'if':{'column_id': ''},
-        'textAlign':'left'
-    }
 ]
 
 ########################################################################################################################
 # Text Styles
 ########################################################################################################################
 H1 = {
-    "paddingBottom": "20px",
+    'paddingBottom': '20px',
 }
 
 H2 = {
-    "paddingTop": "40px",
-    "paddingBottom": "10px",
+    'paddingTop': '40px',
+    'paddingBottom': '10px',
+}
+
+H3 = {
+    'font-size': '14px',
+    'paddingTop': '10px',
+    'paddingBottom': '10px',
+    'text-align': 'center'
 }

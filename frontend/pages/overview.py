@@ -2,7 +2,6 @@ from typing import Union
 
 import dash
 import plotly.express as px
-import plotly.graph_objs as go
 import time
 
 from dash import html, dcc, Input, Output, dash_table
@@ -13,23 +12,22 @@ import frontend.styles as styles
 from frontend.settings import RELOAD_INTERVAL
 from db.load_data import *
 import datetime as dt
-import copy
-from collections import deque
-from dataclasses import dataclass
+from . import Table
 
 dash.register_page(__name__, path="/", title="Overview")
 
-# Global data for page settings:
+########################################################################################################################
+# Global Variables
+########################################################################################################################
 
-# Time allowed until the module is flagged as inactive
-max_idle_time = 2  # seconds
+max_idle_time = 2  # Time allowed until a module is flagged as inactive. In seconds
+heartbeat_frequency = 16  # Frequency with which the heartbeats are sent [Hz] TODO: Remove this
+timespan_displayed = 5  # Time span that is displayed in the graphs. In minutes
 
-# Time span that is displayed in the graphs (e.g. if it's set to 5, then the values of the last five minutes are displayed)
-timespan_displayed = 5  # minutes
-# Frequency with which the heartbeats are sent
-heartbeat_frequency = 16  # [Hz]
-
-# List of tracked modules and their heartbeats. Append here.
+########################################################################################################################
+# Data and Layout
+########################################################################################################################
+# List of tracked modules and their heartbeats. Append / update here.
 module_heartbeats = {
     "vcu": VcuHeartbeat,
     "icu": IcuHeartbeat,
@@ -43,97 +41,69 @@ module_heartbeats = {
     "dsensors": DsensorsHeartbeat,
 }
 
+main_table_data = {'df_speed': Table.TableDataFrame(load_from_db=load_speed),
+                   'df_motorPow': Table.TableDataFrame(refresh=refresh_motorPow),
+                   'df_mpptPow0': Table.TableDataFrame(load_from_db=load_mppt_power0),
+                   'df_mpptPow1': Table.TableDataFrame(load_from_db=load_mppt_power1),
+                   'df_mpptPow2': Table.TableDataFrame(load_from_db=load_mppt_power2),
+                   'df_mpptPow3': Table.TableDataFrame(load_from_db=load_mppt_power3),
+                   'df_bat_pack': Table.TableDataFrame(load_from_db=load_bms_pack_data),
+                   'df_soc': Table.TableDataFrame(load_from_db=load_bms_soc),
+                   'df_cellVolt': Table.TableDataFrame(load_from_db=load_bms_cell_voltage),
+                   'df_cellTemp': Table.TableDataFrame(load_from_db=load_bms_cell_temp)}
 
-class TableRow:
-    title: str = ''
-    min: str = ''
-    max: str = ''
-    mean: str = ''
-    last: str = ''
+main_table_layout = [Table.DataRow(title='Speed [km/h]', df_name='df_speed', df_col='speed', numberFormat='3.1f'),
+                     Table.DataRow(title='Motor Output Power [W]', df_name='df_motorPow', df_col='pow',
+                                   numberFormat='3.1f'),
+                     Table.Row(),
+                     # Table.DataRow(title='PV Output Power [W]',df_name='df_mpptPow', df_col='p_out', numberFormat='3.1f'),
+                     Table.DataRow(title='PV String 0 Output Power [W]', df_name='df_mpptPow0', df_col='p_out',
+                                   numberFormat='3.1f'),
+                     Table.DataRow(title='PV String 1 Output Power [W]', df_name='df_mpptPow1', df_col='p_out',
+                                   numberFormat='3.1f'),
+                     Table.DataRow(title='PV String 2 Output Power [W]', df_name='df_mpptPow2', df_col='p_out',
+                                   numberFormat='3.1f'),
+                     Table.DataRow(title='PV String 3 Output Power [W]', df_name='df_mpptPow3', df_col='p_out',
+                                   numberFormat='3.1f'),
+                     Table.Row(),
+                     Table.DataRow(title='Battery Output Power [W]', df_name='df_bat_pack', df_col='battery_power',
+                                   numberFormat='3.1f'),
+                     Table.DataRow(title='Battery SOC [%]', df_name='df_soc', df_col='soc_percent',
+                                   numberFormat='3.1f'),
+                     Table.DataRow(title='Battery Voltage [V]', df_name='df_bat_pack', df_col='battery_voltage',
+                                   numberFormat='3.1f'),
+                     Table.DataRow(title='Battery Output Current [mA]', df_name='df_bat_pack', df_col='battery_current',
+                                   numberFormat='3.1f'),
+                     Table.DataRow(title='Battery Minimum Cell Voltage [mV]', df_name='df_cellVolt',
+                                   df_col='max_cell_voltage', numberFormat='3.1f'),
+                     Table.DataRow(title='Battery Maximum Cell Voltage [mV]', df_name='df_cellVolt',
+                                   df_col='min_cell_voltage', numberFormat='3.1f'),
+                     Table.DataRow(title='Battery Minimum Cell Temperature [°C]', df_name='df_cellTemp',
+                                   df_col='max_cell_temp', numberFormat='3.1f'),
+                     Table.DataRow(title='Battery Maximum Cell Temperature [°C]', df_name='df_cellTemp',
+                                   df_col='min_cell_temp', numberFormat='3.1f')]
 
-    def refresh(self) -> {}:
-        return {'': self.title,
-                '{:d}\' Min'.format(timespan_displayed): self.min,
-                '{:d}\' Max'.format(timespan_displayed): self.max,
-                '{:d}\' Mean'.format(timespan_displayed): self.mean,
-                'Last'.format(timespan_displayed): self.last}
+graphs = [] # Will be filled in the function 'initialize_data'
 
+########################################################################################################################
+# Helper Functions
+########################################################################################################################
 
-class TableDataRow(TableRow):
-    df_name: str
-    df_col: str  # Column name in the dataframe
-    numberFormat: str  # number format of the displayed values
-    selected: bool  # indicates whether a row was selected
-
-    def __init__(self, title: str, df_name: str, df_col: str, numberFormat: str = '3.1f', selected: bool = False):
-        self.title = title
-        self.df_name = df_name
-        self.df_col = df_col
-        self.numberFormat = numberFormat
-        self.selected = selected
-
-    def refresh(self) -> {}:
-        self.min, self.max, self.mean, self.last = getMinMaxMeanLast(main_table_data[self.df_name].df, self.df_col,
-                                                                     self.numberFormat)
-        return super().refresh()
-
-
-class TableDataFrame:
-    df: Union[DataFrame, None]
-
-    def _refresh(self) -> Union[DataFrame, None]:
-        return None
-    def refresh(self) -> None:
-        new_df = self._refresh()
-        if new_df is not None:
-            self.df = new_df
-
-    def _load_from_db(self, db_service: DbService, n_entries: int) -> Union[DataFrame, None]:
-        print("not overwritten")    # TODO: Remove this
-        return None
-
-    def load_from_db(self, db_service: DbService, n_entries: int):
-        # print("Loading from DB")    # TODO: Remove this
-        self.df = self._load_from_db(db_service,n_entries)             # TODO: Adapt this to partly loading from db
-
-    def __init__(self, refresh: (lambda : Union[None, DataFrame]) = (lambda : None), load_from_db: (lambda db_service, n_entries: Union[None, DataFrame]) = (lambda db_service, n_entries: None)):
-        super().__init__()
-        self._load_from_db = load_from_db
-        self._refresh = refresh
-
-
-main_table_data = {'df_speed': TableDataFrame(load_from_db=load_speed),
-                   'df_motorPow': TableDataFrame(refresh=refresh_motorPow),
-                   'df_mpptPow0' : TableDataFrame(load_from_db=load_mppt_power0),
-                   'df_mpptPow1' : TableDataFrame(load_from_db=load_mppt_power1),
-                   'df_mpptPow2' : TableDataFrame(load_from_db=load_mppt_power2),
-                   'df_mpptPow3' : TableDataFrame(load_from_db=load_mppt_power3),
-                   'df_bat_pack': TableDataFrame(load_from_db=load_bms_pack_data),
-                   'df_soc': TableDataFrame(load_from_db=load_bms_soc),
-                   'df_cellVolt': TableDataFrame(load_from_db=load_bms_cell_voltage),
-                   'df_cellTemp': TableDataFrame(load_from_db=load_bms_cell_temp)}
-
-main_table_layout = [TableDataRow(title='Speed [km/h]', df_name='df_speed', df_col='speed', numberFormat='3.1f'),
-                     TableDataRow(title='Motor Output Power [W]',df_name='df_motorPow', df_col='pow',
-                                    numberFormat='3.1f'),
-                     TableRow(),
-                    # TableDataRow(title='PV Output Power [W]',df_name='df_mpptPow', df_col='p_out', numberFormat='3.1f'),
-                    TableDataRow(title='PV String 0 Output Power [W]',df_name='df_mpptPow0', df_col='p_out', numberFormat='3.1f'),
-                     TableDataRow(title='PV String 1 Output Power [W]',df_name='df_mpptPow1', df_col='p_out', numberFormat='3.1f'),
-                     TableDataRow(title='PV String 2 Output Power [W]',df_name='df_mpptPow2', df_col='p_out', numberFormat='3.1f'),
-                     TableDataRow(title='PV String 3 Output Power [W]',df_name='df_mpptPow3', df_col='p_out', numberFormat='3.1f'),
-                    TableRow(),
-                    TableDataRow(title='Battery Output Power [W]',df_name='df_bat_pack', df_col='battery_power', numberFormat='3.1f'),
-                    TableDataRow(title='Battery SOC [%]', df_name='df_soc', df_col='soc_percent', numberFormat='3.1f'),
-                    TableDataRow(title='Battery Voltage [V]',df_name='df_bat_pack', df_col='battery_voltage', numberFormat='3.1f'),
-                    TableDataRow(title='Battery Output Current [mA]', df_name='df_bat_pack', df_col='battery_current', numberFormat='3.1f'),
-                    TableDataRow(title='Battery Minimum Cell Voltage [mV]', df_name='df_cellVolt', df_col='max_cell_voltage', numberFormat='3.1f'),
-                    TableDataRow(title='Battery Maximum Cell Voltage [mV]', df_name='df_cellVolt', df_col='min_cell_voltage', numberFormat='3.1f'),
-                    TableDataRow(title='Battery Minimum Cell Temperature [°C]', df_name='df_cellTemp', df_col='max_cell_temp', numberFormat='3.1f'),
-                    TableDataRow(title='Battery Maximum Cell Temperature [°C]', df_name='df_cellTemp', df_col='min_cell_temp', numberFormat='3.1f')]
+def refresh(self, timespan_displayed: int):
+    # This method will be added to the Class Table.DataRow, such that it can be called on instances of the class:
+    # e.g.: dataRowInstance.refresh(5)
+    self.min, self.max, self.mean, self.last = getMinMaxMeanLast(main_table_data[self.df_name].df, self.df_col,
+                                                                 self.numberFormat)
+    return {'': self.title,
+            '{:d}\' Min'.format(timespan_displayed): self.min,
+            '{:d}\' Max'.format(timespan_displayed): self.max,
+            '{:d}\' Mean'.format(timespan_displayed): self.mean,
+            'Last'.format(timespan_displayed): self.last}
+setattr(Table.DataRow, "refresh", refresh)  # Add method to the class DataRow
 
 
 def getMinMaxMeanLast(df: Union[DataFrame, None], col: str, numberFormat: str) -> Tuple[str, str, str, str]:
+    # Returns the minimum, maximum, mean and last entry of a given column in a Pandas.DataFrame as a string
     if df is None:
         return ('', '', '', '')
     if df.empty:
@@ -143,64 +113,6 @@ def getMinMaxMeanLast(df: Union[DataFrame, None], col: str, numberFormat: str) -
                 ('{:' + numberFormat + '}').format(df[col].max()),
                 ('{:' + numberFormat + '}').format(df[col].mean()),
                 ('{:' + numberFormat + '}').format(df[col][0]),)
-
-def initialize_data() -> tuple:
-    """Produces the default data to be displayed before the page is refreshed"""
-    # Initialize the main table
-    main_data = [
-        {
-            "": 'No Data',
-            '{:d}\' Min'.format(timespan_displayed): '',
-            '{:d}\' Max'.format(timespan_displayed): 'No Data',
-            '{:d}\' Mean'.format(timespan_displayed): 'No Data',
-            'Last': 'No Data',
-        },
-    ]
-    main_df = pd.DataFrame()
-
-    # Initialize the activity status of all modules
-    state = {"module": "n/a", "status": "inactive", "last activity": "no data"}
-    module_data = []
-    for module in module_heartbeats:
-        state["module"] = module
-        module_data.append(copy.deepcopy(state))
-
-    module_df = pd.DataFrame(module_data)
-
-    # Don't show a graph until requested by a click.
-    # Can be 'none', 'speed', 'power' or 'soc'
-    show_graph = "none"
-
-    return main_data, module_data
-
-
-def optional_graph(
-        df: DataFrame, title: str, column_name: str, xlabel: str, ylabel: str
-) -> go.Figure:
-    """Settings for the optional graph that is triggered by a click on the main
-    table.
-
-    Args:
-        df (DataFrame): DataFrame to be displayed
-        title (str): Title of the Graph
-        column_name (str): Column name of the DataFrame to be displayed
-        xlabel (str): Label of the x-axis
-        ylabel (str): Label of the y-axis
-
-    Returns:
-        go.Figure: Graph
-    """
-    fig: go.Figure = px.line(
-        df,
-        title=title,
-        template="plotly_white",
-        y=column_name,
-        x="timestamp_dt",
-        color_discrete_sequence=[styles.COLOR_SELECTED],
-        markers=True,
-    ).update_yaxes()
-    fig.update_layout(xaxis_title=xlabel, yaxis_title=ylabel, showlegend=False)
-    return fig
 
 
 def determine_activity(db_serv: DbService, module_data: list) -> list:
@@ -257,103 +169,95 @@ def update_activity(module_data: list, index: int, df: DataFrame) -> list:
     return module_data
 
 
-# @dash.callback(
-#     Output("module-table", "selected_cells"),
-#
-# )
-# def select_row(selected_cells) -> {}:
-#     print(selected_cells)
-#     print("callback")
-#     return selected_cells
+########################################################################################################################
+# Layout
+########################################################################################################################
+def initialize_data() -> tuple:
+    """Produces the default data to be displayed before the page is refreshed"""
 
+    # Main Table
+    main_table = [
+        {
+            "": 'No Data',
+            '{:d}\' Min'.format(timespan_displayed): 'No Data',
+            '{:d}\' Max'.format(timespan_displayed): 'No Data',
+            '{:d}\' Mean'.format(timespan_displayed): 'No Data',
+            'Last': 'No Data',
+        },
+    ]
 
-# @dash.callback (
-#     Output("graphs", "children"),
-#     Input("performance-table", "selected_rows")
-# )
-# def update_graphs(selected_columns):
-#     print(selected_columns)
-#     print("update called")
-#     return html.Div([])
+    # Module Table
+    module_table = [{'': 'Status'}]
+    for m in module_heartbeats:
+        module_table[0].update({m: 'No Data'})
+
+    # Graphs Div
+    for row in main_table_layout:
+        if row is Table.DataRow:
+            graphs.append(dcc.Graph(figure=px.line(main_table_data[row.df_name], title=row.title, template='plotly_white', x='timestamp_dt', y=row.df_col)))
+
+    return main_table, module_table, graphs
+
+@dash.callback(
+    Output("main_table", "active_cell"),
+    Input("main_table", "active_cell")
+)
+def update_selected_rows(active_cell: {}):
+    # Toggles the 'selected' variable of a given Table.DataRow, if the user selected it. 'Consumes' the reference to the
+    # active cell, in the sense that it is set to None
+    if active_cell is not None:
+        row = main_table_layout[active_cell['row']]
+        if type(row) == Table.DataRow:
+            row.selected ^= True        # Toggle row Selected
+
+    return None  # Reset the active cell
 
 
 @dash.callback(
-    Output("performance-table", "data"),
-    Output("module-table", "data"),
-    # Output("graph", "children"),
-    Output("performance-table", "active_cell"),
-    Input("interval-component", "n_intervals"),  # Triggers after the time interval is over
-    Input("performance-table", "active_cell"))
-def refresh_data(n_intervals: int, active_cell):
-    """Refreshes the data in the tables & graphs, and chooses whether a graph
-    should be displayed dependent on the active cell.
-
+    Output('main_table', 'data'),
+    Output('module-table', 'data'),
+    Output('graphs', 'children'),
+    Input('interval-component', 'n_intervals'))  # Triggers after the time interval is over
+def refresh_page(n_intervals: int):
+    """Refreshes the data in the tables & graph
     Args:
         n (int): unused
-        active_cell (dict): Cell selected by user in the main table
-        module_data (list): Data in the table showing the module activity
-        main_data (list): Data in the table showing the main data
 
     Returns:
-        tuple: Updated data and optional graph
+        tuple: Updated data
     """
     db_serv: DbService = DbService()
-
-    # df_speed: DataFrame = load_speed(db_serv, timespan_displayed * 60 * heartbeat_frequency)  # Car Speed
-    # df_pv, df_pv_string_0, df_pv_string_1, df_pv_string_2, df_pv_string_3 = load_mppt_power(db_serv,
-    #                                                                                         timespan_displayed * 60 * heartbeat_frequency)  # PV String voltage, String current, output power
-    # df_soc: DataFrame = load_bms_soc(db_serv, timespan_displayed * 60 * heartbeat_frequency)  # Battery State of Charge
-    # df_bat_pack = load_bms_pack_data(db_serv,
-    #                                  timespan_displayed * 60 * heartbeat_frequency)  # Battery Voltage, Current and Power
-    # df_cellVolt = load_bms_cell_voltage(db_serv,
-    #                                     timespan_displayed * 60 * heartbeat_frequency)  # Battery Maximum Cell Voltage, Minimum Cell Voltage
-    # df_cellTemp = load_bms_cell_temp(db_serv,
-    #                                  timespan_displayed * 60 * heartbeat_frequency)  # Battery Maximum Cell Temperature, Minimum Cell Temperature
-    #
-    # df_motorPow = DataFrame()  # Motor Power = Power from Solar Array + Power from Battery
-    # # df_motorPow['timestamp_dt'] = df_pv['timestamp_dt']
-    # df_motorPow['pow'] = df_pv['p_out'] + df_bat_pack['battery_power']
-    # motorPow_min, motorPow_max, motorPow_mean, motorPow_last = getMinMaxMeanLast(df_motorPow, 'pow', '3.1f')
-
     main_table = []
+    graphs_out = []
 
-    # Refresh data
+    # Refresh table data
     for key in main_table_data:
         main_table_data[key].load_from_db(db_serv, timespan_displayed * 60 * heartbeat_frequency)
         main_table_data[key].refresh()
 
-    # Refresh Layout
+    # Refresh table layout
     for row in main_table_layout:
-        main_table.append(row.refresh())
+        main_table.append(row.refresh(timespan_displayed))
 
-    # Draw Graphs of which the cells are selected
-    # graph_df = None if active_cell == None else test[int(active_cell['row'])][0]
-    # y = None if active_cell == None else test[int(active_cell['row'])][1]
-    # graph = getGraph(active_cell, graph_df, y)
+        # Draw graphs of selected rows
+        if type(row) == Table.DataRow and row.selected:
+            df = main_table_data[row.df_name].df
+            if df is not None and not df.empty:
+                graphs_out.append(dcc.Graph(figure=px.line(main_table_data[row.df_name].df, title=row.title, template='plotly_white', x='timestamp_dt', y=row.df_col)))
+            else:
+                graphs_out.append(html.Br())
+                graphs_out.append(html.Br())
+                graphs_out.append(html.H3('No Data available for "%s"' % row.title, style=styles.H3))
 
-    module_data = [{'': 'Status'}]
+    # Refresh module table
+    module_table = [{'': 'Status'}]
     for m in module_heartbeats:
-        module_data[0].update({m: 'active'})
+        module_table[0].update({m: 'inactive'})
 
         # {'id': c, 'name': c} for c in module_df.columns]
         # Update data in activity table
 
-    return main_table, module_data, None
-
-
-def getGraph(active_cell: {}, df: DataFrame, y: str) -> html.Div:
-    if active_cell == None:
-        return None
-    return html.Div(
-        children=[dcc.Graph(figure=px.line(df, title='Graph', template='plotly_white', x='timestamp_dt', y=y))])
-
-
-def getCols_moduleTable() -> list[str]:
-    cols = [{'name': '', 'id': ''}]
-    for col in module_heartbeats:
-        cols.append({'name': col, 'id': col})
-
-    return cols
+    return main_table, module_table, graphs_out
 
 
 def layout() -> html.Div:
@@ -362,34 +266,34 @@ def layout() -> html.Div:
     Returns:
         html.Div: Div with the page layout
     """
-    performance_data, module_data = initialize_data()
+    main_data, module_data, graphs = initialize_data()
 
     return html.Div(
         children=[
-            html.H1("Overview", style=styles.H1, className="text-center"),
+            html.H1('Overview', style=styles.H1, className='text-center'),
             dash_table.DataTable(
-                id="performance-table",
-                data=performance_data,
+                id='main_table',
+                data=main_data,
                 # row_selectable="multi",
                 cell_selectable=True,
-                style_cell=styles.PERFORMANCE_CELL,
-                style_cell_conditional=styles.PERFORMANCE_CELL_CONDITIONAL,
+                style_table=styles.TABLE,
+                style_cell=styles.TABLE_CELL,
+                style_cell_conditional=styles.TABLE_CELL_CONDITIONAL,
                 style_as_list_view=True,
-                style_data_conditional=styles.DATA_CONDITIONAL),
+                style_data_conditional=styles.TABLE_DATA_CONDITIONAL),
             html.Br(),
             html.Br(),
             dash_table.DataTable(
-                id="module-table",
-                columns=getCols_moduleTable(),
+                id='module-table',
                 data=module_data,
                 cell_selectable=False,
-                style_cell=styles.MODULE_CELL,
-                style_cell_conditional=styles.MODULE_CELL_CONDITIONAL,
+                style_cell=styles.TABLE_CELL_MODULES,
+                style_cell_conditional=styles.TABLE_CELL_CONDITIONAL_MODULES,
                 style_as_list_view=True,
-                style_data_conditional=styles.DATA_CONDITIONAL),
-            html.Div(id="graph"),
+                style_data_conditional=styles.TABLE_DATA_CONDITIONAL),
+            html.Div(id='graphs', children=graphs),
             dcc.Interval(
-                id="interval-component", interval=RELOAD_INTERVAL, n_intervals=0
+                id='interval-component', interval=RELOAD_INTERVAL, n_intervals=0
             ),
         ]
     )
