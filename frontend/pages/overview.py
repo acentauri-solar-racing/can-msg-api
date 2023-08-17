@@ -197,15 +197,15 @@ def refresh_page(n_intervals: int):
     # Refresh module table
     module_table = [{'': 'Status'}]
     for m in module_heartbeats:
-        module_table[0].update({m: 'inactive'})
+        module_table[0].update({m: 'n/a'})
 
         entry = db_serv.latest(module_heartbeats[m])
 
         if entry is not None:
             # check if the last data entry is more than max_idle_time ago
             if (int(time.time()) - entry.timestamp) < max_idle_time:
-                module_table[0].update({m: 'active'})
-    print(module_table)
+                module_table[0].update({m: 'ACTIVE'})
+
     return main_table, module_table, graphs_out
 
 
