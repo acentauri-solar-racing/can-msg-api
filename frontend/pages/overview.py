@@ -114,61 +114,6 @@ def getMinMaxMeanLast(df: Union[DataFrame, None], col: str, numberFormat: str) -
                 ('{:' + numberFormat + '}').format(df[col].mean()),
                 ('{:' + numberFormat + '}').format(df[col][0]),)
 
-
-def determine_activity(db_serv: DbService, module_data: list) -> list:
-    """Updates the module_data list for all modules by checking if the last
-    data entry of the corresponding heartbeats is more than max_idle_time ago.
-
-    Args:
-        db_serv (DbService): SQL database
-        module_data (list): List describing activity status of all modules
-
-    Returns:
-        list: List describing activity status of all modules
-    """
-
-    for i, orm_model in enumerate(module_heartbeats.values()):
-        try:
-            df = load_heartbeat(db_serv, orm_model)
-            module_data = update_activity(module_data, i, df)
-        except:
-            module_data[i]["last activity"] = "n/a"
-            module_data[i]["status"] = "error in databank"
-    return module_data
-
-
-def update_activity(module_data: list, index: int, df: DataFrame) -> list:
-    """Updates a single entry in the module_data list by checking if the last
-    data entry of the corresponding heartbeats is more than max_idle_time ago.
-
-    Args:
-        module_data (list): List describing activity status of all modules
-        index (int): Index of the corresponding module in the module_data list
-        df (DataFrame): Table with the module heartbeat data
-
-    Returns:
-        list: List describing activity status of all modules
-    """
-    # set status to 'no data' if the table is empty
-    if df.empty:
-        module_data[index]["last activity"] = "no data"
-        module_data[index]["status"] = "inactive"
-        return module_data
-
-    # check if the last data entry is more than max_idle_time ago
-    last_time = df["timestamp"][0]
-    if (int(time.time()) - last_time) > max_idle_time:
-        module_data[index]["status"] = "inactive"
-    else:
-        module_data[index]["status"] = "active"
-
-    # update timestamp
-    module_data[index]["last activity"] = dt.datetime.fromtimestamp(last_time).strftime(
-        "%Y-%m-%d %H:%M:%S"
-    )
-    return module_data
-
-
 ########################################################################################################################
 # Layout
 ########################################################################################################################
@@ -254,9 +199,13 @@ def refresh_page(n_intervals: int):
     for m in module_heartbeats:
         module_table[0].update({m: 'inactive'})
 
-        # {'id': c, 'name': c} for c in module_df.columns]
-        # Update data in activity table
+        entry = db_serv.latest(module_heartbeats[m])
 
+        if entry is not None:
+            # check if the last data entry is more than max_idle_time ago
+            if (int(time.time()) - entry.timestamp) < max_idle_time:
+                module_table[0].update({m: 'active'})
+    print(module_table)
     return main_table, module_table, graphs_out
 
 
