@@ -70,8 +70,13 @@ TABLE_CELL_MODULES = {
 
 # modules table specific
 TABLE_CELL_CONDITIONAL_MODULES = [
-    {'if': {'column_id': ''},
-     'width': '10%'}
+    {
+        'if': {
+            'filter_query': 'eq "inactive"'
+        },
+        'backgroundColor': '#f00',
+        'color': 'white'
+    }
 ]
 
 ########################################################################################################################
