@@ -119,7 +119,7 @@ These log files can be saved and played back with the python-can playback at a l
 ### Playback
 
 ```sh
-python -m can.player -v -i seeedstudio -b 500000 -c /dev/ttyUSB0 logs/LOGFILE_HERE
+python -m can.player -v -i pcan -b 500000 -c PCAN_USBBUS1 logs/LOGFILE_HERE
 ```
 
 ### View
@@ -127,7 +127,7 @@ python -m can.player -v -i seeedstudio -b 500000 -c /dev/ttyUSB0 logs/LOGFILE_HE
 Automatically parses values in CAN bus and shows them in CAN viewer.
 
 ```sh
-python -m can.viewer -v -i seeedstudio -b 500000 -c /dev/ttyUSB0 -d type_lookup.txt
+python -m can.viewer -v -i pcan -b 500000 -c PCAN_USBBUS1 -d type_lookup.txt
 ```
 
 ```
