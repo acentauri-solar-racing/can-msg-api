@@ -56,7 +56,7 @@ def load_bms_cell_voltage(db_serv: DbService, n_entries) -> Union[DataFrame, Non
     )
 
 def load_bms_cell_temp(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
-    return preprocess_generic(
+    return preprocess_bms_cell_temp(
         db_serv.query((BmsMinMaxCellTemp), n_entries)
     )
 
@@ -84,15 +84,21 @@ def preprocess_speed(df: DataFrame) -> DataFrame:
 
 def preprocess_mppt_power(df: DataFrame) -> DataFrame:
     """prepare data frame for plotting"""
-    # rescale voltages since given in mV. Only relevant quantities are adjusted!
-    df['v_out'] *= 1e-3
-    # df['i_out'] *= 1e-3
-    df['v_in'] *= 1e-3
-    # df['i_in'] *= 1e-3
+    # rescale voltages and currents according to communication protocol!
+    df['v_out'] *= 1e-2 # [V]
+    df['i_out'] *= 0.5 # [mA]
+    df['v_in'] *= 1e-2 # [V]
+    df['i_in'] *= 0.5 # [mA]
 
     # P = UI
     df['p_out'] = df['v_out'] * df['i_out'] * 1e-3
     df['p_in'] = df['v_in'] * df['i_in'] * 1e-3
+
+    return preprocess_generic(df)
+
+def preprocess_bms_cell_temp(df: DataFrame) -> DataFrame:
+    df['max_cell_temp'] *= 0.1 # [°C]
+    df['min_cell_temp'] *= 0.1 # [°C]
 
     return preprocess_generic(df)
 

@@ -75,13 +75,13 @@ main_table_layout = [Table.DataRow(title='Speed [km/h]', df_name='df_speed', df_
                      Table.DataRow(title='Battery Output Current [mA]', df_name='df_bat_pack', df_col='battery_current',
                                    numberFormat='3.1f'),
                      Table.DataRow(title='Battery Minimum Cell Voltage [mV]', df_name='df_cellVolt',
-                                   df_col='max_cell_voltage', numberFormat='3.1f'),
-                     Table.DataRow(title='Battery Maximum Cell Voltage [mV]', df_name='df_cellVolt',
                                    df_col='min_cell_voltage', numberFormat='3.1f'),
+                     Table.DataRow(title='Battery Maximum Cell Voltage [mV]', df_name='df_cellVolt',
+                                   df_col='max_cell_voltage', numberFormat='3.1f'),
                      Table.DataRow(title='Battery Minimum Cell Temperature [°C]', df_name='df_cellTemp',
-                                   df_col='max_cell_temp', numberFormat='3.1f'),
+                                   df_col='min_cell_temp', numberFormat='3.1f'),
                      Table.DataRow(title='Battery Maximum Cell Temperature [°C]', df_name='df_cellTemp',
-                                   df_col='min_cell_temp', numberFormat='3.1f')]
+                                   df_col='max_cell_temp', numberFormat='3.1f')]
 
 graphs = [] # Will be filled in the function 'initialize_data'
 
