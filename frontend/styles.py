@@ -70,8 +70,7 @@ TABLE_CELL_MODULES = {
 
 # modules table specific
 TABLE_CELL_CONDITIONAL_MODULES = [
-    {'if': {'column_id': ''},
-     'width': '10%'}
+
 ]
 
 ########################################################################################################################
