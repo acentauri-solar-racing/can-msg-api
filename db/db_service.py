@@ -68,7 +68,7 @@ class DbService:
                 con=conn,
             )
 
-    def latest(self, orm_model) -> DataFrame:
+    def latest(self, orm_model):
         with self.engine.connect() as conn:
             return self.session.query(orm_model).order_by(
-                orm_model.id.desc()).first()
+                    orm_model.timestamp.desc()).first()
