@@ -547,6 +547,23 @@ dsensors:
         type: data_u8
         idx: 0
         endian: "little"
+  dsensors_co2_temp_rh:
+    id: "0x714"
+    id_type: "std"
+    dlc: 8
+    data:
+      temperature_m_deg_c:
+        type: data_32
+        idx: 0
+        endian: "little"
+      co2_ppm:
+        type: data_u16
+        idx: 2
+        endian: "little"
+      humidity_m_percent_rh:
+        type: data_u16
+        idx: 3
+        endian: "little"
   dsensors_error:
     id: "0x116"
     id_type: "std"
