@@ -83,7 +83,8 @@ main_table_layout = [Table.DataRow(title='Speed [km/h]', df_name='df_speed', df_
                      Table.DataRow(title='Battery Maximum Cell Temperature [°C]', df_name='df_cellTemp',
                                    df_col='max_cell_temp', numberFormat='3.1f')]
 
-graphs = [] # Will be filled in the function 'initialize_data'
+graphs = []  # Will be filled in the function 'initialize_data'
+
 
 ########################################################################################################################
 # Helper Functions
@@ -95,10 +96,15 @@ def refresh(self, timespan_displayed: int):
     self.min, self.max, self.mean, self.last = getMinMaxMeanLast(main_table_data[self.df_name].df, self.df_col,
                                                                  self.numberFormat)
     return {'': self.title,
-            '{:d}\' Min'.format(timespan_displayed): self.min,
-            '{:d}\' Max'.format(timespan_displayed): self.max,
-            '{:d}\' Mean'.format(timespan_displayed): self.mean,
-            'Last'.format(timespan_displayed): self.last}
+            # '{:d}\' Min'.format(timespan_displayed): self.min,
+            # '{:d}\' Max'.format(timespan_displayed): self.max,
+            # '{:d}\' Mean'.format(timespan_displayed): self.mean,
+            'Min': self.min,
+            'Max': self.max,
+            'Mean': self.mean,
+            'Last': self.last}
+
+
 setattr(Table.DataRow, "refresh", refresh)  # Add method to the class DataRow
 
 
@@ -107,12 +113,13 @@ def getMinMaxMeanLast(df: Union[DataFrame, None], col: str, numberFormat: str) -
     if df is None:
         return ('', '', '', '')
     if df.empty:
-        return ('No Data', 'No Data', 'No Data', 'No Data')
+        return 'No Data', 'No Data', 'No Data', 'No Data'
     else:
         return (('{:' + numberFormat + '}').format(df[col].min()),
                 ('{:' + numberFormat + '}').format(df[col].max()),
                 ('{:' + numberFormat + '}').format(df[col].mean()),
-                ('{:' + numberFormat + '}').format(df[col][0]),)
+                ('{:' + numberFormat + '}').format(df[col][0]))
+
 
 ########################################################################################################################
 # Layout
@@ -124,9 +131,12 @@ def initialize_data() -> tuple:
     main_table = [
         {
             "": 'No Data',
-            '{:d}\' Min'.format(timespan_displayed): 'No Data',
-            '{:d}\' Max'.format(timespan_displayed): 'No Data',
-            '{:d}\' Mean'.format(timespan_displayed): 'No Data',
+            # '{:d}\' Min'.format(timespan_displayed): 'No Data',
+            # '{:d}\' Max'.format(timespan_displayed): 'No Data',
+            # '{:d}\' Mean'.format(timespan_displayed): 'No Data',
+            'Min': 'No Data',
+            'Max': 'No Data',
+            'Mean': 'No Data',
             'Last': 'No Data',
         },
     ]
@@ -139,9 +149,12 @@ def initialize_data() -> tuple:
     # Graphs Div
     for row in main_table_layout:
         if row is Table.DataRow:
-            graphs.append(dcc.Graph(figure=px.line(main_table_data[row.df_name], title=row.title, template='plotly_white', x='timestamp_dt', y=row.df_col)))
+            graphs.append(dcc.Graph(
+                figure=px.line(main_table_data[row.df_name], title=row.title, template='plotly_white', x='timestamp_dt',
+                               y=row.df_col)))
 
     return main_table, module_table, graphs
+
 
 @dash.callback(
     Output("main_table", "active_cell"),
@@ -153,7 +166,7 @@ def update_selected_rows(active_cell: {}):
     if active_cell is not None:
         row = main_table_layout[active_cell['row']]
         if type(row) == Table.DataRow:
-            row.selected ^= True        # Toggle row Selected
+            row.selected ^= True  # Toggle row Selected
 
     return None  # Reset the active cell
 
@@ -177,7 +190,7 @@ def refresh_page(n_intervals: int):
 
     # Refresh table data
     for key in main_table_data:
-        main_table_data[key].load_from_db(db_serv, timespan_displayed * 60 * heartbeat_frequency)
+        main_table_data[key].load_from_db(db_serv)
         main_table_data[key].refresh()
 
     # Refresh table layout
@@ -188,7 +201,9 @@ def refresh_page(n_intervals: int):
         if type(row) == Table.DataRow and row.selected:
             df = main_table_data[row.df_name].df
             if df is not None and not df.empty:
-                graphs_out.append(dcc.Graph(figure=px.line(main_table_data[row.df_name].df, title=row.title, template='plotly_white', x='timestamp_dt', y=row.df_col)))
+                graphs_out.append(dcc.Graph(
+                    figure=px.line(main_table_data[row.df_name].df, title=row.title, template='plotly_white',
+                                   x='timestamp_dt', y=row.df_col)))
             else:
                 graphs_out.append(html.Br())
                 graphs_out.append(html.Br())

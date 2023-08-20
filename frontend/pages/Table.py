@@ -1,5 +1,6 @@
 from typing import Union
 from pandas import DataFrame
+import pandas as pd
 from db.db_service import DbService
 
 
@@ -17,6 +18,7 @@ class Row:
                 '{:d}\' Max'.format(timespan_displayed): self.max,
                 '{:d}\' Mean'.format(timespan_displayed): self.mean,
                 'Last'.format(timespan_displayed): self.last}
+
 
 class DataRow(Row):
     df_name: str
@@ -37,24 +39,28 @@ class DataRow(Row):
 
 
 class TableDataFrame:
-    df: Union[DataFrame, None]
+    df: Union[DataFrame, None] = None
 
     def _refresh(self) -> Union[DataFrame, None]:
         return None
+
     def refresh(self) -> None:
         new_df = self._refresh()
         if new_df is not None:
             self.df = new_df
 
     def _load_from_db(self, db_service: DbService, n_entries: int) -> Union[DataFrame, None]:
-        print("not overwritten")    # TODO: Remove this
+        print("Unexpected: function '_load_from_db' of 'TableDataFrame' is not implemented by the user")
         return None
 
-    def load_from_db(self, db_service: DbService, n_entries: int):
-        # print("Loading from DB")    # TODO: Remove this
-        self.df = self._load_from_db(db_service,n_entries)             # TODO: Adapt this to partly loading from db
+    def load_from_db(self, db_service: DbService):
+        new_row = self._load_from_db(db_service, 1)
+        if self.df is not None or new_row is not None:
+            self.df = pd.concat([new_row, self.df], ignore_index=True)  # Add newest value to the dataframe
 
-    def __init__(self, refresh: (lambda : Union[None, DataFrame]) = (lambda : None), load_from_db: (lambda db_service, n_entries: Union[None, DataFrame]) = (lambda db_service, n_entries: None)):
+    def __init__(self, refresh: (lambda: Union[None, DataFrame]) = (lambda: None),
+                 load_from_db: (lambda db_service, n_entries: Union[None, DataFrame]) = (
+                 lambda db_service, n_entries: None)):
         super().__init__()
         self._load_from_db = load_from_db
         self._refresh = refresh
