@@ -23,21 +23,32 @@ rtc:
     id: 23
     message: "RTC frequency invalid. Set to 16 Hz."
 
-tele:
-  tele_corrupt_msg:
-    id: 31
-    message: "Transmitted checksum in BLE message wrong"
-  tele_init:
-    id: 32
-    message: "Initialization of telemetry unit failed"
-  tele_ble_init:
-    id: 33
-    message: "Initialization of ublox bluetooth module failed."
 
 logic:
   logic_fsm_loop:
     id: 31
     message: "Kicked out of the FSM loop, MCU is rebooted."
+
+icu:
+  icu_reverse_failed:
+    id: 41
+    message: "Could not invert the driving direction"
+
+tele:
+  tele_corrupt_msg:
+    id: 51
+    message: "Transmitted checksum in BLE message wrong"
+  tele_init:
+    id: 52
+    message: "Initialization of telemetry unit failed"
+  tele_ble_init:
+    id: 53
+    message: "Initialization of ublox bluetooth module failed"
+
+vcu:
+  vcu_hv_on_failed:
+    id: 61
+    message: "Could not toggle on HV"
 
 default:
   default:
