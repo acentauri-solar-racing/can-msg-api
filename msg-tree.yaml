@@ -634,15 +634,18 @@ logger:
   logger_heartbeat:
     id: "0x700"
     id_type: "std"
-    dlc: 5
+    dlc: 6
     data:
       card_fill_percent:
         type: data_fp
         idx: 0
         endian: "little"
-      disk_full:
+      card_inserted:
         type: data_u8
         idx: 4
+      disk_full:
+        type: data_u8
+        idx: 5
         endian: "little"
   logger_time:
     id: "0x701"
