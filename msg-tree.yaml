@@ -643,6 +643,7 @@ logger:
       card_inserted:
         type: data_u8
         idx: 4
+        endian: "little"
       disk_full:
         type: data_u8
         idx: 5
