@@ -13,8 +13,6 @@ from pandas import DataFrame
 
 
 class DbService:
-    session_entries: int = 0
-    rate_limit: bool = False
 
     def __init__(self):
         self.engine: Engine = create_engine(self.conn_string())
@@ -44,21 +42,18 @@ class DbService:
 
         self.session.commit()
 
-    def add_entry(self, can_id: int, unpacked_data: tuple, timestamp: float) -> None:
+    def add_entry(self, can_id: int, unpacked_data: tuple, timestamp: float, commit_session: bool = True) -> None:
         model = ddl_models[can_id]
         entry: model = model(unpacked_data, timestamp)
 
         self.session.add(entry)
 
-        if self.rate_limit:
-            self.session_entries += 1
+        # commit can also be done manually by calling the function "commit_session()", see below
+        if commit_session:
+            self.session.commit()
 
-        # prevent overloading of DB by writing to DB only when collected 20 entries
-        if self.rate_limit and self.session_entries > 20:
-            self.session.commit()
-            self.session_entries = 0
-        else:
-            self.session.commit()
+    def commit_session(self):
+        self.session.commit()
 
     def query(self, orm_model, num_entries: int) -> DataFrame:
         with self.engine.connect() as conn:
@@ -71,4 +66,4 @@ class DbService:
     def latest(self, orm_model):
         with self.engine.connect() as conn:
             return self.session.query(orm_model).order_by(
-                    orm_model.timestamp.desc()).first()
+                orm_model.timestamp.desc()).first()

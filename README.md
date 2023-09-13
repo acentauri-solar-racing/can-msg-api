@@ -20,7 +20,7 @@ Install Python 3.x and [Git Bash for Windows](https://gitforwindows.org). Then y
 
 This step is optional. Maybe you just want to view the values being logged on the CAN bus, but not save them. If you don't want to save decoded values from the CAN bus in a database, just skip this step.
 
- For this I recommend XAMPP as an all-in-one tool to manage SQL databases.
+For this I recommend XAMPP as an all-in-one tool to manage SQL databases.
 
 ### Virtualenv
 
@@ -66,7 +66,9 @@ pip install windows-curses
 
 ### CAN Analyzer Drivers
 
-The Seeedstudio CAN USB analyzer requires some drivers that you can download online.
+The CAN USB analyzers require some drivers that you can download online. The PCAN driver can be found here:
+
+- [https://www.peak-system.com/PCAN-USB.199.0.html](https://www.peak-system.com/PCAN-USB.199.0.html)
 
 #### Linux
 

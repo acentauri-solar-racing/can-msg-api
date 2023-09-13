@@ -12,7 +12,7 @@ import frontend.styles as styles
 from frontend.settings import RELOAD_INTERVAL
 from db.load_data import *
 import datetime as dt
-from . import Table
+from .. import Table
 
 dash.register_page(__name__, path="/", title="Overview")
 
