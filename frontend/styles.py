@@ -65,7 +65,7 @@ TABLE_DATA_CONDITIONAL = [
 # modules table specific
 TABLE_CELL_MODULES = {
     'text-align': 'center',
-    'width': '{}%'.format(9)
+    'width': '{}%'.format(8)
 }
 
 # modules table specific

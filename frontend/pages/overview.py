@@ -1,9 +1,11 @@
+import datetime
 from typing import Union
 
 import dash
 import plotly.express as px
 import time
 
+import dash_mantine_components as dmc
 from dash import html, dcc, Input, Output, dash_table
 
 from db.db_service import DbService
@@ -34,11 +36,12 @@ module_heartbeats = {
     "mppt0": MpptStatus0,
     "mppt1": MpptStatus1,
     "mppt2": MpptStatus2,
+    "mppt3": MpptStatus3,
     "bms": BmsHeartbeat,
     "stwheel": StwheelHeartbeat,
+    "tele": TeleSolarHeartbeat,
+    "sensors": DsensorsHeartbeat,
     "logger": LoggerHeartbeat,
-    "fsensors": FsensorsHeartbeat,
-    "dsensors": DsensorsHeartbeat,
 }
 
 main_table_data = {'df_speed': Table.TableDataFrame(load_from_db=load_speed),
@@ -235,6 +238,8 @@ def layout() -> html.Div:
     return html.Div(
         children=[
             html.H1('Overview', style=styles.H1, className='text-center'),
+            dmc.SegmentedControl(id='live-slider', value='live', data=[{'value': 'live', 'label': 'live'},{'value': 'paused', 'label': 'paused'}]),
+            dmc.TimeInput(label="Start time", format="12",value=datetime.datetime.now()),
             dash_table.DataTable(
                 id='main_table',
                 data=main_data,
