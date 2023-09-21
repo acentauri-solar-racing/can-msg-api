@@ -160,6 +160,21 @@ def initialize_data() -> tuple:
 
 
 @dash.callback(
+    Output("placeholder_id", "id"),
+    [Input("submit_button", "n_clicks"),
+     Input("start_time", "timePlaceholder")],
+)
+def update_time_frame(n_clicks, timePlaceholder):
+    if(n_clicks is not None):   # Ignore callback on initialization
+        print("clicks: ", n_clicks)
+        db_serv: DbService = DbService()
+        print("Minutes Label: ", timePlaceholder)
+        db_serv.queryTime(datetime.datetime.now(), datetime.datetime.now())
+
+    return "placeholder_id"
+
+
+@dash.callback(
     Output("main_table", "active_cell"),
     Input("main_table", "active_cell")
 )
@@ -237,9 +252,13 @@ def layout() -> html.Div:
 
     return html.Div(
         children=[
+            html.P(id="placeholder_id"),
             html.H1('Overview', style=styles.H1, className='text-center'),
-            dmc.SegmentedControl(id='live-slider', value='live', data=[{'value': 'live', 'label': 'live'},{'value': 'paused', 'label': 'paused'}]),
-            dmc.TimeInput(label="Start time", format="12",value=datetime.datetime.now()),
+            dmc.SegmentedControl(id='live_slider', value='live',
+                                 data=[{'value': 'live', 'label': 'live'}, {'value': 'paused', 'label': 'paused'}]),
+            dmc.TimeInput(id="start_time", label="Start Time", format="12", value=datetime.datetime.now()),
+            dmc.TimeInput(id="end_time", label="End Time", format="12", value=datetime.datetime.now()),
+            dmc.Button("Submit", id="submit_button"),
             dash_table.DataTable(
                 id='main_table',
                 data=main_data,

@@ -1,4 +1,5 @@
 """Read environment variables and construct the connection string for MySQL DB"""
+import datetime
 import os
 import pandas as pd
 
@@ -67,3 +68,9 @@ class DbService:
         with self.engine.connect() as conn:
             return self.session.query(orm_model).order_by(
                 orm_model.timestamp.desc()).first()
+
+    def queryTime(self, start : datetime.datetime, end : datetime.datetime):
+        start = start
+        end = end.timestamp()
+
+        print(start)
