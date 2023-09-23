@@ -1,1 +1,4 @@
 models.py
+.env
+.env.local
+.env.remote
