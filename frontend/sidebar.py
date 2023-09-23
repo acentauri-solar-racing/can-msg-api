@@ -21,6 +21,9 @@ def sidebar():
                 # BMS Cells
                 dbc.NavLink(html.I(className="bi bi-exclamation-diamond fs-4"), id="errors-tt",
                             href="/errors", active="exact"),
+                # Analyzer
+                dbc.NavLink(html.I(className="bi bi-exclamation-diamond fs-4"), id="analyzer-tt",
+                            href="/analyzer", active="exact"),
                 ],
                 vertical=True,
                 pills=True,
@@ -45,4 +48,8 @@ def sidebar():
             "Errors",
             target="errors-tt",
         ),
+        dbc.Tooltip(
+            "Analyzer",
+            target="analyzer-tt",
+        )
     ], style=SIDEBAR_STYLE,)

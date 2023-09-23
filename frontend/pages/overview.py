@@ -24,7 +24,7 @@ dash.register_page(__name__, path="/", title="Overview")
 
 max_idle_time = 2  # Time allowed until a module is flagged as inactive. In seconds
 heartbeat_frequency = 16  # Frequency with which the heartbeats are sent [Hz] TODO: Remove this
-timespan_displayed = 5  # Time span that is displayed in the graphs. In minutes
+timespan_displayed = datetime.timedelta(minutes=5)  # Maximum time between the first and last displayed entry
 
 ########################################################################################################################
 # Data and Layout
@@ -44,22 +44,31 @@ module_heartbeats = {
     "logger": LoggerHeartbeat,
 }
 
-main_table_data = {'df_speed': Table.TableDataFrame(load_from_db=load_speed),
-                   'df_motorPow': Table.TableDataFrame(refresh=refresh_motorPow),
-                   'df_mpptPow0': Table.TableDataFrame(load_from_db=load_mppt_power0),
-                   'df_mpptPow1': Table.TableDataFrame(load_from_db=load_mppt_power1),
-                   'df_mpptPow2': Table.TableDataFrame(load_from_db=load_mppt_power2),
-                   'df_mpptPow3': Table.TableDataFrame(load_from_db=load_mppt_power3),
-                   'df_bat_pack': Table.TableDataFrame(load_from_db=load_bms_pack_data),
-                   'df_soc': Table.TableDataFrame(load_from_db=load_bms_soc),
-                   'df_cellVolt': Table.TableDataFrame(load_from_db=load_bms_cell_voltage),
-                   'df_cellTemp': Table.TableDataFrame(load_from_db=load_bms_cell_temp)}
+main_table_data = {'df_speed': Table.TableDataFrame(append_from_db=append_speed_data, max_timespan=timespan_displayed),
+                   'df_motorPow': Table.TableDataFrame(refresh=refresh_motorPow, max_timespan=timespan_displayed),
+                   'df_mpptPow': Table.TableDataFrame(refresh=refresh_mpptPow, max_timespan=timespan_displayed),
+                   'df_mpptPow0': Table.TableDataFrame(append_from_db=append_mppt_power0_data,
+                                                       max_timespan=timespan_displayed),
+                   'df_mpptPow1': Table.TableDataFrame(append_from_db=append_mppt_power1_data,
+                                                       max_timespan=timespan_displayed),
+                   'df_mpptPow2': Table.TableDataFrame(append_from_db=append_mppt_power2_data,
+                                                       max_timespan=timespan_displayed),
+                   'df_mpptPow3': Table.TableDataFrame(append_from_db=append_mppt_power3_data,
+                                                       max_timespan=timespan_displayed),
+                   'df_bat_pack': Table.TableDataFrame(append_from_db=append_bms_pack_data,
+                                                       max_timespan=timespan_displayed),
+                   'df_soc': Table.TableDataFrame(append_from_db=append_bms_soc, max_timespan=timespan_displayed),
+                   'df_cellVolt': Table.TableDataFrame(append_from_db=append_bms_cell_voltage,
+                                                       max_timespan=timespan_displayed),
+                   'df_cellTemp': Table.TableDataFrame(append_from_db=append_bms_cell_temp,
+                                                       max_timespan=timespan_displayed)}
 
 main_table_layout = [Table.DataRow(title='Speed [km/h]', df_name='df_speed', df_col='speed', numberFormat='3.1f'),
                      Table.DataRow(title='Motor Output Power [W]', df_name='df_motorPow', df_col='pow',
                                    numberFormat='3.1f'),
                      Table.Row(),
-                     # Table.DataRow(title='PV Output Power [W]',df_name='df_mpptPow', df_col='p_out', numberFormat='3.1f'),
+                     Table.DataRow(title='PV Output Power [W]', df_name='df_mpptPow', df_col='p_out',
+                                   numberFormat='3.1f'),
                      Table.DataRow(title='PV String 0 Output Power [W]', df_name='df_mpptPow0', df_col='p_out',
                                    numberFormat='3.1f'),
                      Table.DataRow(title='PV String 1 Output Power [W]', df_name='df_mpptPow1', df_col='p_out',
@@ -96,16 +105,13 @@ graphs = []  # Will be filled in the function 'initialize_data'
 def refresh(self, timespan_displayed: int):
     # This method will be added to the Class Table.DataRow, such that it can be called on instances of the class:
     # e.g.: dataRowInstance.refresh(5)
-    self.min, self.max, self.mean, self.last = getMinMaxMeanLast(main_table_data[self.df_name].df, self.df_col,
-                                                                 self.numberFormat)
+    min, max, mean, last = getMinMaxMeanLast(main_table_data[self.df_name].df, self.df_col,
+                                             self.numberFormat)
     return {'': self.title,
-            # '{:d}\' Min'.format(timespan_displayed): self.min,
-            # '{:d}\' Max'.format(timespan_displayed): self.max,
-            # '{:d}\' Mean'.format(timespan_displayed): self.mean,
-            'Min': self.min,
-            'Max': self.max,
-            'Mean': self.mean,
-            'Last': self.last}
+            timespan_displayed.__str__() + ' Min': min,
+            timespan_displayed.__str__() + ' Max': max,
+            timespan_displayed.__str__() + ' Mean': mean,
+            timespan_displayed.__str__() + ' Last': last}
 
 
 setattr(Table.DataRow, "refresh", refresh)  # Add method to the class DataRow
@@ -160,21 +166,6 @@ def initialize_data() -> tuple:
 
 
 @dash.callback(
-    Output("placeholder_id", "id"),
-    [Input("submit_button", "n_clicks"),
-     Input("start_time", "timePlaceholder")],
-)
-def update_time_frame(n_clicks, timePlaceholder):
-    if(n_clicks is not None):   # Ignore callback on initialization
-        print("clicks: ", n_clicks)
-        db_serv: DbService = DbService()
-        print("Minutes Label: ", timePlaceholder)
-        db_serv.queryTime(datetime.datetime.now(), datetime.datetime.now())
-
-    return "placeholder_id"
-
-
-@dash.callback(
     Output("main_table", "active_cell"),
     Input("main_table", "active_cell")
 )
@@ -185,6 +176,8 @@ def update_selected_rows(active_cell: {}):
         row = main_table_layout[active_cell['row']]
         if type(row) == Table.DataRow:
             row.selected ^= True  # Toggle row Selected
+
+    refresh_page(0)  # Refresh view
 
     return None  # Reset the active cell
 
@@ -202,13 +195,14 @@ def refresh_page(n_intervals: int):
     Returns:
         tuple: Updated data
     """
+
     db_serv: DbService = DbService()
     main_table = []
     graphs_out = []
 
     # Refresh table data
     for key in main_table_data:
-        main_table_data[key].load_from_db(db_serv)
+        main_table_data[key].append_from_db(db_serv, 200)
         main_table_data[key].refresh()
 
     # Refresh table layout
@@ -252,13 +246,7 @@ def layout() -> html.Div:
 
     return html.Div(
         children=[
-            html.P(id="placeholder_id"),
             html.H1('Overview', style=styles.H1, className='text-center'),
-            dmc.SegmentedControl(id='live_slider', value='live',
-                                 data=[{'value': 'live', 'label': 'live'}, {'value': 'paused', 'label': 'paused'}]),
-            dmc.TimeInput(id="start_time", label="Start Time", format="12", value=datetime.datetime.now()),
-            dmc.TimeInput(id="end_time", label="End Time", format="12", value=datetime.datetime.now()),
-            dmc.Button("Submit", id="submit_button"),
             dash_table.DataTable(
                 id='main_table',
                 data=main_data,

@@ -8,7 +8,7 @@ from db.db_service import DbService
 from pandas import DataFrame
 from frontend.styles import H1
 from frontend.settings import RELOAD_INTERVAL
-from db.load_data import load_errors
+from db.load_data import append_error_data
 from utils.helpers import flatten_tree
 import datetime as dt
 
@@ -43,7 +43,7 @@ def refresh_data(n):
     errors = DataFrame()
     error_data = []
     for key, value in module_errors.items():
-        df = load_errors(db_serv, value, 100)
+        df = append_error_data(db_serv, value, 100)
         df.insert(1,'module',key)
         errors = pd.concat([df, errors], ignore_index = True)
 

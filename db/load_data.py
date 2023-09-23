@@ -1,71 +1,113 @@
+import datetime
+
 from db.models import *
 from db.db_service import DbService
 from pandas import DataFrame
 import pandas as pd
 from typing import Tuple, Union
 
+### Errors #############################################################################################################
+def append_error_data(db_serv: DbService, orm_model: any, n_entries: int) -> DataFrame:
+    return preprocess_generic(db_serv.query_latest(orm_model, n_entries))
 
-#for speed calculation
-def load_speed(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
+
+
+### General Car State  #################################################################################################
+def refresh_motorPow() -> Union[DataFrame, None]:
+    return None
+
+def append_speed_data(db_serv: DbService, n_entries: int) -> Union[DataFrame, None]:
     return preprocess_speed(
-        db_serv.query(IcuHeartbeat, n_entries)
+        db_serv.query_latest(IcuHeartbeat, n_entries)
     )
 
-#for activity calculation
-def load_heartbeat(db_serv: DbService, orm_model: any) -> DataFrame:
-    return preprocess_generic(db_serv.query(orm_model, 1))
+def load_speed_data(db_serv: DbService, start_time : datetime.datetime, end_time : datetime.datetime):
+    return db_serv.query(IcuHeartbeat,start_time,end_time)
 
-#for error log
-def load_errors(db_serv: DbService, orm_model: any, n_entries: int) -> DataFrame:
-    return preprocess_generic(db_serv.query(orm_model, n_entries))
 
-# for mppt status
-def load_mppt_status_data(db_serv: DbService) -> Union[DataFrame, None]:
+
+### MPPTs ##############################################################################################################
+
+def refresh_mpptPow() -> Union[DataFrame, None]:
+    return None
+
+def load_mppt_status_data_latest(db_serv: DbService) -> Union[Tuple[DataFrame, DataFrame, DataFrame, DataFrame], None]:
     return (
         db_serv.latest(MpptStatus0),
         db_serv.latest(MpptStatus1),
-        db_serv.latest(MpptStatus2)
+        db_serv.latest(MpptStatus2),
+        db_serv.latest(MpptStatus3)
     )
+def append_mppt_power0_data(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
+    return preprocess_mppt_power(db_serv.query_latest(MpptPowerMeas0, n_entries))
 
-# for power calculations and mppt graph
-def load_mppt_power0(db_serv: DbService, n_entries) -> Union[DataFrame,None]:
-    return preprocess_mppt_power(db_serv.query(MpptPowerMeas0, n_entries))
+def load_mppt_power0_data(db_serv: DbService,  start_time : datetime.datetime, end_time : datetime.datetime) -> Union[DataFrame, None]:
+    return preprocess_mppt_power(db_serv.query(MpptPowerMeas0, start_time,end_time))
 
-# for power calculations and mppt graph
-def load_mppt_power1(db_serv: DbService, n_entries) -> Union[DataFrame,None]:
-    return preprocess_mppt_power(db_serv.query(MpptPowerMeas1, n_entries))
+def append_mppt_power1_data(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
+    return preprocess_mppt_power(db_serv.query_latest(MpptPowerMeas1, n_entries))
 
-# for power calculations and mppt graph
-def load_mppt_power2(db_serv: DbService, n_entries) -> Union[DataFrame,None]:
-    return preprocess_mppt_power(db_serv.query(MpptPowerMeas2, n_entries))
+def load_mppt_power1_data(db_serv: DbService,  start_time : datetime.datetime, end_time : datetime.datetime) -> Union[DataFrame, None]:
+    return preprocess_mppt_power(db_serv.query(MpptPowerMeas1, start_time,end_time))
 
-# for power calculations and mppt graph
-def load_mppt_power3(db_serv: DbService, n_entries) -> Union[DataFrame,None]:
-    return preprocess_mppt_power(db_serv.query(MpptPowerMeas3, n_entries))
+def append_mppt_power2_data(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
+    return preprocess_mppt_power(db_serv.query_latest(MpptPowerMeas2, n_entries))
+
+def load_mppt_power2_data(db_serv: DbService,  start_time : datetime.datetime, end_time : datetime.datetime) -> Union[DataFrame, None]:
+    return preprocess_mppt_power(db_serv.query(MpptPowerMeas2, start_time,end_time))
+
+def append_mppt_power3_data(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
+    return preprocess_mppt_power(db_serv.query_latest(MpptPowerMeas3, n_entries))
+
+def load_mppt_power3_data(db_serv: DbService,  start_time : datetime.datetime, end_time : datetime.datetime) -> Union[DataFrame, None]:
+    return preprocess_mppt_power(db_serv.query(MpptPowerMeas3, start_time,end_time))
 
 
-# for power calculations
-def load_bms_pack_data(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
+
+### BMS ################################################################################################################
+def append_bms_pack_data(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
     return preprocess_bms_pack_data(
-        db_serv.query(BmsPackVoltageCurrent, n_entries),
+        db_serv.query_latest(BmsPackVoltageCurrent, n_entries),
     )
 
-def load_bms_cell_voltage(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
+def load_bms_pack_data(db_serv: DbService, start_time :datetime.datetime, end_time: datetime.datetime) -> Union[DataFrame, None]:
+    return preprocess_bms_pack_data(
+        db_serv.query(BmsPackVoltageCurrent, start_time, end_time),
+    )
+
+def append_bms_cell_voltage(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
     return preprocess_generic(
-        db_serv.query((BmsMinMaxCellVoltage), n_entries)
+        db_serv.query_latest((BmsMinMaxCellVoltage), n_entries)
     )
 
-def load_bms_cell_temp(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
+def load_bms_cell_voltage(db_serv: DbService, start_time :datetime.datetime, end_time: datetime.datetime) -> Union[DataFrame, None]:
+    return preprocess_generic(
+        db_serv.query(BmsMinMaxCellVoltage, start_time, end_time),
+    )
+
+def append_bms_cell_temp(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
     return preprocess_bms_cell_temp(
-        db_serv.query((BmsMinMaxCellTemp), n_entries)
+        db_serv.query_latest(BmsMinMaxCellTemp, n_entries)
     )
 
-# for state of charge graph
-def load_bms_soc(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
+def load_bms_cell_temp(db_serv: DbService, start_time :datetime.datetime, end_time: datetime.datetime) -> Union[DataFrame, None]:
+    return preprocess_bms_cell_temp(
+        db_serv.query(BmsMinMaxCellTemp, start_time, end_time),
+    )
+
+def append_bms_soc(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
     return preprocess_generic(
-        db_serv.query(BmsPackSoc, n_entries),
+        db_serv.query_latest(BmsPackSoc, n_entries),
     )
 
+def load_bms_soc(db_serv: DbService, start_time :datetime.datetime, end_time: datetime.datetime) -> Union[DataFrame, None]:
+    return preprocess_generic(
+        db_serv.query(BmsPackSoc, start_time, end_time),
+    )
+
+
+
+### Preprocessing ######################################################################################################
 
 def preprocess_generic(df: DataFrame) -> DataFrame:
 
@@ -80,7 +122,6 @@ def preprocess_speed(df: DataFrame) -> DataFrame:
     df['speed'] *= 3.6
 
     return preprocess_generic(df)
-
 
 def preprocess_mppt_power(df: DataFrame) -> DataFrame:
     """prepare data frame for plotting"""
@@ -102,7 +143,6 @@ def preprocess_bms_cell_temp(df: DataFrame) -> DataFrame:
 
     return preprocess_generic(df)
 
-
 def preprocess_bms_pack_data(df: DataFrame) -> DataFrame:
 
     """prepare data frame for plotting"""
@@ -113,10 +153,3 @@ def preprocess_bms_pack_data(df: DataFrame) -> DataFrame:
     df['battery_power'] = df['battery_voltage'] * df['battery_current'] * 1e-3
 
     return preprocess_generic(df)
-
-
-def refresh_motorPow() -> Union[DataFrame, None]:
-    return None
-
-def refresh_mpptPow() -> Union[DataFrame, None]:
-    return None

@@ -8,7 +8,7 @@ from db.models import *
 
 from dotenv import dotenv_values
 
-from sqlalchemy import create_engine, Engine
+from sqlalchemy import create_engine, Engine, text, and_
 from sqlalchemy.orm import sessionmaker, Session
 from pandas import DataFrame
 
@@ -56,7 +56,7 @@ class DbService:
     def commit_session(self):
         self.session.commit()
 
-    def query(self, orm_model, num_entries: int) -> DataFrame:
+    def query_latest(self, orm_model, num_entries: int) -> DataFrame:
         with self.engine.connect() as conn:
             return pd.read_sql_query(
                 sql=self.session.query(orm_model).order_by(
@@ -69,8 +69,20 @@ class DbService:
             return self.session.query(orm_model).order_by(
                 orm_model.timestamp.desc()).first()
 
-    def queryTime(self, start : datetime.datetime, end : datetime.datetime):
-        start = start
-        end = end.timestamp()
+    def query(self, orm_model: declarative_base, start_time : datetime.datetime, end_time : datetime.datetime):
 
-        print(start)
+        results = self.session.query(orm_model).filter(
+            and_(
+                orm_model.timestamp >= start_time,
+                orm_model.timestamp <= end_time
+            )
+        ).all()
+
+        print("loaded the following lines")
+        # Process the results
+        for row in results:
+        # Access the columns of the selected rows
+            print(row.id, row.timestamp, row.column1, row.column2)  # Replace column1 and column2 with actual column names
+
+        # Close the session when done
+        self.session.close()

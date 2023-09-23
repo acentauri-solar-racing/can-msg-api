@@ -17,8 +17,8 @@ dash.register_page(__name__, path="/bms_cells", title="BMS Cells")
 # for cell graph
 def load_cmu_data(db_serv: DbService(), cmu_stat, cmu_class1, cmu_class2, n_entries):
     (df1, df2) = preprocess_cmu(
-        db_serv.query(cmu_class1, n_entries),
-        db_serv.query(cmu_class2, n_entries)
+        db_serv.query_latest(cmu_class1, n_entries),
+        db_serv.query_latest(cmu_class2, n_entries)
     )
     return db_serv.latest(cmu_stat), df1, df2
 

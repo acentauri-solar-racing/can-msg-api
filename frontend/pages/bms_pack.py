@@ -9,7 +9,7 @@ from db.db_service import DbService
 from pandas import DataFrame
 from frontend.styles import H1, H2
 from frontend.settings import RELOAD_INTERVAL
-from db.load_data import load_bms_pack_data
+from db.load_data import append_bms_pack_data
 
 dash.register_page(__name__, path="/bms_pack", title="BMS Pack")
 
@@ -63,7 +63,7 @@ def disp_bms(df: DataFrame):
 )
 def refresh_data(n):
     db_serv: DbService = DbService()
-    df: DataFrame = load_bms_pack_data(db_serv, 100)
+    df: DataFrame = append_bms_pack_data(db_serv, 100)
 
     try:
         return html.Div(
