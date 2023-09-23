@@ -57,10 +57,10 @@ main_table_data = {'df_speed': Table.TableDataFrame(append_from_db=append_speed_
                                                        max_timespan=timespan_displayed),
                    'df_bat_pack': Table.TableDataFrame(append_from_db=append_bms_pack_data,
                                                        max_timespan=timespan_displayed),
-                   'df_soc': Table.TableDataFrame(append_from_db=append_bms_soc, max_timespan=timespan_displayed),
-                   'df_cellVolt': Table.TableDataFrame(append_from_db=append_bms_cell_voltage,
+                   'df_soc': Table.TableDataFrame(append_from_db=append_bms_soc_data, max_timespan=timespan_displayed),
+                   'df_cellVolt': Table.TableDataFrame(append_from_db=append_bms_cell_voltage_data,
                                                        max_timespan=timespan_displayed),
-                   'df_cellTemp': Table.TableDataFrame(append_from_db=append_bms_cell_temp,
+                   'df_cellTemp': Table.TableDataFrame(append_from_db=append_bms_cell_temp_data,
                                                        max_timespan=timespan_displayed)}
 
 main_table_layout = [Table.DataRow(title='Speed [km/h]', df_name='df_speed', df_col='speed', numberFormat='3.1f'),
@@ -102,19 +102,20 @@ graphs = []  # Will be filled in the function 'initialize_data'
 # Helper Functions
 ########################################################################################################################
 
-def refresh(self, timespan_displayed: int):
+def refresh_timespan(self, timespan_displayed: datetime.timedelta):
     # This method will be added to the Class Table.DataRow, such that it can be called on instances of the class:
     # e.g.: dataRowInstance.refresh(5)
-    min, max, mean, last = getMinMaxMeanLast(main_table_data[self.df_name].df, self.df_col,
+
+    self.min, self.max, self.mean, self.last = getMinMaxMeanLast(main_table_data[self.df_name].df, self.df_col,
                                              self.numberFormat)
     return {'': self.title,
-            timespan_displayed.__str__() + ' Min': min,
-            timespan_displayed.__str__() + ' Max': max,
-            timespan_displayed.__str__() + ' Mean': mean,
-            timespan_displayed.__str__() + ' Last': last}
+            timespan_displayed.__str__() + ' Min': self.min,
+            timespan_displayed.__str__() + ' Max': self.max,
+            timespan_displayed.__str__() + ' Mean': self.mean,
+            timespan_displayed.__str__() + ' Last': self.last}
 
 
-setattr(Table.DataRow, "refresh", refresh)  # Add method to the class DataRow
+setattr(Table.DataRow, "refresh_timespan", refresh_timespan)  # Add method to the class DataRow
 
 
 def getMinMaxMeanLast(df: Union[DataFrame, None], col: str, numberFormat: str) -> Tuple[str, str, str, str]:
@@ -140,13 +141,10 @@ def initialize_data() -> tuple:
     main_table = [
         {
             "": 'No Data',
-            # '{:d}\' Min'.format(timespan_displayed): 'No Data',
-            # '{:d}\' Max'.format(timespan_displayed): 'No Data',
-            # '{:d}\' Mean'.format(timespan_displayed): 'No Data',
-            'Min': 'No Data',
-            'Max': 'No Data',
-            'Mean': 'No Data',
-            'Last': 'No Data',
+            timespan_displayed.__str__() + ' Min':'No Data',
+            timespan_displayed.__str__() + ' Max': 'No Data',
+            timespan_displayed.__str__() + ' Mean': 'No Data',
+            timespan_displayed.__str__() + ' Last': 'No Data'
         },
     ]
 
@@ -155,14 +153,7 @@ def initialize_data() -> tuple:
     for m in module_heartbeats:
         module_table[0].update({m: 'No Data'})
 
-    # Graphs Div
-    for row in main_table_layout:
-        if row is Table.DataRow:
-            graphs.append(dcc.Graph(
-                figure=px.line(main_table_data[row.df_name], title=row.title, template='plotly_white', x='timestamp_dt',
-                               y=row.df_col)))
-
-    return main_table, module_table, graphs
+    return main_table, module_table, None
 
 
 @dash.callback(
@@ -207,7 +198,7 @@ def refresh_page(n_intervals: int):
 
     # Refresh table layout
     for row in main_table_layout:
-        main_table.append(row.refresh(timespan_displayed))
+        main_table.append(row.refresh_timespan(timespan_displayed))
 
         # Draw graphs of selected rows
         if type(row) == Table.DataRow and row.selected:

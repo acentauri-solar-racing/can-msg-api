@@ -13,13 +13,19 @@ class Row:
     last: str = ''
 
     # Returns a table row in the format that dash expects
-    def refresh(self, timespan_displayed: int) -> {}:
+    def refresh_timespan(self, timespan_displayed: datetime.timedelta) -> {}:
         return {'': self.title,
                 timespan_displayed.__str__() + '\' Min': self.min,
                 timespan_displayed.__str__() + '\' Max': self.max,
                 timespan_displayed.__str__() + '\' Mean': self.mean,
                 timespan_displayed.__str__() + '\' Last': self.last}
 
+    def refresh(self) -> {}:
+        return{'': self.title,
+        'Min': self.min,
+        'Max': self.max,
+        'Mean': self.mean,
+        'Last': self.last}
 
 class DataRow(Row):
     df_name: str
@@ -34,7 +40,11 @@ class DataRow(Row):
         self.numberFormat = numberFormat
         self.selected = selected
 
-    def refresh(self, timespan_displayed: int) -> {}:
+    def refresh_timespan(self, timespan_displayed: datetime.timedelta) -> {}:
+        print("Unexpected: function 'refresh_timespan' of 'DataRow' is not implemented by the user")
+        return {}
+
+    def refresh(self) -> {}:
         print("Unexpected: function 'refresh' of 'DataRow' is not implemented by the user")
         return {}
 

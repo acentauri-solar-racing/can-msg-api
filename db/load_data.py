@@ -75,32 +75,32 @@ def load_bms_pack_data(db_serv: DbService, start_time :datetime.datetime, end_ti
         db_serv.query(BmsPackVoltageCurrent, start_time, end_time),
     )
 
-def append_bms_cell_voltage(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
+def append_bms_cell_voltage_data(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
     return preprocess_generic(
         db_serv.query_latest((BmsMinMaxCellVoltage), n_entries)
     )
 
-def load_bms_cell_voltage(db_serv: DbService, start_time :datetime.datetime, end_time: datetime.datetime) -> Union[DataFrame, None]:
+def load_bms_cell_voltage_data(db_serv: DbService, start_time :datetime.datetime, end_time: datetime.datetime) -> Union[DataFrame, None]:
     return preprocess_generic(
         db_serv.query(BmsMinMaxCellVoltage, start_time, end_time),
     )
 
-def append_bms_cell_temp(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
+def append_bms_cell_temp_data(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
     return preprocess_bms_cell_temp(
         db_serv.query_latest(BmsMinMaxCellTemp, n_entries)
     )
 
-def load_bms_cell_temp(db_serv: DbService, start_time :datetime.datetime, end_time: datetime.datetime) -> Union[DataFrame, None]:
+def load_bms_cell_temp_data(db_serv: DbService, start_time :datetime.datetime, end_time: datetime.datetime) -> Union[DataFrame, None]:
     return preprocess_bms_cell_temp(
         db_serv.query(BmsMinMaxCellTemp, start_time, end_time),
     )
 
-def append_bms_soc(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
+def append_bms_soc_data(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
     return preprocess_generic(
         db_serv.query_latest(BmsPackSoc, n_entries),
     )
 
-def load_bms_soc(db_serv: DbService, start_time :datetime.datetime, end_time: datetime.datetime) -> Union[DataFrame, None]:
+def load_bms_soc_data(db_serv: DbService, start_time :datetime.datetime, end_time: datetime.datetime) -> Union[DataFrame, None]:
     return preprocess_generic(
         db_serv.query(BmsPackSoc, start_time, end_time),
     )

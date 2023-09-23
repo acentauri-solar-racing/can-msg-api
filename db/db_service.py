@@ -69,20 +69,10 @@ class DbService:
             return self.session.query(orm_model).order_by(
                 orm_model.timestamp.desc()).first()
 
-    def query(self, orm_model: declarative_base, start_time : datetime.datetime, end_time : datetime.datetime):
-
-        results = self.session.query(orm_model).filter(
-            and_(
-                orm_model.timestamp >= start_time,
-                orm_model.timestamp <= end_time
-            )
-        ).all()
-
-        print("loaded the following lines")
-        # Process the results
-        for row in results:
-        # Access the columns of the selected rows
-            print(row.id, row.timestamp, row.column1, row.column2)  # Replace column1 and column2 with actual column names
-
-        # Close the session when done
-        self.session.close()
+    def query(self, orm_model: declarative_base, start_time: datetime.datetime, end_time: datetime.datetime):
+        with self.engine.connect() as conn:
+            return pd.read_sql_query(sql=self.session.query(orm_model)
+                                     .filter(and_(orm_model.timestamp >= start_time.timestamp(),
+                                                  orm_model.timestamp <= end_time.timestamp()))
+                                     .order_by(orm_model.timestamp.desc()).limit(10000).statement,
+                                     con=conn)
