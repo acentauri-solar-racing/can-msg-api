@@ -24,7 +24,7 @@ dash.register_page(__name__, path="/", title="Overview")
 
 max_idle_time = 2  # Time allowed until a module is flagged as inactive. In seconds
 heartbeat_frequency = 16  # Frequency with which the heartbeats are sent [Hz] TODO: Remove this
-timespan_displayed = datetime.timedelta(minutes=5)  # Maximum time between the first and last displayed entry
+timespan_loaded = datetime.timedelta(minutes=5)  # Maximum time between the first and last displayed entry
 
 ########################################################################################################################
 # Data and Layout
@@ -44,24 +44,24 @@ module_heartbeats = {
     "logger": LoggerHeartbeat,
 }
 
-main_table_data = {'df_speed': Table.TableDataFrame(append_from_db=append_speed_data, max_timespan=timespan_displayed),
-                   'df_motorPow': Table.TableDataFrame(refresh=refresh_motorPow, max_timespan=timespan_displayed),
-                   'df_mpptPow': Table.TableDataFrame(refresh=refresh_mpptPow, max_timespan=timespan_displayed),
+main_table_data = {'df_speed': Table.TableDataFrame(append_from_db=append_speed_data, max_timespan=timespan_loaded),
+                   'df_motorPow': Table.TableDataFrame(refresh=refresh_motorPow, max_timespan=timespan_loaded),
+                   'df_mpptPow': Table.TableDataFrame(refresh=refresh_mpptPow, max_timespan=timespan_loaded),
                    'df_mpptPow0': Table.TableDataFrame(append_from_db=append_mppt_power0_data,
-                                                       max_timespan=timespan_displayed),
+                                                       max_timespan=timespan_loaded),
                    'df_mpptPow1': Table.TableDataFrame(append_from_db=append_mppt_power1_data,
-                                                       max_timespan=timespan_displayed),
+                                                       max_timespan=timespan_loaded),
                    'df_mpptPow2': Table.TableDataFrame(append_from_db=append_mppt_power2_data,
-                                                       max_timespan=timespan_displayed),
+                                                       max_timespan=timespan_loaded),
                    'df_mpptPow3': Table.TableDataFrame(append_from_db=append_mppt_power3_data,
-                                                       max_timespan=timespan_displayed),
+                                                       max_timespan=timespan_loaded),
                    'df_bat_pack': Table.TableDataFrame(append_from_db=append_bms_pack_data,
-                                                       max_timespan=timespan_displayed),
-                   'df_soc': Table.TableDataFrame(append_from_db=append_bms_soc_data, max_timespan=timespan_displayed),
+                                                       max_timespan=timespan_loaded),
+                   'df_soc': Table.TableDataFrame(append_from_db=append_bms_soc_data, max_timespan=timespan_loaded),
                    'df_cellVolt': Table.TableDataFrame(append_from_db=append_bms_cell_voltage_data,
-                                                       max_timespan=timespan_displayed),
+                                                       max_timespan=timespan_loaded),
                    'df_cellTemp': Table.TableDataFrame(append_from_db=append_bms_cell_temp_data,
-                                                       max_timespan=timespan_displayed)}
+                                                       max_timespan=timespan_loaded)}
 
 main_table_layout = [Table.DataRow(title='Speed [km/h]', df_name='df_speed', df_col='speed', numberFormat='3.1f'),
                      Table.DataRow(title='Motor Output Power [W]', df_name='df_motorPow', df_col='pow',
@@ -141,10 +141,10 @@ def initialize_data() -> tuple:
     main_table = [
         {
             "": 'No Data',
-            timespan_displayed.__str__() + ' Min':'No Data',
-            timespan_displayed.__str__() + ' Max': 'No Data',
-            timespan_displayed.__str__() + ' Mean': 'No Data',
-            timespan_displayed.__str__() + ' Last': 'No Data'
+            timespan_loaded.__str__() + ' Min': 'No Data',
+            timespan_loaded.__str__() + ' Max': 'No Data',
+            timespan_loaded.__str__() + ' Mean': 'No Data',
+            timespan_loaded.__str__() + ' Last': 'No Data'
         },
     ]
 
@@ -198,7 +198,7 @@ def refresh_page(n_intervals: int):
 
     # Refresh table layout
     for row in main_table_layout:
-        main_table.append(row.refresh_timespan(timespan_displayed))
+        main_table.append(row.refresh_timespan(timespan_loaded))
 
         # Draw graphs of selected rows
         if type(row) == Table.DataRow and row.selected:

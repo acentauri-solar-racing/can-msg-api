@@ -25,7 +25,9 @@ dash.register_page(__name__, path="/analyzer", title="Analyzer")
 
 max_idle_time = 2  # Time allowed until a module is flagged as inactive. In seconds
 heartbeat_frequency = 16  # Frequency with which the heartbeats are sent [Hz] TODO: Remove this
-timespan_displayed = datetime.timedelta(minutes=5)
+timespan_loaded = datetime.timedelta(minutes=5)
+timespan_loaded_min = datetime.datetime.now()
+timespan_loaded_max = datetime.datetime.now()
 
 ########################################################################################################################
 # Data and Layout
@@ -102,10 +104,10 @@ def refresh(self):
     self.min, self.max, self.mean, self.last = getMinMaxMeanLast(table_data[self.df_name].df, self.df_col,
                                                                  self.numberFormat)
     return {'': self.title,
-            timespan_displayed.__str__() + ' Min': self.min,
-            timespan_displayed.__str__() + ' Max': self.max,
-            timespan_displayed.__str__() + ' Mean': self.mean,
-            timespan_displayed.__str__() + ' Last': self.last}
+            timespan_loaded.__str__() + ' Min': self.min,
+            timespan_loaded.__str__() + ' Max': self.max,
+            timespan_loaded.__str__() + ' Mean': self.mean,
+            timespan_loaded.__str__() + ' Last': self.last}
 
 
 setattr(Table.DataRow, "refresh", refresh)  # Add method to the class DataRow
@@ -189,19 +191,16 @@ def reload_table_data(date, start_time, end_time):
     start_time = date[:10] + start_time[10:19]
     end_time = date[0:10] + end_time[10:19]
 
-    # convert into datetime objects
+    # convert into datetime objects and update global variables
+    global timespan_loaded, timespan_loaded_min, timespan_loaded_max
     format_string = "%Y-%m-%dT%H:%M:%S"
-    timestamp_start = datetime.datetime.strptime(start_time, format_string)
-    timestamp_end = datetime.datetime.strptime(end_time, format_string)
+    timespan_loaded_min = datetime.datetime.strptime(start_time, format_string)
+    timespan_loaded_max = datetime.datetime.strptime(end_time, format_string)
 
-    # get rid of timezone shift
-    diff = timestamp_start - timestamp_start.astimezone(datetime.timezone.utc).replace(tzinfo=None)
-    timestamp_start = timestamp_start + diff
-    timestamp_end = timestamp_end + diff
-
-    # update timespan variable
-    global timespan_displayed
-    timespan_displayed = timestamp_end - timestamp_start
+    # get rid of timezone shift -> get timestamp as if the date was at UTC+0
+    diff = timespan_loaded_min - timespan_loaded_min.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+    timestamp_start = timespan_loaded_min + diff
+    timestamp_end = timespan_loaded_max + diff
 
     db_serv: DbService = DbService()
     table = []
@@ -239,7 +238,7 @@ def reload_graphs(active_cell: {}):
                 if df is not None and not df.empty:
                     graphs[row.title] = dcc.Graph(
                         figure=px.line(df, title=row.title, template='plotly_white',
-                                       x='timestamp_dt', y=row.df_col))
+                                       x='timestamp_dt', y=row.df_col, range_x=[timespan_loaded_min, timespan_loaded_max]))
                 else:
                     graphs[row.title] = [html.Br(), html.Br(),
                                          html.H3('No Data available for "%s"' % row.title, style=styles.H3)]
