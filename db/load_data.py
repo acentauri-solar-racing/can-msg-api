@@ -22,7 +22,7 @@ def append_speed_data(db_serv: DbService, n_entries: int) -> Union[DataFrame, No
     )
 
 def load_speed_data(db_serv: DbService, start_time : datetime.datetime, end_time : datetime.datetime):
-    return db_serv.query(IcuHeartbeat,start_time,end_time)
+    return preprocess_speed(db_serv.query(IcuHeartbeat,start_time,end_time))
 
 
 
@@ -33,10 +33,10 @@ def refresh_mpptPow() -> Union[DataFrame, None]:
 
 def load_mppt_status_data_latest(db_serv: DbService) -> Union[Tuple[DataFrame, DataFrame, DataFrame, DataFrame], None]:
     return (
-        db_serv.latest(MpptStatus0),
-        db_serv.latest(MpptStatus1),
-        db_serv.latest(MpptStatus2),
-        db_serv.latest(MpptStatus3)
+        preprocess_generic(db_serv.latest(MpptStatus0)),
+        preprocess_generic(db_serv.latest(MpptStatus1)),
+        preprocess_generic(db_serv.latest(MpptStatus2)),
+        preprocess_generic(db_serv.latest(MpptStatus3))
     )
 def append_mppt_power0_data(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
     return preprocess_mppt_power(db_serv.query_latest(MpptPowerMeas0, n_entries))

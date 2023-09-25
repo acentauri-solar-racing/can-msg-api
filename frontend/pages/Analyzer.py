@@ -1,12 +1,12 @@
 import datetime
-from typing import Union
+from typing import Union, List
 
 import dash
 import plotly.express as px
 import time
 
 import dash_mantine_components as dmc
-from dash import html, dcc, Input, Output, State, dash_table
+from dash import html, dcc, Input, Output, State, dash_table, ctx
 
 from db.db_service import DbService
 from pandas import DataFrame
@@ -124,6 +124,8 @@ def getMinMaxMeanLast(df: Union[DataFrame, None], col: str, numberFormat: str) -
                 ('{:' + numberFormat + '}').format(df[col][0]))
 
 
+
+
 ########################################################################################################################
 # Layout
 ########################################################################################################################
@@ -156,27 +158,41 @@ def sanity_check(date, start_time, end_time):
 
 
 @dash.callback(
-    Output("table", "data"),
-    Input("submit_button", "n_clicks"),
-    [State("date", "date"),
+    [Output("table", "data"),
+     Output("graphs_analyzer", "children"),
+     Output("table", "active_cell")],
+    [Input("submit_button", "n_clicks"),
+     Input("table", "active_cell")],
+    [State("table", "data"),
+    State("date", "date"),
      State("start_time", "value"),
-     State("end_time", "value")]
+     State("end_time", "value")],
+    config_prevent_initial_callbacks=True
 )
-def update_displayed_data(n_clicks, date, start_time, end_time):
-    if n_clicks is None:    # Ignore callback upon initialization
-        table, _ = initialize_data()
-        return table
+def update_displayed_data(n_clicks: int, active_cell: {}, table_data: [], date: str, start_time: str, end_time: str):
+
+    table = []
+    graph_list = []
+
+    if(ctx.triggered_id == "submit_button"):
+        print(n_clicks)
+        table, graph_list = reload_table_data(date, start_time, end_time)
+    elif(ctx.triggered_id == "table"):
+        graph_list, active_cell = reload_graphs(active_cell)
+        table = table_data
+
+    return table, graph_list, active_cell   # Reset the active cell of the table
+
+def reload_table_data(date, start_time, end_time):
 
     # Combine date out of date input and time out of time . Ignore Microseconds
-    timestamp_start = date[:10] + start_time[10:19]
-    timestamp_end = date[0:10] + end_time[10:19]
-
-    # print("timestamp string:", timestamp_end)
+    start_time = date[:10] + start_time[10:19]
+    end_time = date[0:10] + end_time[10:19]
 
     # convert into datetime objects
     format_string = "%Y-%m-%dT%H:%M:%S"
-    timestamp_start = datetime.datetime.strptime(timestamp_start, format_string)
-    timestamp_end = datetime.datetime.strptime(timestamp_end, format_string)
+    timestamp_start = datetime.datetime.strptime(start_time, format_string)
+    timestamp_end = datetime.datetime.strptime(end_time, format_string)
 
     # get rid of timezone shift
     diff = timestamp_start - timestamp_start.astimezone(datetime.timezone.utc).replace(tzinfo=None)
@@ -198,25 +214,21 @@ def update_displayed_data(n_clicks, date, start_time, end_time):
     # Refresh table layout
     for row in table_layout:
         table.append(row.refresh())
+        row.selected = False    # reset selected view
 
     # delete shown graphs
     global graphs
     graphs = {}
-    update_selected_rows(None)  # update graph view
 
-    return table
+    return table, None
 
 
-@dash.callback(
-    [Output("graphs_analyzer", "children"),
-     Output("table", "active_cell")],
-    Input("table", "active_cell")
-)
-def update_selected_rows(active_cell: {}):
+def reload_graphs(active_cell: {}):
     # Toggles the 'selected' variable of a given Table.DataRow, if the user selected it. 'Consumes' the reference to the
     # active cell, in the sense that it is set to None
     if active_cell is not None:
         row = table_layout[active_cell['row']]
+
         if type(row) == Table.DataRow:
             if row.selected:
                 row.selected = False
@@ -234,9 +246,15 @@ def update_selected_rows(active_cell: {}):
 
     graphs_list = []
     for graph in graphs.values():
-        graphs_list.append(graph)
 
-    return graphs_list, None  # Reset the active cell of the table
+        # Flatten List
+        if type(graph) is list:
+            for item in graph:
+                graphs_list.append(item)
+        else:
+            graphs_list.append(graph)
+
+    return graphs_list, None
 
 
 def layout() -> html.Div:

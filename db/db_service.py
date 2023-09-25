@@ -74,5 +74,5 @@ class DbService:
             return pd.read_sql_query(sql=self.session.query(orm_model)
                                      .filter(and_(orm_model.timestamp >= start_time.timestamp(),
                                                   orm_model.timestamp <= end_time.timestamp()))
-                                     .order_by(orm_model.timestamp.desc()).limit(10000).statement,
+                                     .order_by(orm_model.timestamp.desc()).statement,
                                      con=conn)
