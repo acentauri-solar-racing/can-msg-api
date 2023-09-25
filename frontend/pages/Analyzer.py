@@ -123,6 +123,7 @@ def getMinMaxMeanLast(df: Union[DataFrame, None], col: str, numberFormat: str) -
                 ('{:' + numberFormat + '}').format(df[col].mean()),
                 ('{:' + numberFormat + '}').format(df[col][0]))
 
+
 ########################################################################################################################
 # Layout
 ########################################################################################################################
@@ -144,28 +145,43 @@ def initialize_data() -> tuple:
 
 
 @dash.callback(
+    Output("submit_button", "disabled"),
+    [Input("date", "date"),
+     Input("start_time", "value"),
+     Input("end_time", "value")]
+)
+def sanity_check(date, start_time, end_time):
+    # Check whether date and time input are correct
+    return (date is None) or (start_time is None) or (end_time is None) or (start_time > end_time)
+
+
+@dash.callback(
     Output("table", "data"),
     Input("submit_button", "n_clicks"),
     [State("date", "date"),
-        State("start_time", "value"),
+     State("start_time", "value"),
      State("end_time", "value")]
 )
 def update_displayed_data(n_clicks, date, start_time, end_time):
-    if (n_clicks is None or date is None or start_time is None or end_time is None):  # Ignore callback on initialization or if some information is missing
+    if n_clicks is None:    # Ignore callback upon initialization
         table, _ = initialize_data()
-        if n_clicks is not None:    # Do not print anything on initialization
-            print("Please specify date, start time and end time")
         return table
 
     # Combine date out of date input and time out of time . Ignore Microseconds
-    timestamp_start = date + start_time[10:18]
-    timestamp_end = date + end_time[10:18]
+    timestamp_start = date[:10] + start_time[10:19]
+    timestamp_end = date[0:10] + end_time[10:19]
+
+    # print("timestamp string:", timestamp_end)
 
     # convert into datetime objects
     format_string = "%Y-%m-%dT%H:%M:%S"
     timestamp_start = datetime.datetime.strptime(timestamp_start, format_string)
     timestamp_end = datetime.datetime.strptime(timestamp_end, format_string)
 
+    # get rid of timezone shift
+    diff = timestamp_start - timestamp_start.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+    timestamp_start = timestamp_start + diff
+    timestamp_end = timestamp_end + diff
 
     # update timespan variable
     global timespan_displayed
@@ -220,7 +236,6 @@ def update_selected_rows(active_cell: {}):
     for graph in graphs.values():
         graphs_list.append(graph)
 
-
     return graphs_list, None  # Reset the active cell of the table
 
 
@@ -236,9 +251,11 @@ def layout() -> html.Div:
         children=[
             html.P(id="placeholder_id"),
             html.H1('Analyzer', style=styles.H1, className='text-center'),
-            dcc.DatePickerSingle(id="date"),
-            dmc.TimeInput(id="start_time", label="Start Time", format="24", withSeconds=True, value=datetime.datetime.now()),
-            dmc.TimeInput(id="end_time", label="End Time", format="24", withSeconds=True, value=datetime.datetime.now()),
+            dcc.DatePickerSingle(id="date", date=datetime.datetime.now()),
+            dmc.TimeInput(id="start_time", label="Start Time", format="24", withSeconds=True,
+                          value=datetime.datetime.now()),
+            dmc.TimeInput(id="end_time", label="End Time", format="24", withSeconds=True,
+                          value=datetime.datetime.now()),
             dmc.Button("Submit", id="submit_button"),
             html.Br(),
             dash_table.DataTable(
