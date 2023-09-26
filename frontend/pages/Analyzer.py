@@ -25,6 +25,8 @@ dash.register_page(__name__, path="/analyzer", title="Analyzer")
 ########################################################################################################################
 
 max_idle_time = 2  # Time allowed until a module is flagged as inactive. In seconds
+max_time_offset = 2  # Time offset between two measurements such that they are considered simultaneously. This is used
+# for summing the MPPT-measurements together.
 timespan_loaded = datetime.timedelta(minutes=5)
 timespan_loaded_min = datetime.datetime.now()
 timespan_loaded_max = datetime.datetime.now()
@@ -60,7 +62,7 @@ table_data = {'df_speed': Table.TableDataFrame(load_from_db=load_speed_data),
               'df_cellTemp': Table.TableDataFrame(load_from_db=load_bms_cell_temp_data)}
 
 table_layout = [Table.DataRow(title='Speed [km/h]', df_name='df_speed', df_col='speed', numberFormat='3.1f'),
-                Table.DataRow(title='Motor Output Power [W]', df_name='df_motorPow', df_col='pow',
+                Table.DataRow(title='Motor Output Power [W]', df_name='df_motorPow', df_col='p_out',
                               numberFormat='3.1f'),
                 Table.Row(),
                 Table.DataRow(title='PV Output Power [W]', df_name='df_mpptPow', df_col='p_out', numberFormat='3.1f'),
@@ -96,6 +98,99 @@ graphs = {}  # Will be filled in the function 'initialize_data'
 ########################################################################################################################
 # Helper Functions
 ########################################################################################################################
+
+def get_nearest_index(df: DataFrame, current_idx: int, target_timestamp: float) -> int:
+    idx_max = len(df.index)
+    current_timestamp = df['timestamp'].values[current_idx]
+
+    # Move to next timestamp, if it is closer
+    while current_timestamp > target_timestamp and current_idx < idx_max - 1:
+
+        new_timestamp = df['timestamp'].values[current_idx + 1]
+
+        if abs(new_timestamp - target_timestamp) < (current_timestamp - target_timestamp):
+            current_idx += 1
+            current_timestamp = new_timestamp
+        else:
+            break
+
+    return current_idx
+
+def refresh_motorPow() -> Union[DataFrame, None]:
+    # Calculate the total motor output power, based on the output power of battery and pv.
+    # This function needs the elements to be chronologically ordered with the most recent entry at index 0
+
+    df_batPower = table_data['df_bat_pack'].df
+    df_mpptPow = table_data['df_mpptPow'].df
+
+    if df_batPower is None or df_batPower.empty or df_mpptPow is None or df_mpptPow.empty:
+        print("Couldn't load motor output power")
+        return table_data['df_motorPow'].df
+
+    df_motorPow = pd.DataFrame(columns=['timestamp', 'p_out'])
+    df_motorPow['timestamp'] = df_batPower['timestamp']
+
+    bat_index = mppt_index = 0
+
+    for i in range(len(df_motorPow.index)):
+        timestamp = df_motorPow['timestamp'][i]
+
+        # get index of the nearest timestamp to the one in the output dataframe
+        bat_index = get_nearest_index(df_batPower,bat_index,timestamp)
+        mppt_index = get_nearest_index(df_mpptPow,mppt_index,timestamp)
+
+        timestamp_bat = df_batPower['timestamp'][bat_index]
+        timestamp_mppt = df_mpptPow['timestamp'][mppt_index]
+
+        # Calculate motor power if timestamps are close enough together
+        if abs(timestamp - timestamp_bat) < max_time_offset and abs(timestamp - timestamp_mppt) < max_time_offset:
+            df_motorPow.at[i, 'p_out'] = df_batPower['battery_power'][bat_index] + df_mpptPow['p_out'][mppt_index]
+
+
+    return preprocess_generic(df_motorPow)
+
+
+def refresh_mpptPow() -> Union[DataFrame, None]:
+    # Calculate the total power of the MPPTs, based on the individual measurements of the MPPTs
+    # This function needs the elements to be chronologically ordered with the most recent entry at index 0
+
+    df_mppt0 = table_data['df_mpptPow0'].df
+    df_mppt1 = table_data['df_mpptPow1'].df
+    df_mppt2 = table_data['df_mpptPow2'].df
+    df_mppt3 = table_data['df_mpptPow3'].df
+
+    if df_mppt0 is None or df_mppt0.empty or df_mppt1 is None or df_mppt1.empty or df_mppt2 is None or df_mppt2.empty or df_mppt3 is None or df_mppt3.empty:
+        print("Couldn't load total power of MPPTs")
+        return table_data['df_mpptPow'].df
+
+    df_mpptPow = pd.DataFrame(columns=['timestamp', 'p_out'])
+    df_mpptPow['timestamp'] = df_mppt0['timestamp']
+
+    mppt0_index = mppt1_index = mppt2_index = mppt3_index =0
+
+    for i in range(len(df_mpptPow.index)):
+        timestamp = df_mpptPow['timestamp'].values[i]
+
+        # get index of the nearest timestamp to the one in the output dataframe
+        mppt0_index = get_nearest_index(df_mppt0, mppt0_index, timestamp)
+        mppt1_index = get_nearest_index(df_mppt1, mppt1_index, timestamp)
+        mppt2_index = get_nearest_index(df_mppt2, mppt2_index, timestamp)
+        mppt3_index = get_nearest_index(df_mppt3, mppt3_index, timestamp)
+
+        timestamp_mppt0 = df_mppt0['timestamp'].values[mppt0_index]
+        timestamp_mppt1 = df_mppt1['timestamp'].values[mppt1_index]
+        timestamp_mppt2 = df_mppt2['timestamp'].values[mppt2_index]
+        timestamp_mppt3 = df_mppt3['timestamp'].values[mppt3_index]
+
+        # Calculate Power, if timestamps are close enough together
+        if abs(timestamp_mppt0 - timestamp) < max_time_offset and abs(
+                timestamp_mppt1 - timestamp) < max_time_offset and abs(
+            timestamp_mppt2 - timestamp) < max_time_offset and abs(timestamp_mppt3 - timestamp) < max_time_offset:
+            df_mpptPow.at[i, 'p_out'] = df_mppt0['p_out'].values[mppt0_index] + df_mppt1['p_out'].values[mppt1_index] + \
+                                        df_mppt2['p_out'].values[mppt2_index] + df_mppt3['p_out'].values[mppt3_index]
+
+    return preprocess_generic(df_mpptPow)
+
 
 def refresh(self):
     # This method will be added to the Class Table.DataRow, such that it can be called on instances of the class:
@@ -205,7 +300,10 @@ def reload_table_data(date, start_time, end_time):
     # Refresh table data
     for key in table_data:
         table_data[key].load_from_db(db_serv, timestamp_start, timestamp_end)
-        table_data[key].refresh()
+
+    # Refresh table data that depends on different table data
+    table_data['df_mpptPow'].df = refresh_mpptPow()
+    table_data['df_motorPow'].df = refresh_motorPow()
 
     # Refresh table layout
     for row in table_layout:
