@@ -6,6 +6,7 @@ import plotly.express as px
 import time
 
 import dash_mantine_components as dmc
+import dash_bootstrap_components as dbc
 from dash import html, dcc, Input, Output, State, dash_table, ctx
 
 from db.db_service import DbService
@@ -126,8 +127,6 @@ def getMinMaxMeanLast(df: Union[DataFrame, None], col: str, numberFormat: str) -
                 ('{:' + numberFormat + '}').format(df[col][0]))
 
 
-
-
 ########################################################################################################################
 # Layout
 ########################################################################################################################
@@ -166,27 +165,26 @@ def sanity_check(date, start_time, end_time):
     [Input("submit_button", "n_clicks"),
      Input("table", "active_cell")],
     [State("table", "data"),
-    State("date", "date"),
+     State("date", "date"),
      State("start_time", "value"),
      State("end_time", "value")],
     config_prevent_initial_callbacks=True
 )
 def update_displayed_data(n_clicks: int, active_cell: {}, table_data: [], date: str, start_time: str, end_time: str):
-
     table = []
     graph_list = []
 
-    if(ctx.triggered_id == "submit_button"):
+    if (ctx.triggered_id == "submit_button"):
         print(n_clicks)
         table, graph_list = reload_table_data(date, start_time, end_time)
-    elif(ctx.triggered_id == "table"):
+    elif (ctx.triggered_id == "table"):
         graph_list, active_cell = reload_graphs(active_cell)
         table = table_data
 
-    return table, graph_list, active_cell   # Reset the active cell of the table
+    return table, graph_list, active_cell  # Reset the active cell of the table
+
 
 def reload_table_data(date, start_time, end_time):
-
     # Combine date out of date input and time out of time . Ignore Microseconds
     start_time = date[:10] + start_time[10:19]
     end_time = date[0:10] + end_time[10:19]
@@ -196,6 +194,7 @@ def reload_table_data(date, start_time, end_time):
     format_string = "%Y-%m-%dT%H:%M:%S"
     timespan_loaded_min = datetime.datetime.strptime(start_time, format_string)
     timespan_loaded_max = datetime.datetime.strptime(end_time, format_string)
+    timespan_loaded = timespan_loaded_max - timespan_loaded_min
 
     # get rid of timezone shift -> get timestamp as if the date was at UTC+0
     diff = timespan_loaded_min - timespan_loaded_min.astimezone(datetime.timezone.utc).replace(tzinfo=None)
@@ -213,7 +212,7 @@ def reload_table_data(date, start_time, end_time):
     # Refresh table layout
     for row in table_layout:
         table.append(row.refresh())
-        row.selected = False    # reset selected view
+        row.selected = False  # reset selected view
 
     # delete shown graphs
     global graphs
@@ -238,7 +237,8 @@ def reload_graphs(active_cell: {}):
                 if df is not None and not df.empty:
                     graphs[row.title] = dcc.Graph(
                         figure=px.line(df, title=row.title, template='plotly_white',
-                                       x='timestamp_dt', y=row.df_col, range_x=[timespan_loaded_min, timespan_loaded_max]))
+                                       x='timestamp_dt', y=row.df_col,
+                                       range_x=[timespan_loaded_min, timespan_loaded_max]))
                 else:
                     graphs[row.title] = [html.Br(), html.Br(),
                                          html.H3('No Data available for "%s"' % row.title, style=styles.H3)]
@@ -268,12 +268,25 @@ def layout() -> html.Div:
         children=[
             html.P(id="placeholder_id"),
             html.H1('Analyzer', style=styles.H1, className='text-center'),
-            dcc.DatePickerSingle(id="date", date=datetime.datetime.now()),
-            dmc.TimeInput(id="start_time", label="Start Time", format="24", withSeconds=True,
-                          value=datetime.datetime.now()),
-            dmc.TimeInput(id="end_time", label="End Time", format="24", withSeconds=True,
-                          value=datetime.datetime.now()),
-            dmc.Button("Submit", id="submit_button"),
+            dbc.Container(
+                [
+                    dbc.Row(
+                        [
+                            dbc.Col(html.P("Date"), width="auto", align="center"),
+                            dbc.Col(dcc.DatePickerSingle(id="date", date=datetime.datetime.now()),width="auto", align="center"),
+                            dbc.Col(html.P("Start Time"), width="auto", align="center"),
+                            dbc.Col(dmc.TimeInput(id="start_time", format="24", withSeconds=True,
+                                              value=datetime.datetime.now()), width="auto", align="center"),
+                            dbc.Col(html.P("End Time"), width="auto", align="center"),
+                            dbc.Col(dmc.TimeInput(id="end_time", format="24", withSeconds=True,
+                                              value=datetime.datetime.now()), width="auto", align="center"),
+                            dbc.Col(dmc.Button("Submit", id="submit_button"), width="auto", align="center"),
+                        ],
+                        align="center"
+                    ),
+                ],
+                fluid=True
+            ),
             html.Br(),
             dash_table.DataTable(
                 id='table',
