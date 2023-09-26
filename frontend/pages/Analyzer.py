@@ -25,7 +25,6 @@ dash.register_page(__name__, path="/analyzer", title="Analyzer")
 ########################################################################################################################
 
 max_idle_time = 2  # Time allowed until a module is flagged as inactive. In seconds
-heartbeat_frequency = 16  # Frequency with which the heartbeats are sent [Hz] TODO: Remove this
 timespan_loaded = datetime.timedelta(minutes=5)
 timespan_loaded_min = datetime.datetime.now()
 timespan_loaded_max = datetime.datetime.now()
@@ -175,7 +174,6 @@ def update_displayed_data(n_clicks: int, active_cell: {}, table_data: [], date: 
     graph_list = []
 
     if (ctx.triggered_id == "submit_button"):
-        print(n_clicks)
         table, graph_list = reload_table_data(date, start_time, end_time)
     elif (ctx.triggered_id == "table"):
         graph_list, active_cell = reload_graphs(active_cell)
