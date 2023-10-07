@@ -1,8 +1,9 @@
+import argparse
 import struct
 from datetime import datetime as dt
 from typing import Union, Tuple, Dict
 
-from can import SizedRotatingLogger, Bus, Message
+from can import Bus, Message, SizedRotatingLogger
 
 from db.db_service import DbService
 
@@ -15,17 +16,23 @@ channel = "PCAN_USBBUS1"  # Channel of CAN Analyzer Device
 bitrate = 500000  # Bitrate of device
 file_size = 100000000  # Maximum size of a log file´in bytes
 
+bus = Bus(channel=channel, interface=interface, bitrate=bitrate)    # Bus instance
 ########################################################################################################################
 
-# Create File Name
-dt_string = dt.isoformat(dt.now())  # Get current timestamp
-file_name = dt_string[:-7] + ".log"  # Cut-off subseconds and add file extension
-file_name = file_name.replace(":", "_")  # Create valid filename
-file_name = "logs/" + file_name  # Create the file in the right folder
-
-# Bus instance
-bus = Bus(channel=channel, interface=interface, bitrate=bitrate)
-
+def _create_base_argument_parser(parser: argparse.ArgumentParser) -> None:
+    """Adds common options to an argument parser."""
+    parser.add_argument(
+        "-f",
+        "--file",
+        help=r"Write logged messages into logfile",
+        action="store_true"
+    )
+    parser.add_argument(
+        "-d",
+        "--database",
+        help=r"Write logged messages into database",
+        action="store_true",
+    )
 
 # Parses CAN messages and stores them in the database
 class DatabaseLogger:
@@ -52,25 +59,37 @@ class DatabaseLogger:
         pass
 
 
-########################################################################################################################
-# Uncomment the type of logger you want
-########################################################################################################################
-logger = DatabaseLogger() # Stores messages in the database
-# logger = SizedRotatingLogger(base_filename=file_name, max_bytes=file_size)    # Stores messages to a .log file
-########################################################################################################################
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Manage database connection")
+    _create_base_argument_parser(parser)
+    results, unknown_args = parser.parse_known_args()
 
-print("Started Logger")
+    if results.file:
+        # Write logged messages into logfile
+        dt_string = dt.isoformat(dt.now())  # Get current timestamp
+        file_name = dt_string[:-7] + ".log"  # Cut-off subseconds and add file extension
+        file_name = file_name.replace(":", "_")  # Create valid filename
+        file_name = "logs/" + file_name  # Add folder to filename
 
-try:
-    while True:
-        msg = bus.recv(1)
-        if msg is not None:
-            logger.on_message_received(msg)
+        print(file_name)
 
-except KeyboardInterrupt:
-    pass
-finally:
-    bus.shutdown()
-    logger.stop()
+        logger = SizedRotatingLogger(base_filename=file_name, max_bytes=file_size)
 
-print("Logger terminated")
+    else:
+        # Write logged messages into database (default)
+        logger = DatabaseLogger()
+
+    # Infinite Loop that logs the messages
+    print("Logger started")
+    try:
+        while True:
+            msg = bus.recv(1)
+            if msg is not None:
+                logger.on_message_received(msg)
+
+    except KeyboardInterrupt:
+        pass
+    finally:
+        bus.shutdown()
+        logger.stop()
+        print("Logger gracefully terminated")
