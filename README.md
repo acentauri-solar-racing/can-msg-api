@@ -18,9 +18,7 @@ Install Python 3.x and [Git Bash for Windows](https://gitforwindows.org). Then y
 
 ### SQL / MariaDB (optional)
 
-This step is optional. Maybe you just want to view the values being logged on the CAN bus, but not save them. If you don't want to save decoded values from the CAN bus in a database, just skip this step.
-
-For this I recommend XAMPP as an all-in-one tool to manage SQL databases.
+This step is optional. If you want to store car data, setting up an SQL database is very much recommended. Please refer to `setup_database.md` for more details.
 
 ### Virtualenv
 
@@ -66,36 +64,26 @@ pip install windows-curses
 
 ### CAN Analyzer Drivers
 
-The CAN USB analyzers require some drivers that you can download online. The PCAN driver can be found here:
-
+The CAN USB analyzers require some drivers that you can download online. 
+#### PCAN
+The PCAN driver can be found here:
 - [https://www.peak-system.com/PCAN-USB.199.0.html](https://www.peak-system.com/PCAN-USB.199.0.html)
 
-#### Linux
+#### Seedstudio
+##### Linux
 
 The official seedstudio drivers have errors in them, preventing compilation. Install these drivers instead:
 
 - [https://github.com/juliagoda/CH341SER](https://github.com/juliagoda/CH341SER)
 
-#### Windows
-
+##### Windows
+For Windows, use the official github repository.
 - [https://github.com/SeeedDocument/USB-CAN-Analyzer](https://github.com/SeeedDocument/USB-CAN-Analyzer)
 
 
 ## Configuration
 
-### SQL DB Environment Variables
-
-Make a copy of the file `db/.env.example` and rename the copy to `db/.env`. This file is local and contains configuration strings for your machine that shouldn't be shared in version control.
-
-Then edit the `db/.env` file with the passwords and paths for your machine.
-
 ### Source Tree to Disk
-
-The scripts require you to have an accurate representation of the CAN message tree in the file tree. These files are not in version control to prevent synchronization conflicts. Hence you are required to generate local files using the following commands:
-
-```sh
-python source_tree.py
-```
 
 ## Usage
 
@@ -109,14 +97,8 @@ For details regarding the scripts, refer to [Python CAN docs](https://python-can
 
 ### Logging
 
-In the terminal, run the file `can-logger.sh`. It will create rotating log files capped at 50Mb in the `/logs` folder. Once a file reaches 50Mb, a new file with a different name is created.
-
-```sh
-# example for Linux
-./can-logger.sh -c /dev/ttyUSB0 -b 500000
-```
-
-These log files can be saved and played back with the python-can playback at a later point in time.
+Car data CAN be logged directly into the database or alternatively into a logfile. For more information, please refer
+to the file `can_logger.md`.
 
 ### Playback
 
@@ -124,7 +106,7 @@ These log files can be saved and played back with the python-can playback at a l
 python -m can.player -v -i pcan -b 500000 -c PCAN_USBBUS1 logs/LOGFILE_HERE
 ```
 
-### View
+### View (terminal)
 
 Automatically parses values in CAN bus and shows them in CAN viewer.
 
@@ -146,21 +128,37 @@ Shortcuts:
         +---------+-------------------------------+
 ```
 
+### Dashboard
+
+There exists a dashboard application for plotting performance data of the car, such as speed, battery output power etc.
+The dashboard has a live mode that is intended to monitor the solar racing car while driving. In addition, there's an
+analyzer application that allows to plot performance data in a given time interval for subsequent analysis.
+
+The dashboard application needs the database to be running.
+
+```sh
+python dashboard.py
+```
+
 #### Publish
 
 If you want to send your device a certain message over CAN, you can use the `pub` utility.
 
 ```sh
-python pub.py -t /stwheel/stwheel_heartbeat -c /dev/ttyUSB0 -b 500000 --data 0 0 0
+python pub.py -t /stwheel/stwheel_heartbeat -c PCAN_USBBUS1 -b 500000 --data 0 0 0
 ```
 
 #### Decode
 
-The script `log_decoder.py` watches for modifications to files in the `/logs` folder and reads the newly inserted lines to log files. This decoder can run in real-time as log-files are being written, or also after recording data. New lines might appear because the real-time logging script is active or files from the SD-card logger are moved into the logs folder.
+A decoder program takes logfiles and inserts their data into the database. This is useful for analyzing the data in
+hindsight. For straight-forward usage, type the following command into the terminal.
 
 ```sh
 python log_decoder.py
 ```
+
+However, there are multiple option for the decoder including a live decoder. For more information on the decoder, please
+refer to `log_decoder.md`.
 
 ### Manage DB
 
