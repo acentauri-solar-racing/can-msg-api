@@ -25,8 +25,8 @@ dash.register_page(__name__, path="/analyzer", title="Analyzer")
 ########################################################################################################################
 
 max_idle_time = 2  # Time allowed until a module is flagged as inactive. In seconds
-max_time_offset = 2  # Time offset between two measurements such that they are considered simultaneously. This is used
-# for summing the MPPT-measurements together.
+max_time_offset = 5  # Time offset between two measurements such that they are considered simultaneously. This is used
+# for summing the MPPT-measurements together. In seconds
 timespan_loaded = datetime.timedelta(minutes=5)
 timespan_loaded_min = datetime.datetime.now()
 timespan_loaded_max = datetime.datetime.now()

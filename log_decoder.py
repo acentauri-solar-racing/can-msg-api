@@ -141,7 +141,7 @@ class LogFileParser(LogParser):
                     ctr += 1
 
                     # Print current state
-                    if (ctr % int(n_lines/100) == 0):
+                    if ctr % math.ceil(int(n_lines/100)) == 0:
                         print("Loading from logfile: {:3.0%}".format(ctr/n_lines))
 
                     # skip empty lines
@@ -207,9 +207,9 @@ class LogEventHandler(FileSystemEventHandler, LogParser):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Manage database connection")
-    _create_base_argument_parser(parser)
-    results, unknown_args = parser.parse_known_args()
+    arg_parser = argparse.ArgumentParser(description="Manage database connection")
+    _create_base_argument_parser(arg_parser)
+    results, unknown_args = arg_parser.parse_known_args()
 
     if results.file is not None:
         parser = LogFileParser()
