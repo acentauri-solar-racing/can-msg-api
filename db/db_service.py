@@ -4,7 +4,7 @@ import os
 import pandas as pd
 
 # import all DDL classes
-from models import *
+from db.models import *
 
 from dotenv import dotenv_values
 
