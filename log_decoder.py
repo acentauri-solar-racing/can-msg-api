@@ -67,7 +67,7 @@ class Watcher:
 
 
 class LogParser:
-    db: DbService = DbService()
+    db: DbService = DbService(out_of_folder=False)
     def __init__(self):
         self.lock: Lock = Lock()
 
