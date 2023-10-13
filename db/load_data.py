@@ -96,12 +96,12 @@ def load_bms_cell_temp_data(db_serv: DbService, start_time :datetime.datetime, e
     )
 
 def append_bms_soc_data(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
-    return preprocess_generic(
+    return preprocess_bms_soc_data(
         db_serv.query_latest(BmsPackSoc, n_entries),
     )
 
 def load_bms_soc_data(db_serv: DbService, start_time :datetime.datetime, end_time: datetime.datetime) -> Union[DataFrame, None]:
-    return preprocess_generic(
+    return preprocess_bms_soc_data(
         db_serv.query(BmsPackSoc, start_time, end_time),
     )
 
@@ -151,5 +151,11 @@ def preprocess_bms_pack_data(df: DataFrame) -> DataFrame:
 
     # P = UI (current is given in mV -> multiply with 1e-3 to get W)
     df['battery_power'] = df['battery_voltage'] * df['battery_current'] * 1e-3
+
+    return preprocess_generic(df)
+
+def preprocess_bms_soc_data(df: DataFrame) -> DataFrame:
+
+    df['soc_percent'] = df['soc_percent'] * 100  # Correct scaling
 
     return preprocess_generic(df)
