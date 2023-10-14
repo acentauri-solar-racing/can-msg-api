@@ -118,10 +118,16 @@ class DbService:
 
             Returns:
                 DataFrame: The queried entry"""
-        
         with self.engine.connect() as conn:
             return self.session.query(orm_model).order_by(
                 orm_model.timestamp.desc()).first()
+          
+    def query_latest_from_time(self, orm_model: declarative_base, start_time: datetime.datetime):
+        with self.engine.connect() as conn:
+            return pd.read_sql_query(sql=self.session.query(orm_model)
+                                     .filter(and_(orm_model.timestamp >= start_time.timestamp()))
+                                     .order_by(orm_model.timestamp.desc()).statement,
+                                     con=conn)
 
     def query(self, orm_model: declarative_base, start_time: datetime.datetime, end_time: datetime.datetime):
         """ Query the entries from the DB between two timestamps

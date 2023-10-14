@@ -56,6 +56,10 @@ table_data = {'df_speed': Table.TableDataFrame(load_from_db=load_speed_data),
               'df_mpptPow1': Table.TableDataFrame(load_from_db=load_mppt_power1_data),
               'df_mpptPow2': Table.TableDataFrame(load_from_db=load_mppt_power2_data),
               'df_mpptPow3': Table.TableDataFrame(load_from_db=load_mppt_power3_data),
+              'df_mpptStat0': Table.TableDataFrame(load_from_db=load_mppt_status0_data),
+              'df_mpptStat1': Table.TableDataFrame(load_from_db=load_mppt_status1_data),
+              'df_mpptStat2': Table.TableDataFrame(load_from_db=load_mppt_status2_data),
+              'df_mpptStat3': Table.TableDataFrame(load_from_db=load_mppt_status3_data),
               'df_bat_pack': Table.TableDataFrame(load_from_db=load_bms_pack_data),
               'df_soc': Table.TableDataFrame(load_from_db=load_bms_soc_data),
               'df_cellVolt': Table.TableDataFrame(load_from_db=load_bms_cell_voltage_data),
@@ -87,10 +91,27 @@ table_layout = [Table.DataRow(title='Speed [km/h]', df_name='df_speed', df_col='
                               df_col='min_cell_voltage', numberFormat='3.1f'),
                 Table.DataRow(title='Battery Maximum Cell Voltage [mV]', df_name='df_cellVolt',
                               df_col='max_cell_voltage', numberFormat='3.1f'),
+                Table.Row(),
                 Table.DataRow(title='Battery Minimum Cell Temperature [°C]', df_name='df_cellTemp',
                               df_col='min_cell_temp', numberFormat='3.1f'),
                 Table.DataRow(title='Battery Maximum Cell Temperature [°C]', df_name='df_cellTemp',
-                              df_col='max_cell_temp', numberFormat='3.1f')]
+                              df_col='max_cell_temp', numberFormat='3.1f'),
+                Table.DataRow(title='MPPT String 0 Ambient Temperature [°C]', df_name='df_mpptStat0',
+                              df_col='ambient_temp'),
+                Table.DataRow(title='MPPT String 1 Ambient Temperature [°C]', df_name='df_mpptStat1',
+                              df_col='ambient_temp'),
+                Table.DataRow(title='MPPT String 2 Ambient Temperature [°C]', df_name='df_mpptStat2',
+                              df_col='ambient_temp'),
+                Table.DataRow(title='MPPT String 3 Ambient Temperature [°C]', df_name='df_mpptStat3',
+                              df_col='ambient_temp'),
+                Table.DataRow(title='MPPT String 0 Heatsink Temperature [°C]', df_name='df_mpptStat0',
+                              df_col='heatsink_temp'),
+                Table.DataRow(title='MPPT String 1 Heatsink Temperature [°C]', df_name='df_mpptStat1',
+                              df_col='heatsink_temp'),
+                Table.DataRow(title='MPPT String 2 Heatsink Temperature [°C]', df_name='df_mpptStat2',
+                              df_col='heatsink_temp'),
+                Table.DataRow(title='MPPT String 3 Heatsink Temperature [°C]', df_name='df_mpptStat3',
+                              df_col='heatsink_temp')]
 
 graphs = {}  # Will be filled in the function 'initialize_data'
 
@@ -116,6 +137,7 @@ def get_nearest_index(df: DataFrame, current_idx: int, target_timestamp: float) 
 
     return current_idx
 
+
 def refresh_motorPow() -> Union[DataFrame, None]:
     # Calculate the total motor output power, based on the output power of battery and pv.
     # This function needs the elements to be chronologically ordered with the most recent entry at index 0
@@ -136,8 +158,8 @@ def refresh_motorPow() -> Union[DataFrame, None]:
         timestamp = df_motorPow['timestamp'][i]
 
         # get index of the nearest timestamp to the one in the output dataframe
-        bat_index = get_nearest_index(df_batPower,bat_index,timestamp)
-        mppt_index = get_nearest_index(df_mpptPow,mppt_index,timestamp)
+        bat_index = get_nearest_index(df_batPower, bat_index, timestamp)
+        mppt_index = get_nearest_index(df_mpptPow, mppt_index, timestamp)
 
         timestamp_bat = df_batPower['timestamp'][bat_index]
         timestamp_mppt = df_mpptPow['timestamp'][mppt_index]
@@ -145,7 +167,6 @@ def refresh_motorPow() -> Union[DataFrame, None]:
         # Calculate motor power if timestamps are close enough together
         if abs(timestamp - timestamp_bat) < max_time_offset and abs(timestamp - timestamp_mppt) < max_time_offset:
             df_motorPow.at[i, 'p_out'] = df_batPower['battery_power'][bat_index] + df_mpptPow['p_out'][mppt_index]
-
 
     return preprocess_generic(df_motorPow)
 
@@ -166,7 +187,7 @@ def refresh_mpptPow() -> Union[DataFrame, None]:
     df_mpptPow = pd.DataFrame(columns=['timestamp', 'p_out'])
     df_mpptPow['timestamp'] = df_mppt0['timestamp']
 
-    mppt0_index = mppt1_index = mppt2_index = mppt3_index =0
+    mppt0_index = mppt1_index = mppt2_index = mppt3_index = 0
 
     for i in range(len(df_mpptPow.index)):
         timestamp = df_mpptPow['timestamp'].values[i]
@@ -369,13 +390,14 @@ def layout() -> html.Div:
                     dbc.Row(
                         [
                             dbc.Col(html.P("Date"), width="auto", align="center"),
-                            dbc.Col(dcc.DatePickerSingle(id="date", date=datetime.datetime.now()),width="auto", align="center"),
+                            dbc.Col(dcc.DatePickerSingle(id="date", date=datetime.datetime.now()), width="auto",
+                                    align="center"),
                             dbc.Col(html.P("Start Time"), width="auto", align="center"),
                             dbc.Col(dmc.TimeInput(id="start_time", format="24", withSeconds=True,
-                                              value=datetime.datetime.now()), width="auto", align="center"),
+                                                  value=datetime.datetime.now()), width="auto", align="center"),
                             dbc.Col(html.P("End Time"), width="auto", align="center"),
                             dbc.Col(dmc.TimeInput(id="end_time", format="24", withSeconds=True,
-                                              value=datetime.datetime.now()), width="auto", align="center"),
+                                                  value=datetime.datetime.now()), width="auto", align="center"),
                             dbc.Col(dmc.Button("Submit", id="submit_button"), width="auto", align="center"),
                         ],
                         align="center"
