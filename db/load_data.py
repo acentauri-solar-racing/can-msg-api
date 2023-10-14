@@ -38,6 +38,31 @@ def load_mppt_status_data_latest(db_serv: DbService) -> Union[Tuple[DataFrame, D
         preprocess_generic(db_serv.latest(MpptStatus2)),
         preprocess_generic(db_serv.latest(MpptStatus3))
     )
+
+def append_mppt_status0_data(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
+    return preprocess_generic(db_serv.query_latest(MpptStatus0, n_entries))
+
+def append_mppt_status1_data(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
+    return preprocess_generic(db_serv.query_latest(MpptStatus1, n_entries))
+
+def append_mppt_status2_data(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
+    return preprocess_generic(db_serv.query_latest(MpptStatus2, n_entries))
+
+def append_mppt_status3_data(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
+    return preprocess_generic(db_serv.query_latest(MpptStatus3, n_entries))
+
+def load_mppt_status0_data(db_serv: DbService, start_time : datetime.datetime, end_time : datetime.datetime) -> Union[DataFrame, None]:
+    return preprocess_generic(db_serv.query(MpptStatus0, start_time,end_time))
+
+def load_mppt_status1_data(db_serv: DbService, start_time : datetime.datetime, end_time : datetime.datetime) -> Union[DataFrame, None]:
+    return preprocess_generic(db_serv.query(MpptStatus1, start_time,end_time))
+
+def load_mppt_status2_data(db_serv: DbService, start_time : datetime.datetime, end_time : datetime.datetime) -> Union[DataFrame, None]:
+    return preprocess_generic(db_serv.query(MpptStatus2, start_time,end_time))
+
+def load_mppt_status3_data(db_serv: DbService, start_time : datetime.datetime, end_time : datetime.datetime) -> Union[DataFrame, None]:
+    return preprocess_generic(db_serv.query(MpptStatus3, start_time,end_time))
+
 def append_mppt_power0_data(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
     return preprocess_mppt_power(db_serv.query_latest(MpptPowerMeas0, n_entries))
 
