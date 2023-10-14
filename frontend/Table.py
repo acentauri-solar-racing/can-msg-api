@@ -11,24 +11,18 @@ class Row:
     max: str = ''
     mean: str = ''
     last: str = ''
+    timespan: datetime.timedelta = datetime.timedelta(minutes=5)
 
     # Returns a table row in the format that dash expects
-    def refresh_timespan(self, timespan_displayed: datetime.timedelta) -> {}:
+    def get_row(self) -> {}:
         return {'': self.title,
-                timespan_displayed.__str__() + '\' Min': self.min,
-                timespan_displayed.__str__() + '\' Max': self.max,
-                timespan_displayed.__str__() + '\' Mean': self.mean,
-                timespan_displayed.__str__() + '\' Last': self.last}
-
-    def refresh(self) -> {}:
-        return{'': self.title,
-        'Min': self.min,
-        'Max': self.max,
-        'Mean': self.mean,
-        'Last': self.last}
+                self.timespan.__str__() + '\' Min': self.min,
+                self.timespan.__str__() + '\' Max': self.max,
+                self.timespan.__str__() + '\' Mean': self.mean,
+                self.timespan.__str__() + '\' Last': self.last}
 
 class DataRow(Row):
-    df_name: str
+    df_name: str    # Name of the dataframe
     df_col: str  # Column name in the dataframe
     numberFormat: str  # number format of the displayed values
     selected: bool  # indicates whether a row was selected
@@ -40,18 +34,9 @@ class DataRow(Row):
         self.numberFormat = numberFormat
         self.selected = selected
 
-    def refresh_timespan(self, timespan_displayed: datetime.timedelta) -> {}:
-        print("Unexpected: function 'refresh_timespan' of 'DataRow' is not implemented by the user")
-        return {}
-
-    def refresh(self) -> {}:
-        print("Unexpected: function 'refresh' of 'DataRow' is not implemented by the user")
-        return {}
-
 
 class TableDataFrame:
     df: Union[DataFrame, None] = None
-    max_timespan: datetime.timedelta  # Maximum time between the first and the last entry. This is only checked when using the append_from_db function
 
     def _refresh(self) -> Union[DataFrame, None]:
         return None
@@ -76,7 +61,7 @@ class TableDataFrame:
         print("Unexpected: function '_append_from_db' of 'TableDataFrame' is not implemented by the user")
         return None
 
-    def append_from_db(self, db_service: DbService, n_entries: int) -> None:
+    def append_from_db(self, db_service: DbService, n_entries: int, max_timespan: datetime.timedelta) -> None:
         new_entries = self._append_from_db(db_service, n_entries)
 
         if new_entries is not None:
@@ -90,13 +75,12 @@ class TableDataFrame:
                 new_entries = new_entries.loc[new_entries['timestamp_dt'] > last_timestamp_old]
 
                 # Delete entries that are older than the max timespan
-                self.df = self.df.loc[self.df['timestamp_dt'] + self.max_timespan > last_timestamp_new]
+                self.df = self.df.loc[self.df['timestamp_dt'] + max_timespan > last_timestamp_new]
                 self.df = pd.concat([new_entries, self.df], ignore_index=True)  # Add the latest values to the dataframe
 
-    def __init__(self, max_timespan = datetime.timedelta(minutes=5), refresh=(lambda: None), load_from_db=(lambda db_service, start_time, end_time: None),
+    def __init__(self, refresh=(lambda: None), load_from_db=(lambda db_service, start_time, end_time: None),
                  append_from_db=(lambda db_service, n_entries: None)):
         super().__init__()
-        self.max_timespan = max_timespan
         self._refresh = refresh
         self._load_from_db = load_from_db
         self._append_from_db = append_from_db
