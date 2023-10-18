@@ -24,7 +24,8 @@ def append_speed_data(db_serv: DbService, n_entries: int) -> Union[DataFrame, No
 def load_speed_data(db_serv: DbService, start_time : datetime.datetime, end_time : datetime.datetime):
     return preprocess_speed(db_serv.query(IcuHeartbeat,start_time,end_time))
 
-
+def append_driverResponse(db_serv: DbService, n_entries: int) -> Union[DataFrame, None]:
+    return preprocess_driverResponse(db_serv.query_latest(StwheelHeartbeat,n_entries))
 
 ### MPPTs ##############################################################################################################
 
@@ -145,6 +146,16 @@ def preprocess_speed(df: DataFrame) -> DataFrame:
     """prepare data frame for plotting"""
     # rescale to km/h
     df['speed'] *= 3.6
+
+    return preprocess_generic(df)
+
+
+def preprocess_driverResponse(df: DataFrame) -> DataFrame:
+
+    # Button encoding must be kept up-to-date
+    df['button_yes'] = df['buttons_status'] & (1 << 4) > 1
+    df['button_no'] = df['buttons_status'] & (1 << 5) > 1
+    df['button_unclear'] = df['buttons_status'] & (1 << 6) > 1
 
     return preprocess_generic(df)
 

@@ -49,7 +49,7 @@ def initialize_data() -> tuple:
             dataSection.timespan_loaded.__str__() + ' Max': 'No Data',
             dataSection.timespan_loaded.__str__() + ' Mean': 'No Data',
             dataSection.timespan_loaded.__str__() + ' Last': 'No Data'
-        },
+        }
     ]
 
     # Module Table

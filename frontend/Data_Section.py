@@ -186,6 +186,7 @@ class DataSection:
 
         return preprocess_generic(df_motorPow)
 
+
     def __get_mpptPow(self) -> Union[DataFrame, None]:
         ### Calculate the total power of the MPPTs, based on the individual measurements of the MPPTs
         # This function needs the elements to be chronologically ordered with the most recent entry at index 0 ###
