@@ -1,3 +1,5 @@
+import datetime
+
 import dash
 from dash import html, dcc, dash_table, Output, Input
 from pandas import DataFrame
@@ -15,7 +17,7 @@ timestamp_lastResponse = 0
 button_yes_prev = False
 button_no_prev = False
 button_unclear_prev = False
-table_data = [{'Timestamp': 'No Data', 'Response': 'No Data', 'Delta': 'No Data'}]
+table_data = [{'Timestamp': '', 'Response': '', 'Delta': ''}]
 
 
 @dash.callback(
@@ -35,15 +37,25 @@ def refresh(n_intervals: int) -> []:
     # Append entries to output list
     for idx, row in new_entries.iterrows():
         if row['button_yes'] and not button_yes_prev:
-            table_data.insert(0,{'Timestamp': row['timestamp_df'], 'Response': 'YES', 'Delta': ''})
+            table_data.insert(0,{'Timestamp': row['timestamp_dt'].tz_convert('Australia/Darwin').strftime('%y/%m/%d, %H:%M:%S'), 'Response': 'YES', 'Delta': ''})
             button_yes_prev = True
         elif not row['button_yes']:
             button_yes_prev = False
         if row['button_no'] and not button_no_prev:
-            table_data.insert(0,{'Timestamp': row['timestamp_df'], 'Response': 'NO', 'Delta': ''})
+            table_data.insert(0,{'Timestamp': row['timestamp_dt'].tz_convert('Australia/Darwin').strftime('%y/%m/%d, %H:%M:%S'), 'Response': 'NO', 'Delta': ''})
             button_no_prev  = True
         elif not row['button_no']:
             button_no_prev = False
+        if row['button_unclear'] and not button_unclear_prev:
+            table_data.insert(0,{'Timestamp': row['timestamp_dt'].tz_convert('Australia/Darwin').strftime('%y/%m/%d, %H:%M:%S'), 'Response': 'UNCLEAR', 'Delta': ''})
+            button_unclear_prev  = True
+        elif not row['button_unclear']:
+            button_unclear_prev = False
+
+    # Update Delta Time
+    for row in table_data:
+        if row['Timestamp'] != '':
+            row['Delta'] = str((datetime.datetime.now() - datetime.datetime.strptime(row['Timestamp'],'%y/%m/%d, %H:%M:%S')))
 
     # the latest timestamp is at position 0
     timestamp_lastResponse = df['timestamp'][0]
