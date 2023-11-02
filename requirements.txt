@@ -1,5 +1,6 @@
 dash
 dash_bootstrap_components
+dash_mantine_components
 pandas
 Jinja2
 PyMySQL
