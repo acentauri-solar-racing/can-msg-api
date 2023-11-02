@@ -140,8 +140,6 @@ class DbService:
 
             Returns:
                 DataFrame: The queried entries"""
-
-        print("loading every {}th entry".format(loading_interval))
         
         with self.engine.connect() as conn:
             return pd.read_sql_query(sql=self.session.query(orm_model)

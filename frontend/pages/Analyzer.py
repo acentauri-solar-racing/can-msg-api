@@ -27,6 +27,7 @@ time_loaded_max: datetime.datetime  # Maximum displayed time in the graphs. Upda
 dataSection = DataSection(timespan_loaded=datetime.timedelta(minutes=0), max_time_offset=datetime.timedelta(seconds=30))
 graphs = {}  # Will be filled in the function 'initialize_data'
 
+
 def initialize_data() -> tuple:
     """Produces the default data to be displayed before the page is refreshed"""
 
@@ -46,13 +47,15 @@ def initialize_data() -> tuple:
 
 @dash.callback(
     Output("submit_button", "disabled"),
-    [Input("date", "date"),
+    [Input("start_date", "date"),
+     Input("end_date", "date"),
      Input("start_time", "value"),
      Input("end_time", "value")]
 )
-def sanity_check(date, start_time, end_time):
+def sanity_check(start_date, end_date, start_time, end_time):
     # Check whether date and time input are correct
-    return (date is None) or (start_time is None) or (end_time is None) or (start_time > end_time)
+    return (start_date is None) or (end_date is None) or (start_time is None) or (end_time is None) or (
+            start_date > end_date) or (start_time > end_time)
 
 
 @dash.callback(
@@ -62,19 +65,22 @@ def sanity_check(date, start_time, end_time):
     [Input("submit_button", "n_clicks"),
      Input("table", "active_cell")],
     [State("table", "data"),
-     State("date", "date"),
+     State("start_date", "date"),
+     State("end_date", "date"),
      State("start_time", "value"),
      State("end_time", "value"),
      State("density_slider", "value")],
     config_prevent_initial_callbacks=True
 )
-def update_displayed_data(n_clicks: int, active_cell: {}, table_data: [], date: str, start_time: str, end_time: str,
+def update_displayed_data(n_clicks: int, active_cell: {}, table_data: [], start_date: str, end_date: str,
+                          start_time: str, end_time: str,
                           loading_interval: int):
     table = []
     graph_list = []
 
     if (ctx.triggered_id == "submit_button"):
-        table, graph_list = reload_table_data(date, start_time, end_time, int(10 ** loading_interval))   # Logarithmic slider for loading interval
+        table, graph_list = reload_table_data(start_date, end_date, start_time, end_time,
+                                              int(10 ** loading_interval))  # Logarithmic slider for loading interval
     elif (ctx.triggered_id == "table"):
         graph_list, active_cell = reload_graphs(active_cell)
         table = table_data
@@ -82,10 +88,13 @@ def update_displayed_data(n_clicks: int, active_cell: {}, table_data: [], date: 
     return table, graph_list, active_cell  # Reset the active cell of the table
 
 
-def reload_table_data(date: str, start_time: str, end_time: str, loading_interval: int):
+def reload_table_data(start_date: str, end_date: str, start_time: str, end_time: str, loading_interval: int):
     # Combine date out of date input and time out of time . Ignore Microseconds
-    start_time = date[:10] + start_time[10:19]
-    end_time = date[0:10] + end_time[10:19]
+    print("start time: {}".format(start_time))
+    print("end time: {}".format(end_time))
+
+    start_time = start_date[:10] + start_time[10:19]
+    end_time = end_date[:10] + end_time[10:19]
 
     # Get new timespan
     global time_loaded_min, time_loaded_max
@@ -168,24 +177,40 @@ def layout() -> html.Div:
                 [
                     dbc.Row(
                         [
-                            dbc.Col(html.P("Date"), width="auto", align="center"),
-                            dbc.Col(dcc.DatePickerSingle(id="date", date=datetime.datetime.now()), width="auto",
-                                    align="center"),
-                            dbc.Col(html.P("Start Time"), width="auto", align="center"),
+                            dbc.Col(html.P("Start"), width="1", align="right"),
+                            dbc.Col(dcc.DatePickerSingle(id="start_date", date=datetime.datetime.now()), width="2",
+                                    align="left"),
                             dbc.Col(dmc.TimeInput(id="start_time", format="24", withSeconds=True,
-                                                  value=datetime.datetime.now()), width="auto", align="center"),
-                            dbc.Col(html.P("End Time"), width="auto", align="center"),
-                            dbc.Col(dmc.TimeInput(id="end_time", format="24", withSeconds=True,
-                                                  value=datetime.datetime.now()), width="auto", align="center"),
-                            dbc.Col(html.P("Loading Interval"), width="auto", align="center"),
-                            dcc.Slider(0, 4, 0.01, id='density_slider',
-                                       marks={i: '{}'.format(10 ** i) for i in range(5)}, value=0),
-                            dbc.Col(dmc.Button("Submit", id="submit_button"), width="auto", align="center"),
+                                                  value=datetime.datetime.now()), width="2", align="left"),
                         ],
                         align="center"
                     ),
+                    dbc.Row(
+                        [
+                            dbc.Col(html.P("End"), width="1", align="right"),
+                            dbc.Col(dcc.DatePickerSingle(id="end_date", date=datetime.datetime.now()), width="2",
+                                    align="left"),
+                            dbc.Col(dmc.TimeInput(id="end_time", format="24", withSeconds=True,
+                                                  value=datetime.datetime.now()), width="2", align="left"),
+                        ],
+                        align="center"
+                    ),
+                    dbc.Row(
+                        [
+                            dbc.Col(html.P("Loading Interval"), width="1", align="right"),
+                            dbc.Col(dcc.Slider(0, 4, 0.01, id='density_slider',
+                                               marks={i: '{}'.format(10 ** i) for i in range(5)}, value=0),
+                                    width="11", align="left"),
+                        ],
+                        align="center"
+                    ),
+                    dbc.Row(
+                        [
+                            dbc.Col(dmc.Button("Submit", id="submit_button"), width="auto", align="left"),
+                        ],
+                        align="center"
+                    )
                 ],
-                fluid=True
             ),
             html.Br(),
             dash_table.DataTable(
