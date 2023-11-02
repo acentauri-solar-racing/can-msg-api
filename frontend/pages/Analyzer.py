@@ -64,15 +64,17 @@ def sanity_check(date, start_time, end_time):
     [State("table", "data"),
      State("date", "date"),
      State("start_time", "value"),
-     State("end_time", "value")],
+     State("end_time", "value"),
+     State("density_slider", "value")],
     config_prevent_initial_callbacks=True
 )
-def update_displayed_data(n_clicks: int, active_cell: {}, table_data: [], date: str, start_time: str, end_time: str):
+def update_displayed_data(n_clicks: int, active_cell: {}, table_data: [], date: str, start_time: str, end_time: str,
+                          loading_interval: int):
     table = []
     graph_list = []
 
     if (ctx.triggered_id == "submit_button"):
-        table, graph_list = reload_table_data(date, start_time, end_time)
+        table, graph_list = reload_table_data(date, start_time, end_time, int(10 ** loading_interval))   # Logarithmic slider for loading interval
     elif (ctx.triggered_id == "table"):
         graph_list, active_cell = reload_graphs(active_cell)
         table = table_data
@@ -80,7 +82,7 @@ def update_displayed_data(n_clicks: int, active_cell: {}, table_data: [], date: 
     return table, graph_list, active_cell  # Reset the active cell of the table
 
 
-def reload_table_data(date, start_time, end_time):
+def reload_table_data(date: str, start_time: str, end_time: str, loading_interval: int):
     # Combine date out of date input and time out of time . Ignore Microseconds
     start_time = date[:10] + start_time[10:19]
     end_time = date[0:10] + end_time[10:19]
@@ -101,7 +103,7 @@ def reload_table_data(date, start_time, end_time):
     table = []
 
     # Refresh table data
-    dataSection.refresh(db_serv, timestamp_start, timestamp_end)
+    dataSection.refresh(db_serv, timestamp_start, timestamp_end, loading_interval)
 
     # Refresh table layout
     for row in dataSection.table_layout:
@@ -175,6 +177,9 @@ def layout() -> html.Div:
                             dbc.Col(html.P("End Time"), width="auto", align="center"),
                             dbc.Col(dmc.TimeInput(id="end_time", format="24", withSeconds=True,
                                                   value=datetime.datetime.now()), width="auto", align="center"),
+                            dbc.Col(html.P("Loading Interval"), width="auto", align="center"),
+                            dcc.Slider(0, 4, 0.01, id='density_slider',
+                                       marks={i: '{}'.format(10 ** i) for i in range(5)}, value=0),
                             dbc.Col(dmc.Button("Submit", id="submit_button"), width="auto", align="center"),
                         ],
                         align="center"

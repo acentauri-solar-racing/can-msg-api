@@ -129,20 +129,24 @@ class DbService:
                                      .order_by(orm_model.timestamp.desc()).statement,
                                      con=conn)
 
-    def query(self, orm_model: declarative_base, start_time: datetime.datetime, end_time: datetime.datetime):
+    def query(self, orm_model: declarative_base, start_time: datetime.datetime, end_time: datetime.datetime, loading_interval: int):
         """ Query the entries from the DB between two timestamps
 
             Inputs:
                 orm_model (declarative_base): The ORM model to be queried
                 start_time (datetime.datetime): The start timestamp
                 end_time (datetime.datetime): The end timestamp
+                loading_interval (int): The density of the loaded data. If set to 2, only every second row is loaded
 
             Returns:
                 DataFrame: The queried entries"""
+
+        print("loading every {}th entry".format(loading_interval))
         
         with self.engine.connect() as conn:
             return pd.read_sql_query(sql=self.session.query(orm_model)
                                      .filter(and_(orm_model.timestamp >= start_time.timestamp(),
-                                                  orm_model.timestamp <= end_time.timestamp()))
+                                                  orm_model.timestamp <= end_time.timestamp(),
+                                                  orm_model.id % loading_interval == 0))
                                      .order_by(orm_model.timestamp.desc()).statement,
                                      con=conn)

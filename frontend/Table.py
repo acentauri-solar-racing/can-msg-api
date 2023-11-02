@@ -49,13 +49,13 @@ class TableDataFrame:
         if new_df is not None:
             self.df = new_df
 
-    def _load_from_db(db_service: DbService, start_time: datetime.datetime, end_time: datetime.datetime) -> Union[
+    def _load_from_db(db_service: DbService, start_time: datetime.datetime, end_time: datetime.datetime, loading_interval: int) -> Union[
         DataFrame, None]:
         print("Unexpected: function '_load_from_db' of 'TableDataFrame' is not implemented by the user")
         return None
 
-    def load_from_db(self, db_service: DbService, start_time: datetime.datetime, end_time: datetime.datetime) -> None:
-        self.df = self._load_from_db(db_service, start_time, end_time)
+    def load_from_db(self, db_service: DbService, start_time: datetime.datetime, end_time: datetime.datetime, loading_interval: int = 1) -> None:
+        self.df = self._load_from_db(db_service, start_time, end_time, loading_interval)
 
     def _append_from_db(db_service: DbService, n_entries: int) -> Union[DataFrame, None]:
         print("Unexpected: function '_append_from_db' of 'TableDataFrame' is not implemented by the user")
@@ -78,7 +78,7 @@ class TableDataFrame:
                 self.df = self.df.loc[self.df['timestamp_dt'] + max_timespan > last_timestamp_new]
                 self.df = pd.concat([new_entries, self.df], ignore_index=True)  # Add the latest values to the dataframe
 
-    def __init__(self, refresh=(lambda: None), load_from_db=(lambda db_service, start_time, end_time: None),
+    def __init__(self, refresh=(lambda: None), load_from_db=(lambda db_service, start_time, end_time, loading_interval: None),
                  append_from_db=(lambda db_service, n_entries: None)):
         super().__init__()
         self._refresh = refresh

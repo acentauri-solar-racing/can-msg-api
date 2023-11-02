@@ -123,12 +123,12 @@ class DataSection:
             Table.DataRow(title='MPPT String 3 Heatsink Temperature [°C]', df_name='df_mpptStat3',
                           df_col='heatsink_temp')]
 
-    def refresh(self, db_serv: DbService, timestamp_start: datetime.datetime, timestamp_end: datetime.datetime):
+    def refresh(self, db_serv: DbService, timestamp_start: datetime.datetime, timestamp_end: datetime.datetime, loading_interval: int):
         ### Load new data into dataframes and update the view correspondingly ###
 
         # Load data that just can be pulled from the database
         for key in self.table_data:
-            self.table_data[key].load_from_db(db_serv, timestamp_start, timestamp_end)
+            self.table_data[key].load_from_db(db_serv, timestamp_start, timestamp_end, loading_interval)
 
         # Load data that depends on other data. The order of those calls is important!
         self.table_data['df_mpptPow'].df = self.__get_mpptPow()  # Depends on individual mppt powers

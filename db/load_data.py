@@ -21,8 +21,8 @@ def append_speed_data(db_serv: DbService, n_entries: int) -> Union[DataFrame, No
         db_serv.query_latest(IcuHeartbeat, n_entries)
     )
 
-def load_speed_data(db_serv: DbService, start_time : datetime.datetime, end_time : datetime.datetime):
-    return preprocess_speed(db_serv.query(IcuHeartbeat,start_time,end_time))
+def load_speed_data(db_serv: DbService, start_time : datetime.datetime, end_time : datetime.datetime, loading_interval: int):
+    return preprocess_speed(db_serv.query(IcuHeartbeat,start_time,end_time, loading_interval))
 
 def append_driverResponse(db_serv: DbService, n_entries: int) -> Union[DataFrame, None]:
     return preprocess_driverResponse(db_serv.query_latest(StwheelHeartbeat,n_entries))
@@ -52,41 +52,41 @@ def append_mppt_status2_data(db_serv: DbService, n_entries) -> Union[DataFrame, 
 def append_mppt_status3_data(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
     return preprocess_generic(db_serv.query_latest(MpptStatus3, n_entries))
 
-def load_mppt_status0_data(db_serv: DbService, start_time : datetime.datetime, end_time : datetime.datetime) -> Union[DataFrame, None]:
-    return preprocess_generic(db_serv.query(MpptStatus0, start_time,end_time))
+def load_mppt_status0_data(db_serv: DbService, start_time : datetime.datetime, end_time : datetime.datetime, loading_interval: int) -> Union[DataFrame, None]:
+    return preprocess_generic(db_serv.query(MpptStatus0, start_time,end_time, loading_interval))
 
-def load_mppt_status1_data(db_serv: DbService, start_time : datetime.datetime, end_time : datetime.datetime) -> Union[DataFrame, None]:
-    return preprocess_generic(db_serv.query(MpptStatus1, start_time,end_time))
+def load_mppt_status1_data(db_serv: DbService, start_time : datetime.datetime, end_time : datetime.datetime, loading_interval: int) -> Union[DataFrame, None]:
+    return preprocess_generic(db_serv.query(MpptStatus1, start_time,end_time, loading_interval))
 
-def load_mppt_status2_data(db_serv: DbService, start_time : datetime.datetime, end_time : datetime.datetime) -> Union[DataFrame, None]:
-    return preprocess_generic(db_serv.query(MpptStatus2, start_time,end_time))
+def load_mppt_status2_data(db_serv: DbService, start_time : datetime.datetime, end_time : datetime.datetime, loading_interval: int) -> Union[DataFrame, None]:
+    return preprocess_generic(db_serv.query(MpptStatus2, start_time,end_time, loading_interval))
 
-def load_mppt_status3_data(db_serv: DbService, start_time : datetime.datetime, end_time : datetime.datetime) -> Union[DataFrame, None]:
-    return preprocess_generic(db_serv.query(MpptStatus3, start_time,end_time))
+def load_mppt_status3_data(db_serv: DbService, start_time : datetime.datetime, end_time : datetime.datetime, loading_interval: int) -> Union[DataFrame, None]:
+    return preprocess_generic(db_serv.query(MpptStatus3, start_time,end_time, loading_interval))
 
 def append_mppt_power0_data(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
     return preprocess_mppt_power(db_serv.query_latest(MpptPowerMeas0, n_entries))
 
-def load_mppt_power0_data(db_serv: DbService,  start_time : datetime.datetime, end_time : datetime.datetime) -> Union[DataFrame, None]:
-    return preprocess_mppt_power(db_serv.query(MpptPowerMeas0, start_time,end_time))
+def load_mppt_power0_data(db_serv: DbService,  start_time : datetime.datetime, end_time : datetime.datetime, loading_interval: int) -> Union[DataFrame, None]:
+    return preprocess_mppt_power(db_serv.query(MpptPowerMeas0, start_time,end_time, loading_interval))
 
 def append_mppt_power1_data(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
     return preprocess_mppt_power(db_serv.query_latest(MpptPowerMeas1, n_entries))
 
-def load_mppt_power1_data(db_serv: DbService,  start_time : datetime.datetime, end_time : datetime.datetime) -> Union[DataFrame, None]:
-    return preprocess_mppt_power(db_serv.query(MpptPowerMeas1, start_time,end_time))
+def load_mppt_power1_data(db_serv: DbService,  start_time : datetime.datetime, end_time : datetime.datetime, loading_interval: int) -> Union[DataFrame, None]:
+    return preprocess_mppt_power(db_serv.query(MpptPowerMeas1, start_time,end_time, loading_interval))
 
 def append_mppt_power2_data(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
     return preprocess_mppt_power(db_serv.query_latest(MpptPowerMeas2, n_entries))
 
-def load_mppt_power2_data(db_serv: DbService,  start_time : datetime.datetime, end_time : datetime.datetime) -> Union[DataFrame, None]:
-    return preprocess_mppt_power(db_serv.query(MpptPowerMeas2, start_time,end_time))
+def load_mppt_power2_data(db_serv: DbService,  start_time : datetime.datetime, end_time : datetime.datetime, loading_interval: int) -> Union[DataFrame, None]:
+    return preprocess_mppt_power(db_serv.query(MpptPowerMeas2, start_time,end_time, loading_interval))
 
 def append_mppt_power3_data(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
     return preprocess_mppt_power(db_serv.query_latest(MpptPowerMeas3, n_entries))
 
-def load_mppt_power3_data(db_serv: DbService,  start_time : datetime.datetime, end_time : datetime.datetime) -> Union[DataFrame, None]:
-    return preprocess_mppt_power(db_serv.query(MpptPowerMeas3, start_time,end_time))
+def load_mppt_power3_data(db_serv: DbService,  start_time : datetime.datetime, end_time : datetime.datetime, loading_interval: int) -> Union[DataFrame, None]:
+    return preprocess_mppt_power(db_serv.query(MpptPowerMeas3, start_time,end_time, loading_interval))
 
 
 
@@ -96,9 +96,9 @@ def append_bms_pack_data(db_serv: DbService, n_entries) -> Union[DataFrame, None
         db_serv.query_latest(BmsPackVoltageCurrent, n_entries),
     )
 
-def load_bms_pack_data(db_serv: DbService, start_time :datetime.datetime, end_time: datetime.datetime) -> Union[DataFrame, None]:
+def load_bms_pack_data(db_serv: DbService, start_time :datetime.datetime, end_time: datetime.datetime, loading_interval: int) -> Union[DataFrame, None]:
     return preprocess_bms_pack_data(
-        db_serv.query(BmsPackVoltageCurrent, start_time, end_time),
+        db_serv.query(BmsPackVoltageCurrent, start_time, end_time, loading_interval),
     )
 
 def append_bms_cell_voltage_data(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
@@ -106,9 +106,9 @@ def append_bms_cell_voltage_data(db_serv: DbService, n_entries) -> Union[DataFra
         db_serv.query_latest((BmsMinMaxCellVoltage), n_entries)
     )
 
-def load_bms_cell_voltage_data(db_serv: DbService, start_time :datetime.datetime, end_time: datetime.datetime) -> Union[DataFrame, None]:
+def load_bms_cell_voltage_data(db_serv: DbService, start_time :datetime.datetime, end_time: datetime.datetime, loading_interval: int) -> Union[DataFrame, None]:
     return preprocess_generic(
-        db_serv.query(BmsMinMaxCellVoltage, start_time, end_time),
+        db_serv.query(BmsMinMaxCellVoltage, start_time, end_time, loading_interval),
     )
 
 def append_bms_cell_temp_data(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
@@ -116,9 +116,9 @@ def append_bms_cell_temp_data(db_serv: DbService, n_entries) -> Union[DataFrame,
         db_serv.query_latest(BmsMinMaxCellTemp, n_entries)
     )
 
-def load_bms_cell_temp_data(db_serv: DbService, start_time :datetime.datetime, end_time: datetime.datetime) -> Union[DataFrame, None]:
+def load_bms_cell_temp_data(db_serv: DbService, start_time :datetime.datetime, end_time: datetime.datetime, loading_interval: int) -> Union[DataFrame, None]:
     return preprocess_bms_cell_temp(
-        db_serv.query(BmsMinMaxCellTemp, start_time, end_time),
+        db_serv.query(BmsMinMaxCellTemp, start_time, end_time, loading_interval),
     )
 
 def append_bms_soc_data(db_serv: DbService, n_entries) -> Union[DataFrame, None]:
@@ -126,9 +126,9 @@ def append_bms_soc_data(db_serv: DbService, n_entries) -> Union[DataFrame, None]
         db_serv.query_latest(BmsPackSoc, n_entries),
     )
 
-def load_bms_soc_data(db_serv: DbService, start_time :datetime.datetime, end_time: datetime.datetime) -> Union[DataFrame, None]:
+def load_bms_soc_data(db_serv: DbService, start_time :datetime.datetime, end_time: datetime.datetime, loading_interval: int) -> Union[DataFrame, None]:
     return preprocess_bms_soc_data(
-        db_serv.query(BmsPackSoc, start_time, end_time),
+        db_serv.query(BmsPackSoc, start_time, end_time, loading_interval),
     )
 
 
