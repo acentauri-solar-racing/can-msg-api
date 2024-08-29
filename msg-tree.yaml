@@ -987,7 +987,7 @@ vcu:
         idx: 0
         endian: "little"
   vcu_pv_enable_1:
-    id:  "0x219"
+    id: "0x219"
     id_type: "std"
     dlc: 1
     data:
@@ -1096,6 +1096,178 @@ inverter:
         type: data_32
         idx: 0
         endian: "big"
+
+wavesculptor22:
+  # Motor commands @ base address 0x400
+  drive_cmd:
+    id: "0x401"
+    id_type: "std"
+    dlc: 8
+    data:
+      motor_current_frac:
+        type: data_fp
+        idx: 0
+        endian: "little"
+      motor_vel_rpm:
+        type: data_fp
+        idx: 1
+        endian: "little"
+  power_cmd:
+    id: "0x402"
+    id_type: "std"
+    dlc: 8
+    data:
+      bus_current_frac:
+        type: data_fp
+        idx: 0
+        endian: "little"
+      reserved:
+        type: data_fp
+        idx: 1
+        endian: "little"
+  reset_cmd:
+    id: "0x403"
+    id_type: "std"
+    dlc: 8
+    data:
+      unused1:
+        type: data_fp
+        idx: 0
+        endian: "little"
+      unused2:
+        type: data_fp
+        idx: 1
+        endian: "little"
+  # Motor status readings @ base address 0x420
+  status:
+    id: "0x421"
+    id_type: "std"
+    dlc: 8
+    data:
+      rx_err_cnt:
+        type: data_u8
+        idx: 0
+        endian: "little"
+      tx_err_cnt:
+        type: data_u8
+        idx: 1
+        endian: "little"
+      active_motor:
+        type: data_u16
+        idx: 1
+        endian: "little"
+      error_flags:
+        type: data_u16
+        idx: 2
+        endian: "little"
+      limit_flags:
+        type: data_u16
+        idx: 3
+        endian: "little"
+  bus_meas:
+    id: "0x422"
+    id_type: "std"
+    dlc: 8
+    data:
+      bus_current_a:
+        type: data_fp
+        idx: 0
+        endian: "little"
+      bus_voltage_v:
+        type: data_fp
+        idx: 1
+        endian: "little"
+  vel_meas:
+    id: "0x423"
+    id_type: "std"
+    dlc: 8
+    data:
+      vehic_vel_mpros:
+        type: data_fp
+        idx: 0
+        endian: "little"
+      motor_vel_rpm:
+        type: data_fp
+        idx: 1
+        endian: "little"
+  phase_curr_meas:
+    id: "0x424"
+    id_type: "std"
+    dlc: 8
+    data:
+      phase_c_curr_a:
+        type: data_fp
+        idx: 0
+        endian: "little"
+      phase_b_curr_a:
+        type: data_fp
+        idx: 1
+        endian: "little"
+  mot_volt_vect_meas:
+    id: "0x425"
+    id_type: "std"
+    dlc: 8
+    data:
+      vd_real_v:
+        type: data_fp
+        idx: 0
+        endian: "little"
+      vq_imag_v:
+        type: data_fp
+        idx: 1
+        endian: "little"
+  mot_curr_vect_meas:
+    id: "0x426"
+    id_type: "std"
+    dlc: 8
+    data:
+      id_real_a:
+        type: data_fp
+        idx: 0
+        endian: "little"
+      iq_imag_a:
+        type: data_fp
+        idx: 1
+        endian: "little"
+  mot_backemf_meas:
+    id: "0x427"
+    id_type: "std"
+    dlc: 8
+    data:
+      bemfd_v:
+        type: data_fp
+        idx: 0
+        endian: "little"
+      bemfq_v:
+        type: data_fp
+        idx: 1
+        endian: "little"
+  hs_mot_temp_meas:
+    id: "0x42B"
+    id_type: "std"
+    dlc: 8
+    data:
+      heatsink_temp_c:
+        type: data_fp
+        idx: 0
+        endian: "little"
+      motor_temp_c:
+        type: data_fp
+        idx: 1
+        endian: "little"
+  dsp_temp_meas:
+    id: "0x42C"
+    id_type: "std"
+    dlc: 8
+    data:
+      reserved:
+        type: data_fp
+        idx: 0
+        endian: "little"
+      dsp_temp_c:
+        type: data_fp
+        idx: 1
+        endian: "little"
 
 # Used for default implementations in templates
 default:
