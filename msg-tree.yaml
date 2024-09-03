@@ -1104,11 +1104,11 @@ wavesculptor22:
     id_type: "std"
     dlc: 8
     data:
-      motor_current_frac:
+      motor_vel_rpm:
         type: data_fp
         idx: 0
-        endian: "little"
-      motor_vel_rpm:
+        endian: "little"      
+      motor_current_frac:
         type: data_fp
         idx: 1
         endian: "little"
@@ -1117,11 +1117,11 @@ wavesculptor22:
     id_type: "std"
     dlc: 8
     data:
-      bus_current_frac:
+      reserved:
         type: data_fp
         idx: 0
-        endian: "little"
-      reserved:
+        endian: "little" 
+      bus_current_frac:
         type: data_fp
         idx: 1
         endian: "little"
@@ -1130,11 +1130,11 @@ wavesculptor22:
     id_type: "std"
     dlc: 8
     data:
-      unused1:
+      unused2:
         type: data_fp
         idx: 0
         endian: "little"
-      unused2:
+      unused1:
         type: data_fp
         idx: 1
         endian: "little"
@@ -1144,36 +1144,36 @@ wavesculptor22:
     id_type: "std"
     dlc: 8
     data:
-      rx_err_cnt:
-        type: data_u8
+      limit_flags:
+        type: data_u16
         idx: 0
         endian: "little"
-      tx_err_cnt:
-        type: data_u8
+      error_flags:
+        type: data_u16
         idx: 1
         endian: "little"
       active_motor:
         type: data_u16
-        idx: 1
-        endian: "little"
-      error_flags:
-        type: data_u16
         idx: 2
         endian: "little"
-      limit_flags:
-        type: data_u16
+      tx_err_cnt:
+        type: data_u8
         idx: 3
+        endian: "little"
+      rx_err_cnt:
+        type: data_u8
+        idx: 4
         endian: "little"
   bus_meas:
     id: "0x422"
     id_type: "std"
     dlc: 8
     data:
-      bus_current_a:
+      bus_voltage_v:
         type: data_fp
         idx: 0
         endian: "little"
-      bus_voltage_v:
+      bus_current_a:
         type: data_fp
         idx: 1
         endian: "little"
@@ -1195,11 +1195,11 @@ wavesculptor22:
     id_type: "std"
     dlc: 8
     data:
-      phase_c_curr_a:
+      phase_b_curr_a:
         type: data_fp
         idx: 0
         endian: "little"
-      phase_b_curr_a:
+      phase_c_curr_a:
         type: data_fp
         idx: 1
         endian: "little"
@@ -1208,11 +1208,11 @@ wavesculptor22:
     id_type: "std"
     dlc: 8
     data:
-      vd_real_v:
+      vq_imag_v:
         type: data_fp
         idx: 0
         endian: "little"
-      vq_imag_v:
+      vd_real_v:
         type: data_fp
         idx: 1
         endian: "little"
@@ -1221,24 +1221,24 @@ wavesculptor22:
     id_type: "std"
     dlc: 8
     data:
-      id_real_a:
-        type: data_fp
-        idx: 0
-        endian: "little"
       iq_imag_a:
         type: data_fp
         idx: 1
+        endian: "little"
+      id_real_a:
+        type: data_fp
+        idx: 0
         endian: "little"
   mot_backemf_meas:
     id: "0x427"
     id_type: "std"
     dlc: 8
     data:
-      bemfd_v:
+      bemfq_v:
         type: data_fp
         idx: 0
         endian: "little"
-      bemfq_v:
+      bemfd_v:
         type: data_fp
         idx: 1
         endian: "little"
@@ -1247,11 +1247,11 @@ wavesculptor22:
     id_type: "std"
     dlc: 8
     data:
-      heatsink_temp_c:
+      motor_temp_c:
         type: data_fp
         idx: 0
         endian: "little"
-      motor_temp_c:
+      heatsink_temp_c:
         type: data_fp
         idx: 1
         endian: "little"
@@ -1260,11 +1260,11 @@ wavesculptor22:
     id_type: "std"
     dlc: 8
     data:
-      reserved:
+      dsp_temp_c:
         type: data_fp
         idx: 0
         endian: "little"
-      dsp_temp_c:
+      reserved:
         type: data_fp
         idx: 1
         endian: "little"
