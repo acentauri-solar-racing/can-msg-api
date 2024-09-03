@@ -1199,7 +1199,7 @@ wavesculptor22:
         type: data_fp
         idx: 0
         endian: "little"
-        phase_c_curr_a:
+      phase_c_curr_a:
         type: data_fp
         idx: 1
         endian: "little"
